@@ -1,19 +1,13 @@
 package com.mactso.spawnbalanceutility;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.EntityType;
-import net.minecraft.item.Item;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.util.SoundEvent;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import com.mactso.spawnbalanceutility.config.MyConfig;
+import com.mactso.spawnbalanceutility.util.SpawnData;
+
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
@@ -44,15 +38,6 @@ public class Main {
 				//				MinecraftForge.EVENT_BUS.register(new MyEntityPlaceEvent());
 		}   
 
-		@OnlyIn(Dist.CLIENT)
-		@SubscribeEvent
-		public void setupClient(final FMLClientSetupEvent event)
-		{
-			Minecraft mc = event.getMinecraftSupplier().get();
-//			ModEntities.register(mc.getRenderManager());
-		}
-		
-		
 		@Mod.EventBusSubscriber(bus=Mod.EventBusSubscriber.Bus.MOD)
 	    public static class ModEvents
 	    {
