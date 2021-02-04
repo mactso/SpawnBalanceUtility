@@ -10,6 +10,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.text.Color;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec.BooleanValue;
 import net.minecraftforge.common.ForgeConfigSpec.DoubleValue;
 import net.minecraftforge.common.ForgeConfigSpec.IntValue;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -27,35 +28,10 @@ public class MyConfig {
 		COMMON = specPair.getLeft();
 	}
 
-	public static int getDebugLevel() {
-		return debugLevel;
-	}
-
-	public static void setDebugLevel(int debugLevel) {
-		MyConfig.debugLevel = debugLevel;
-	}
-
-	public static double getHealingPerSecond() {
-		return healingPerSecond;
-	}
-
-	public static double getMinimumFoodHealingLevel() {
-		return minimumFoodHealingLevel;
-	}
-
-	public static double getHealingExhaustionCost() {
-		return healingExhaustionCost;
-	}
-
-	public static double getWakeupHealingAmount() {
-		return wakeupHealingAmount;
-	}
-
 	public static int debugLevel;
-	private static double healingPerSecond;
-	private static double minimumFoodHealingLevel;
-	private static double healingExhaustionCost;
-	private static double wakeupHealingAmount;
+	private static boolean generateReport;
+	private static boolean balanceSpawnValues;
+	private static boolean fixSpawnValues;
 
 	@SubscribeEvent
 	public static void onModConfigEvent(final ModConfig.ModConfigEvent configEvent) {
@@ -74,22 +50,39 @@ public class MyConfig {
 	public static void bakeConfig() {
 
 		debugLevel = COMMON.debugLevel.get();
-		healingPerSecond = COMMON.healingPerSecond.get();
-		minimumFoodHealingLevel = COMMON.minimumFoodHealingLevel.get();
-		healingExhaustionCost = COMMON.healingExhaustionCost.get();
-		wakeupHealingAmount = COMMON.wakeupHealingAmount.get();
+		generateReport = COMMON.generateReport.get();
+		balanceSpawnValues = COMMON.balanceSpawnValues.get();
+		fixSpawnValues = COMMON.fixSpawnValues.get();
 		if (debugLevel > 0) {
 			System.out.println("HarderNaturalHealing Debug: " + debugLevel);
 		}
+	}
+	public static int getDebugLevel() {
+		return debugLevel;
+	}
+
+	public static void setDebugLevel(int debugLevel) {
+		MyConfig.debugLevel = debugLevel;
+	}
+	
+	public static boolean isGenerateReport() {
+		return generateReport;
+	}
+
+	public static boolean isBalanceSpawnValues() {
+		return balanceSpawnValues;
+	}
+
+	public static boolean isFixSpawnValues() {
+		return fixSpawnValues;
 	}
 
 	public static class Common {
 
 		public final IntValue debugLevel;
-		public final DoubleValue healingPerSecond;
-		public final DoubleValue minimumFoodHealingLevel;
-		public final DoubleValue healingExhaustionCost;
-		public final DoubleValue wakeupHealingAmount;
+		public final BooleanValue generateReport;
+		public final BooleanValue balanceSpawnValues;
+		public final BooleanValue fixSpawnValues;
 
 		public Common(ForgeConfigSpec.Builder builder) {
 			builder.push("Harder Natural Healing Control Values");
@@ -97,21 +90,17 @@ public class MyConfig {
 			debugLevel = builder.comment("Debug Level: 0 = Off, 1 = Log, 2 = Chat+Log")
 					.translation(Main.MODID + ".config." + "debugLevel").defineInRange("debugLevel", () -> 0, 0, 2);
 
-			healingPerSecond = builder.comment("healingPerSecond")
-					.translation(Main.MODID + ".config." + "healingPerSecond")
-					.defineInRange("healingPerSecond", () -> 0.25, 0.0, 10.0);
+			generateReport = builder.comment("generateReport")
+					.translation(Main.MODID + ".config." + "generateReport")
+					.define("generateReport", false);
 
-			minimumFoodHealingLevel = builder.comment("minimumFoodHealingLevel")
-					.translation(Main.MODID + ".config." + "minimumFoodHealingLevel")
-					.defineInRange("minimumFoodHealingLevel", () -> 16.0, 0.0, 22.0);
+			balanceSpawnValues = builder.comment("balanceSpawnValues")
+					.translation(Main.MODID + ".config." + "balanceSpawnValues")
+					.define("balanceSpawnValues", false);
 
-			healingExhaustionCost = builder.comment("healingExhaustionCost - Hunger exhausted per healing event.")
-					.translation(Main.MODID + ".config." + "healingExhaustionCost")
-					.defineInRange("healingExhaustionCost", () -> 1.0, 0.0, 10.0);
-
-			wakeupHealingAmount = builder.comment("wakeupHealingAmount")
-					.translation(Main.MODID + ".config." + "wakeupHealingAmount")
-					.defineInRange("wakeupHealingAmount", () -> 4.0, 0.0, 10.0);
+			fixSpawnValues = builder.comment("fixSpawnValues")
+					.translation(Main.MODID + ".config." + "fixSpawnValues")
+					.define("fixSpawnValues", false);
 
 			builder.pop();
 		}

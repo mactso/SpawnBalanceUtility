@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
+import com.mactso.spawnbalanceutility.config.MyConfig;
+
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.world.biome.MobSpawnInfo.Spawners;
 import net.minecraftforge.common.world.MobSpawnInfoBuilder;
@@ -17,10 +19,12 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 public class SpawnData
 {
 	static {
-		File fb = new File("BiomeMobWeight.txt");
-		fb.delete();
-		File fs = new File("StructMobWeight.txt");
-		fs.delete();
+		File fd = new File("config/spawnbalanceutility");
+		if (!fd.exists()) fd.mkdir();
+		File fb = new File("config/spawnbalanceutility/BiomeMobWeight.txt");
+		if (fb.exists()) fb.delete();
+		File fs = new File("config/spawnbalanceutility/StructMobWeight.txt");
+		if (fb.exists()) fs.delete();
 	}
 	
 	@SubscribeEvent (priority=EventPriority.LOWEST)
@@ -32,10 +36,11 @@ public class SpawnData
 		if (threadname.equals("Render thread")) {
 			return;
 		}
+		
 		// may be 'format'
 		PrintStream p=null;
 		try {
-			p = new PrintStream(new  FileOutputStream("BiomeMobWeight.txt",true));
+			p = new PrintStream(new  FileOutputStream("config/spawnbalanceutility/BiomeMobWeight.txt",true));
 		} catch (IOException e) {
             e.printStackTrace();
         }
@@ -66,7 +71,7 @@ public class SpawnData
 	{
 		PrintStream p=null;
 		try {
-			p = new PrintStream(new  FileOutputStream("StructMobWeight.txt",true));
+			p = new PrintStream(new  FileOutputStream("config/spawnbalanceutility/StructMobWeight.txt",true));
 		} catch (IOException e) {
             e.printStackTrace();
         }
