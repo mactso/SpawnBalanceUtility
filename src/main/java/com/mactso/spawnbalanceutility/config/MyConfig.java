@@ -5,6 +5,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mactso.spawnbalanceutility.Main;
+import com.mactso.spawnbalanceutility.util.BiomeCreatureManager;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.text.Color;
@@ -28,13 +29,49 @@ public class MyConfig {
 		COMMON = specPair.getLeft();
 	}
 
+	public static int getDebugLevel() {
+		return debugLevel;
+	}
+
+	public static void setDebugLevel(int debugLevel) {
+		MyConfig.debugLevel = debugLevel;
+	}
+
+	public static boolean isGenerateReport() {
+		return generateReport;
+	}
+
+	public static boolean isFixEmptyNether() {
+		return fixEmptyNether;
+	}
+
+	public static boolean isBalanceSpawnValues() {
+		return balanceSpawnValues;
+	}
+
+	public static boolean isFixSpawnValues() {
+		return fixSpawnValues;
+	}
+
+	public static int getMinSpawnWeight() {
+		return minSpawnWeight;
+	}
+
+	public static int getMaxSpawnWeight() {
+		return maxSpawnWeight;
+	}
+
 	public static int debugLevel;
 	private static boolean generateReport;
+	private static boolean fixEmptyNether;
 	private static boolean balanceSpawnValues;
 	private static boolean fixSpawnValues;
-
+	public static int minSpawnWeight;
+	public static int maxSpawnWeight;
+	
 	@SubscribeEvent
 	public static void onModConfigEvent(final ModConfig.ModConfigEvent configEvent) {
+		System.out.println("Spawn Balance Config Event");
 		if (configEvent.getConfig().getSpec() == MyConfig.COMMON_SPEC) {
 			bakeConfig();
 		}
@@ -51,56 +88,58 @@ public class MyConfig {
 
 		debugLevel = COMMON.debugLevel.get();
 		generateReport = COMMON.generateReport.get();
+		fixEmptyNether  = COMMON.fixEmptyNether.get();
 		balanceSpawnValues = COMMON.balanceSpawnValues.get();
 		fixSpawnValues = COMMON.fixSpawnValues.get();
+		minSpawnWeight = COMMON.minSpawnWeight.get();
+		maxSpawnWeight = COMMON.maxSpawnWeight.get();
+		
 		if (debugLevel > 0) {
 			System.out.println("HarderNaturalHealing Debug: " + debugLevel);
 		}
-	}
-	public static int getDebugLevel() {
-		return debugLevel;
-	}
-
-	public static void setDebugLevel(int debugLevel) {
-		MyConfig.debugLevel = debugLevel;
+		
+		BiomeCreatureManager.biomeCreatureInit();
 	}
 	
-	public static boolean isGenerateReport() {
-		return generateReport;
-	}
-
-	public static boolean isBalanceSpawnValues() {
-		return balanceSpawnValues;
-	}
-
-	public static boolean isFixSpawnValues() {
-		return fixSpawnValues;
-	}
-
 	public static class Common {
+
+
 
 		public final IntValue debugLevel;
 		public final BooleanValue generateReport;
-		public final BooleanValue balanceSpawnValues;
 		public final BooleanValue fixSpawnValues;
-
+		public final BooleanValue fixEmptyNether;
+		public final BooleanValue balanceSpawnValues;
+		public final IntValue minSpawnWeight;
+		public final IntValue maxSpawnWeight;
+		
 		public Common(ForgeConfigSpec.Builder builder) {
 			builder.push("Harder Natural Healing Control Values");
 
 			debugLevel = builder.comment("Debug Level: 0 = Off, 1 = Log, 2 = Chat+Log")
 					.translation(Main.MODID + ".config." + "debugLevel").defineInRange("debugLevel", () -> 0, 0, 2);
+			
+			minSpawnWeight = builder.comment("minimum Spawn Weight")
+					.translation(Main.MODID + ".config." + "minSpawnWeight").defineInRange("minSpawnWeight", () -> 10, 1, 1000);
+
+			maxSpawnWeight = builder.comment("maximum Spawn Weight")
+					.translation(Main.MODID + ".config." + "maxSpawnWeight").defineInRange("maxSpawnWeight", () -> 80, 1, 1000);
 
 			generateReport = builder.comment("generateReport")
 					.translation(Main.MODID + ".config." + "generateReport")
-					.define("generateReport", false);
+					.define("generateReport", true);
 
-			balanceSpawnValues = builder.comment("balanceSpawnValues")
+			fixEmptyNether = builder.comment("fixEmptyNether")
+					.translation(Main.MODID + ".config." + "fixEmptyNether")
+					.define("fixEmptyNether", true);
+
+			balanceSpawnValues = builder.comment("Use the CSV file to balance spawn values")
 					.translation(Main.MODID + ".config." + "balanceSpawnValues")
-					.define("balanceSpawnValues", false);
+					.define("balanceSpawnValues", true);
 
-			fixSpawnValues = builder.comment("fixSpawnValues")
+			fixSpawnValues = builder.comment("Fix min, max values and add nether creatures")
 					.translation(Main.MODID + ".config." + "fixSpawnValues")
-					.define("fixSpawnValues", false);
+					.define("fixSpawnValues", true);
 
 			builder.pop();
 		}
