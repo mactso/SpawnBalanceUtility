@@ -21,6 +21,7 @@ import net.minecraft.util.registry.Registry;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.Biome.Category;
 import net.minecraft.world.biome.MobSpawnInfo.Spawners;
+import net.minecraft.world.gen.feature.structure.Structure;
 import net.minecraftforge.common.world.MobSpawnInfoBuilder;
 import net.minecraftforge.event.world.BiomeLoadingEvent;
 import net.minecraftforge.event.world.StructureSpawnListGatherEvent;
@@ -284,6 +285,9 @@ public class SpawnData {
 //				System.out.println("SpawnBalanceUtility: Balancing "+ structurename +" with StructMobWeight.CSV Spawn weight values. ");
 //			}
 //		}
+		if (MyConfig.isFixSpawnValues()) {
+			fixStructureSpawnValues(event);
+		}
 		
 		if (MyConfig.isGenerateReport()) {
 			generateStructureSpawnValuesReport(event);
@@ -312,21 +316,61 @@ public class SpawnData {
 		String sn = event.getStructure().getRegistryName().toString();
 
 		List<Spawners> spawners = new ArrayList<>();
-		spawners = event.getStructure().getSpawnList();
 
-
-		for (Spawners s : spawners) {
-					p.println(++structureLineNumber + ", " + sn + ", " + s.type.getRegistryName()
-							+ ", " + s.itemWeight + ", " + s.minCount + ", " + s.maxCount);
-					System.out.println(++structureLineNumber + ", " + sn +  ", " + s.type.getRegistryName()
-					+ ", " + s.itemWeight + ", " + s.minCount + ", " + s.maxCount);
+		for (EntityClassification ec : EntityClassification.values()) {
+			spawners = event.getEntitySpawns(ec);
+			for (Spawners s : spawners) {
+				p.println(++structureLineNumber + ", " + sn + ", " + ec +", "+ s.type.getRegistryName() + ", " + s.itemWeight
+						+ ", " + s.minCount + ", " + s.maxCount);
+				System.out.println(++structureLineNumber + ", " + sn + ", " + s.type.getRegistryName() + ", "
+						+ s.itemWeight + ", " + s.minCount + ", " + s.maxCount);
+			}
 		}
-
 
 		if (p != System.out) {
 			p.close();
 		}
 	}
+	
+	
+
+	
+
+	private static void fixStructureSpawnValues(StructureSpawnListGatherEvent event) {
+
+		List<Spawners> newSpawnersList = new ArrayList<>();
+		List<Spawners> theirSpawnersList = new ArrayList<>();
+		
+		for (EntityClassification ec : EntityClassification.values()) {
+			newSpawnersList.clear();
+			theirSpawnersList.clear();
+			for (Spawners s : event.getEntitySpawns(ec)) {
+				int newSpawnWeight = s.itemWeight;
+				if (newSpawnWeight < MyConfig.getMinSpawnWeight()) {
+					if (newSpawnWeight > 1) {
+						newSpawnWeight = newSpawnWeight * 10;
+					} else {
+						newSpawnWeight = MyConfig.getMinSpawnWeight();
+					}
+				}
+				if (newSpawnWeight > MyConfig.getMaxSpawnWeight()) {
+					newSpawnWeight = MyConfig.getMaxSpawnWeight();
+				}
+				Spawners newS = new Spawners(s.type, newSpawnWeight, s.minCount, s.maxCount);
+				theirSpawnersList.add(s);
+				newSpawnersList.add(newS);
+			}
+			for (Spawners s: theirSpawnersList) {
+				event.removeEntitySpawn(ec, s);
+			}
+			event.addEntitySpawns(ec, newSpawnersList);
+			
+		}
+
+	}
+	
+	
+	
 }
 	
 
