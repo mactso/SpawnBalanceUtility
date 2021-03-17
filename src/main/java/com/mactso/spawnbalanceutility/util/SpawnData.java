@@ -9,7 +9,10 @@ import java.util.List;
 import java.util.Optional;
 
 import com.mactso.spawnbalanceutility.config.MyConfig;
-import com.mactso.spawnbalanceutility.util.BiomeCreatureManager.BiomeCreatureItem;
+import com.mactso.spawnbalanceutility.entities.ModEntities;
+import com.mactso.spawnbalanceutility.util.BiomeCreatureManager.*;
+import com.mactso.spawnbalanceutility.util.StructureCreatureManager;
+import com.mactso.spawnbalanceutility.util.StructureCreatureManager.StructureCreatureItem;
 
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
@@ -41,6 +44,7 @@ public class SpawnData {
 	static int structureLineNumber = 0;
 	static int reportlinenumber = 0;
 	static int biomeEventNumber = 0;
+	static int structureEventNumber = 0;
 	
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public static void onBiome(BiomeLoadingEvent event) {
@@ -48,7 +52,7 @@ public class SpawnData {
 		String threadname = Thread.currentThread().getName();
 		String biomename = event.getName().toString();
 		
-		if (MyConfig.isBalanceSpawnValues()) {
+		if (MyConfig.isBalanceBiomeSpawnValues()) {
 			balanceBiomeSpawnValues(event);
 			if (MyConfig.getDebugLevel() > 0) {
 				System.out.println("SpawnBalanceUtility: Balancing "+ biomename +" with BiomeMobWeight.CSV Spawn weight Values. ");
@@ -65,6 +69,7 @@ public class SpawnData {
 			}
 		}
 
+		
 		// may be 'format'
 		if (MyConfig.isGenerateReport()) {
 			if (threadname.equals("Render thread")) {
@@ -75,14 +80,11 @@ public class SpawnData {
 
 	}
 
-	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public static void onStructure(StructureSpawnListGatherEvent event) {
-		if (MyConfig.isGenerateReport()) {
-			generateStructureSpawnValueReport(event);
-		}
 
-	}
-
+	
+	
+	
+	
 	private static void generateBiomeSpawnValuesReport(BiomeLoadingEvent event) {
 		PrintStream p = null;
 		try {
@@ -113,6 +115,11 @@ public class SpawnData {
 		}
 	}
 
+
+	
+	
+	
+	
 	private static void balanceBiomeSpawnValues(BiomeLoadingEvent event) {
 		String bCl = "";
 		String vCl = "";
@@ -151,6 +158,11 @@ public class SpawnData {
 		}
 	}
 
+	
+	
+	
+	
+	
 	private static void fixBiomeSpawnValues(BiomeLoadingEvent event) {
 
 		List<Spawners> lS = new ArrayList<>();
@@ -189,7 +201,7 @@ public class SpawnData {
 
 			}
 
-			// XXZZY reenable this code before release.
+ 
 			if (event.getCategory() == Biome.Category.NETHER) {
 				if (v == EntityClassification.MONSTER) {
 					if ((zombifiedPiglinSpawner == false) && (MyConfig.isFixEmptyNether())) {
@@ -238,7 +250,54 @@ public class SpawnData {
 //		}
 //	}
 
-	private static void generateStructureSpawnValueReport(StructureSpawnListGatherEvent event) {
+//	private static void balanceStructureSpawnValues(StructureSpawnListGatherEvent event) {
+//		List<Spawners> list = new ArrayList<>();
+//		ModEntities.getFeatureSpawnData(list, event.getStructure());
+//		// TODO left off here.       
+////		for (int i = 0; i < list.size(); ++i)
+////		{
+////			Spawners spawner = list.get(i);
+////			event.addEntitySpawn(spawner.type.getClassification(), spawner);
+////		}
+//		structureEventNumber++;
+//		String key = event.getStructure().toString();
+//		List<StructureCreatureItem> p = StructureCreatureManager.structureCreaturesMap.get(key);
+//		if (p != null) {
+//			for (EntityClassification v : EntityClassification.values()) {
+//				
+//			}
+//			
+//		}
+//			
+//	}
+	
+
+	@SubscribeEvent(priority = EventPriority.LOWEST)
+	public static void onStructure(StructureSpawnListGatherEvent event) {
+		
+		String threadname = Thread.currentThread().getName();
+		String structurename = event.getStructure().getStructureName();
+		
+//		if (MyConfig.isBalanceStructureSpawnValues()) {
+//			balanceStructureSpawnValues(event);
+//			if (MyConfig.getDebugLevel() > 0) {
+//				System.out.println("SpawnBalanceUtility: Balancing "+ structurename +" with StructMobWeight.CSV Spawn weight values. ");
+//			}
+//		}
+		
+		if (MyConfig.isGenerateReport()) {
+			generateStructureSpawnValuesReport(event);
+		}
+
+	}
+
+	
+	
+	
+	
+	
+	private static void generateStructureSpawnValuesReport(StructureSpawnListGatherEvent event) {
+
 		PrintStream p = null;
 		try {
 			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/StructMobWeight.txt", true));
@@ -250,23 +309,24 @@ public class SpawnData {
 			p = System.out;
 		}
 
-		String sn = event.getStructure().getStructureName().toString();
+		String sn = event.getStructure().getRegistryName().toString();
 
-//		p.println("Structure :" + sn +  ". ");
+		List<Spawners> spawners = new ArrayList<>();
+		spawners = event.getStructure().getSpawnList();
 
-		for (EntityClassification v : EntityClassification.values()) {
-			for (Spawners s : event.getEntitySpawns(v)) {
-				p.println(++structureLineNumber + ", " + sn + ", " + v + ", " + s.type.getRegistryName() + ", "
-						+ s.itemWeight + ", " + s.minCount + ", " + s.maxCount);
 
-			}
-			if (event.getEntitySpawns(v).size() == 0) {
-				p.println(sn + ", " + v + ", nonenone:none, 0, 0, 0");
-			}
+		for (Spawners s : spawners) {
+					p.println(++structureLineNumber + ", " + sn + ", " + s.type.getRegistryName()
+							+ ", " + s.itemWeight + ", " + s.minCount + ", " + s.maxCount);
+					System.out.println(++structureLineNumber + ", " + sn +  ", " + s.type.getRegistryName()
+					+ ", " + s.itemWeight + ", " + s.minCount + ", " + s.maxCount);
 		}
+
 
 		if (p != System.out) {
 			p.close();
 		}
 	}
 }
+	
+

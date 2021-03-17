@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.mactso.spawnbalanceutility.Main;
 import com.mactso.spawnbalanceutility.util.BiomeCreatureManager;
+import com.mactso.spawnbalanceutility.util.StructureCreatureManager;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.text.Color;
@@ -45,13 +46,18 @@ public class MyConfig {
 		return fixEmptyNether;
 	}
 
-	public static boolean isBalanceSpawnValues() {
-		return balanceSpawnValues;
+	public static boolean isBalanceBiomeSpawnValues() {
+		return balanceBiomeSpawnValues;
 	}
 
+	
 	public static boolean isFixSpawnValues() {
 		return fixSpawnValues;
 	}
+
+	public static boolean isBalanceStructureSpawnValues() {
+		return balanceStructureSpawnValues;
+	}	
 
 	public static int getMinSpawnWeight() {
 		return minSpawnWeight;
@@ -60,12 +66,13 @@ public class MyConfig {
 	public static int getMaxSpawnWeight() {
 		return maxSpawnWeight;
 	}
-
+	
 	public static int debugLevel;
 	private static boolean generateReport;
 	private static boolean fixEmptyNether;
-	private static boolean balanceSpawnValues;
+	private static boolean balanceBiomeSpawnValues;
 	private static boolean fixSpawnValues;
+	private static boolean balanceStructureSpawnValues;
 	public static int minSpawnWeight;
 	public static int maxSpawnWeight;
 	
@@ -79,7 +86,7 @@ public class MyConfig {
 
 	public static void pushDebugValue() {
 		if (debugLevel > 0) {
-			System.out.println("hardernaturalhealing debugLevel:" + MyConfig.debugLevel);
+			System.out.println("SpawnBalanceUtility debugLevel:" + MyConfig.debugLevel);
 		}
 		COMMON.debugLevel.set(MyConfig.debugLevel);
 	}
@@ -89,16 +96,18 @@ public class MyConfig {
 		debugLevel = COMMON.debugLevel.get();
 		generateReport = COMMON.generateReport.get();
 		fixEmptyNether  = COMMON.fixEmptyNether.get();
-		balanceSpawnValues = COMMON.balanceSpawnValues.get();
+		balanceBiomeSpawnValues = COMMON.balanceBiomeSpawnValues.get();
 		fixSpawnValues = COMMON.fixSpawnValues.get();
+		balanceStructureSpawnValues = COMMON.balanceStructureSpawnValues.get();
 		minSpawnWeight = COMMON.minSpawnWeight.get();
 		maxSpawnWeight = COMMON.maxSpawnWeight.get();
 		
 		if (debugLevel > 0) {
-			System.out.println("HarderNaturalHealing Debug: " + debugLevel);
+			System.out.println("SpawnBalanceUtility Debug: " + debugLevel);
 		}
 		
 		BiomeCreatureManager.biomeCreatureInit();
+		StructureCreatureManager.structureCreatureInit();
 	}
 	
 	public static class Common {
@@ -107,14 +116,15 @@ public class MyConfig {
 
 		public final IntValue debugLevel;
 		public final BooleanValue generateReport;
-		public final BooleanValue fixSpawnValues;
 		public final BooleanValue fixEmptyNether;
-		public final BooleanValue balanceSpawnValues;
+		public final BooleanValue balanceBiomeSpawnValues;
+		public final BooleanValue fixSpawnValues;
+		public final BooleanValue balanceStructureSpawnValues;
 		public final IntValue minSpawnWeight;
 		public final IntValue maxSpawnWeight;
 		
 		public Common(ForgeConfigSpec.Builder builder) {
-			builder.push("Harder Natural Healing Control Values");
+			builder.push("Spawn Biome Utility Control Values");
 
 			debugLevel = builder.comment("Debug Level: 0 = Off, 1 = Log, 2 = Chat+Log")
 					.translation(Main.MODID + ".config." + "debugLevel").defineInRange("debugLevel", () -> 0, 0, 2);
@@ -133,13 +143,17 @@ public class MyConfig {
 					.translation(Main.MODID + ".config." + "fixEmptyNether")
 					.define("fixEmptyNether", true);
 
-			balanceSpawnValues = builder.comment("Use the CSV file to balance spawn values")
-					.translation(Main.MODID + ".config." + "balanceSpawnValues")
-					.define("balanceSpawnValues", true);
+			balanceBiomeSpawnValues = builder.comment("Use the BiomeMobWeight.CSV file to balance Biome spawn values")
+					.translation(Main.MODID + ".config." + "balanceBiomeSpawnValues")
+					.define("balanceBiomeSpawnValues", true);
 
 			fixSpawnValues = builder.comment("Fix min, max values and add nether creatures")
 					.translation(Main.MODID + ".config." + "fixSpawnValues")
 					.define("fixSpawnValues", true);
+
+			balanceStructureSpawnValues = builder.comment("Use the StructMobWeight.CSV file to balance structure spawn values")
+					.translation(Main.MODID + ".config." + "balanceStructureSpawnValues")
+					.define("balanceStructureSpawnValues", true);
 
 			builder.pop();
 		}
