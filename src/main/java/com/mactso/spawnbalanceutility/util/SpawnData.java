@@ -5,8 +5,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import com.mactso.spawnbalanceutility.config.MyConfig;
 import com.mactso.spawnbalanceutility.entities.ModEntities;
@@ -37,7 +39,7 @@ public class SpawnData {
 		if (fb.exists())
 			fb.delete();
 		File fs = new File("config/spawnbalanceutility/StructMobWeight.txt");
-		if (fb.exists())
+		if (fs.exists())
 			fs.delete();
 	}
 
@@ -46,6 +48,8 @@ public class SpawnData {
 	static int reportlinenumber = 0;
 	static int biomeEventNumber = 0;
 	static int structureEventNumber = 0;
+	static Set<String> biomesProcessed = new HashSet<>();
+	static Set<String> structuresProcessed = new HashSet<>();
 	
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public static void onBiome(BiomeLoadingEvent event) {
@@ -73,9 +77,6 @@ public class SpawnData {
 		
 		// may be 'format'
 		if (MyConfig.isGenerateReport()) {
-			if (threadname.equals("Render thread")) {
-				return;
-			}
 			generateBiomeSpawnValuesReport(event);
 		}
 
@@ -87,6 +88,15 @@ public class SpawnData {
 	
 	
 	private static void generateBiomeSpawnValuesReport(BiomeLoadingEvent event) {
+		
+		String bn = event.getName().toString();		
+		synchronized (biomesProcessed) {
+			if (biomesProcessed.contains(bn)) {
+				return;
+			}
+			biomesProcessed.add(bn);
+		}
+		
 		PrintStream p = null;
 		try {
 			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/BiomeMobWeight.txt", true));
@@ -98,7 +108,6 @@ public class SpawnData {
 			p = System.out;
 		}
 
-		String bn = event.getName().toString();
 		String cn = event.getCategory().getName().toString();
 		MobSpawnInfoBuilder builder = event.getSpawns();
 
@@ -226,52 +235,7 @@ public class SpawnData {
 
 	}
 
-//	private static void fixStructureSpawnValues(StructureSpawnListGatherEvent event) {
-//		List<Spawners> lS = new ArrayList<>();	
-//		MobSpawnInfoBuilder builder = event.getEntitySpawns();
-//		
-//		for (EntityClassification v : EntityClassification.values() ) {
-//			lS.clear();
-//			for (Spawners s : event.getEntitySpawns(v)) {
-//				int newSpawnWeight = s.itemWeight;
-//				if (newSpawnWeight > MyConfig.getMaxSpawnWeight()) {
-//					newSpawnWeight = MyConfig.getMaxSpawnWeight();
-//				}
-//				if (newSpawnWeight < MyConfig.getMinSpawnWeight()) {
-//					newSpawnWeight = MyConfig.getMinSpawnWeight();
-//				}
-//				Spawners newS = new Spawners(s.type, newSpawnWeight, s.minCount, s.maxCount);
-//				lS.add(newS);
-//
-//				p.println(structureLineNumber+ ", "+ sn + ", " + v + ", " + s.type.getRegistryName() + ", " + s.itemWeight + ", " + s.minCount + ", " +s.maxCount );
-//			}
-//			if (event.getEntitySpawns(v).size() == 0) {
-//				p.println (sn + ", " + v +", nonenone:none, 0, 0, 0");
-//			}
-//		}
-//	}
 
-//	private static void balanceStructureSpawnValues(StructureSpawnListGatherEvent event) {
-//		List<Spawners> list = new ArrayList<>();
-//		ModEntities.getFeatureSpawnData(list, event.getStructure());
-//		// TODO left off here.       
-////		for (int i = 0; i < list.size(); ++i)
-////		{
-////			Spawners spawner = list.get(i);
-////			event.addEntitySpawn(spawner.type.getClassification(), spawner);
-////		}
-//		structureEventNumber++;
-//		String key = event.getStructure().toString();
-//		List<StructureCreatureItem> p = StructureCreatureManager.structureCreaturesMap.get(key);
-//		if (p != null) {
-//			for (EntityClassification v : EntityClassification.values()) {
-//				
-//			}
-//			
-//		}
-//			
-//	}
-	
 
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public static void onStructure(StructureSpawnListGatherEvent event) {
@@ -285,11 +249,19 @@ public class SpawnData {
 //				System.out.println("SpawnBalanceUtility: Balancing "+ structurename +" with StructMobWeight.CSV Spawn weight values. ");
 //			}
 //		}
+
+		if (MyConfig.isBalanceStructureSpawnValues()) {
+			balanceStructureSpawnValues(event);
+		}
+		
 		if (MyConfig.isFixSpawnValues()) {
 			fixStructureSpawnValues(event);
 		}
 		
 		if (MyConfig.isGenerateReport()) {
+			if (threadname.equals("Render thread")) {
+				return;
+			}
 			generateStructureSpawnValuesReport(event);
 		}
 
@@ -300,37 +272,60 @@ public class SpawnData {
 	
 	
 	
-	private static void generateStructureSpawnValuesReport(StructureSpawnListGatherEvent event) {
+	private static void balanceStructureSpawnValues(StructureSpawnListGatherEvent event) {
 
-		PrintStream p = null;
-		try {
-			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/StructMobWeight.txt", true));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		String bCl = "";
+		String vCl = "";
 
-		if (p == null) {
-			p = System.out;
-		}
+		structureEventNumber++;
 
-		String sn = event.getStructure().getRegistryName().toString();
+		String key = event.getStructure().getRegistryName().toString();
+		List<StructureCreatureItem> p = StructureCreatureManager.structureCreaturesMap.get(key);
 
-		List<Spawners> spawners = new ArrayList<>();
+		List<Spawners> newSpawnersList = new ArrayList<>();
+		List<Spawners> theirSpawnersList = new ArrayList<>();
 
-		for (EntityClassification ec : EntityClassification.values()) {
-			spawners = event.getEntitySpawns(ec);
-			for (Spawners s : spawners) {
-				p.println(++structureLineNumber + ", " + sn + ", " + ec +", "+ s.type.getRegistryName() + ", " + s.itemWeight
-						+ ", " + s.minCount + ", " + s.maxCount);
-				System.out.println(++structureLineNumber + ", " + sn + ", " + s.type.getRegistryName() + ", "
-						+ s.itemWeight + ", " + s.minCount + ", " + s.maxCount);
+		if (p != null) {
+			for (EntityClassification ec : EntityClassification.values()) {
+				vCl = ec.getString();
+				newSpawnersList.clear();
+				theirSpawnersList.clear();
+				for (int i = 0; i < p.size(); i++) {
+					StructureCreatureItem sci = p.get(i);
+					bCl = sci.classification;
+					if (sci.classification.toLowerCase().equals(vCl)) {
+						Optional<EntityType<?>> opt = Registry.ENTITY_TYPE
+								.getOptional(new ResourceLocation(sci.modAndMob));
+						if (opt.isPresent()) {
+							Spawners newSpawner = new Spawners(opt.get(), sci.spawnWeight, sci.minCount, sci.maxCount);
+							newSpawnersList.add(newSpawner);
+							MyConfig.setDebugLevel(0);
+							if (MyConfig.getDebugLevel() > 0) {
+								System.out.println("Structure :" + key + " + rl#:" + structureLineNumber
+										+ " SpawnBalanceUtility XXZZY: p.size() =" + p.size() + " Mob " + sci.modAndMob
+										+ " Added to " + key + ".");
+							}
+
+						} else {
+							System.out.println(reportlinenumber + "SpawnBalanceUtility ERROR: Mob " + sci.modAndMob
+									+ " not in Entity Type Registry");
+						}
+					}
+				}
+				for (Spawners s : event.getEntitySpawns(ec)) {
+					theirSpawnersList.add(s);					
+				}
+				for (Spawners s : theirSpawnersList) {
+					event.removeEntitySpawn(ec, s);
+				}
+				event.addEntitySpawns(ec, newSpawnersList);
 			}
+
+
 		}
 
-		if (p != System.out) {
-			p.close();
-		}
 	}
+
 	
 	
 
@@ -347,7 +342,7 @@ public class SpawnData {
 			for (Spawners s : event.getEntitySpawns(ec)) {
 				int newSpawnWeight = s.itemWeight;
 				if (newSpawnWeight < MyConfig.getMinSpawnWeight()) {
-					if (newSpawnWeight > 1) {
+					if ((newSpawnWeight > 1) && (newSpawnWeight * 10 < MyConfig.getMaxSpawnWeight())) {
 						newSpawnWeight = newSpawnWeight * 10;
 					} else {
 						newSpawnWeight = MyConfig.getMinSpawnWeight();
@@ -370,6 +365,51 @@ public class SpawnData {
 	}
 	
 	
+	
+	
+	
+	
+	private static void generateStructureSpawnValuesReport(StructureSpawnListGatherEvent event) {
+
+
+		String sn = event.getStructure().getRegistryName().toString();
+
+		synchronized (structuresProcessed) {
+			if (structuresProcessed.contains(sn)) {
+				return;
+			}
+			structuresProcessed.add(sn);
+		}
+		
+		PrintStream p = null;
+		try {
+			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/StructMobWeight.txt", true));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		if (p == null) {
+			p = System.out;
+		}
+
+
+		List<Spawners> spawners = new ArrayList<>();
+		p.println(++structureLineNumber+ ", " + sn + ", HEADING, header:ignore, 0, 0, 0");
+
+		for (EntityClassification ec : EntityClassification.values()) {
+			spawners = event.getEntitySpawns(ec);
+			for (Spawners s : spawners) {
+				p.println(++structureLineNumber+ ", " + sn + ", " + ec +", "+ s.type.getRegistryName() + ", " + s.itemWeight
+						+ ", " + s.minCount + ", " + s.maxCount);
+				System.out.println(++structureLineNumber + ", " + sn + ", " + s.type.getRegistryName() + ", "
+						+ s.itemWeight + ", " + s.minCount + ", " + s.maxCount);
+			}
+		}
+
+		if (p != System.out) {
+			p.close();
+		}
+	}	
 	
 }
 	

@@ -31,7 +31,7 @@ public class StructureCreatureManager {
 			return;
 		}
 		try (InputStreamReader input = new InputStreamReader(
-				new FileInputStream("config/spawnbalanceutility/StructureMobWeight.csv"))) {
+				new FileInputStream("config/spawnbalanceutility/StructMobWeight.csv"))) {
 			BufferedReader br = new BufferedReader(input);
 			int x = 3;
 			while ((line = br.readLine()) != null) {
@@ -41,8 +41,6 @@ public class StructureCreatureManager {
 					errorField = "linenumber";
 					int lineNumber = Integer.parseInt( st.nextToken().trim());
 					lastgoodline = lineNumber;
-					errorField = "category";
-					String category = st.nextToken().trim();
 					errorField = "modAndStructure";
 					String modAndStructure = st.nextToken().trim();
 					ResourceLocation r = new ResourceLocation(modAndStructure);
@@ -69,7 +67,7 @@ public class StructureCreatureManager {
 					}					
 					String key = modAndStructure;
 					if (spawnWeight > 0){
-						StructureCreatureItem bci = new StructureCreatureItem(lineNumber, category, modAndStructure, classification, modAndMob, spawnWeight, minCount, maxCount);
+						StructureCreatureItem bci = new StructureCreatureItem(lineNumber, modAndStructure, classification, modAndMob, spawnWeight, minCount, maxCount);
 						List<StructureCreatureItem> p = structureCreaturesMap.get(key);
 						if (p == null) {
 							p = new ArrayList<>();
@@ -94,7 +92,6 @@ public class StructureCreatureManager {
 	
 	public static class StructureCreatureItem  {
 		int lineNumber;
-		String category;
 		String modAndStructure;
 		String classification;
 		String modAndMob;
@@ -102,10 +99,9 @@ public class StructureCreatureManager {
 		int minCount;
 		int maxCount;
 
-		public StructureCreatureItem(int lineNumber, String category, String modAndStructure, String classification, 
+		public StructureCreatureItem(int lineNumber, String modAndStructure, String classification, 
 				String modAndMob, int spawnWeight, int min, int max) {
 			this.lineNumber = lineNumber;
-			this.category = category;
 			this.modAndStructure = modAndStructure;
 			this.classification = classification;
 			this.modAndMob = modAndMob;
@@ -114,10 +110,6 @@ public class StructureCreatureManager {
 			this.maxCount = max;
 		}
 		
-		public String getCategory() {
-			return category;
-		}
-
 		public String getModAndStructure() {
 			return modAndStructure;
 		}
@@ -129,8 +121,6 @@ public class StructureCreatureManager {
 		public String getModAndMob() {
 			return modAndMob;
 		}
-
-
 
 		public int getSpawnWeight() {
 			return spawnWeight;
