@@ -88,8 +88,9 @@ public class BiomeCreatureManager {
 				}
 			}
 			input.close();
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			System.out.println("BiomeMobWeight.csv not found in subdirectory SpawnBalanceUtility");
+			// e.printStackTrace();
 		}
 		
 	}

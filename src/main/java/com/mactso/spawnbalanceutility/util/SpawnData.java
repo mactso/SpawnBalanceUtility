@@ -89,7 +89,8 @@ public class SpawnData {
 	
 	private static void generateBiomeSpawnValuesReport(BiomeLoadingEvent event) {
 		
-		String bn = event.getName().toString();		
+		String bn = event.getName().toString();	
+
 		synchronized (biomesProcessed) {
 			if (biomesProcessed.contains(bn)) {
 				return;
@@ -114,9 +115,16 @@ public class SpawnData {
 		for (EntityClassification v : EntityClassification.values()) {
 
 			for (Spawners s : builder.getSpawner(v)) {
-
-				p.println(++biomelineNumber + ", " + cn + ", " + bn + ", " + v + ", " + s.type.getRegistryName()
-						+ ", " + s.itemWeight + ", " + s.minCount + ", " + s.maxCount);
+				if (MyConfig.isSuppressMinecraftMobReporting()) {
+					if (s.type.getRegistryName().getNamespace().equals("minecraft")) {
+						continue;
+					}
+				}
+				String modname = s.type.getRegistryName().getNamespace();
+				if (MyConfig.isIncludedMod(modname)) {
+					p.println(++biomelineNumber + ", " + cn + ", " + bn + ", " + v + ", " + s.type.getRegistryName()
+					+ ", " + s.itemWeight + ", " + s.minCount + ", " + s.maxCount);
+				}
 			}
 		}
 
@@ -134,33 +142,33 @@ public class SpawnData {
 		String bCl = "";
 		String vCl = "";
 
-		MobSpawnInfoBuilder builder = event.getSpawns();
+		MobSpawnInfoBuilder eventSpawnsBuilder = event.getSpawns();
 		biomeEventNumber++;
 
-		String key = event.getName().toString();
-		List<BiomeCreatureItem> p = BiomeCreatureManager.biomeCreaturesMap.get(key);
+		String modBiomeKey = event.getName().toString();
+		List<BiomeCreatureItem> modBiomeMobSpawners = BiomeCreatureManager.biomeCreaturesMap.get(modBiomeKey);
 		
-		if (p != null) {
+		if (modBiomeMobSpawners != null) {
 			for (EntityClassification v : EntityClassification.values()) {
-				builder.getSpawner(v).clear();
+				eventSpawnsBuilder.getSpawner(v).clear();
 				vCl = v.getString();
-				for (int i = 0; i < p.size(); i++) {
-					BiomeCreatureItem b = p.get(i);
-					bCl = b.classification;
-					if (b.classification.toLowerCase().equals(vCl)) {
+				for (int i = 0; i < modBiomeMobSpawners.size(); i++) {
+					BiomeCreatureItem biomeCreatureItem = modBiomeMobSpawners.get(i);
+					bCl = biomeCreatureItem.classification;
+					if (biomeCreatureItem.classification.toLowerCase().equals(vCl)) {
 						Optional<EntityType<?>> opt = Registry.ENTITY_TYPE
-								.getOptional(new ResourceLocation(b.modAndMob));
+								.getOptional(new ResourceLocation(biomeCreatureItem.modAndMob));
 						if (opt.isPresent()) {
-							Spawners newSpawner = new Spawners(opt.get(), b.spawnWeight, b.minCount, b.maxCount);
-							builder.withSpawner(v, newSpawner);
-							if (MyConfig.getDebugLevel() < 0) {
+							Spawners newSpawner = new Spawners(opt.get(), biomeCreatureItem.spawnWeight, biomeCreatureItem.minCount, biomeCreatureItem.maxCount);
+							eventSpawnsBuilder.withSpawner(v, newSpawner);
+							if (MyConfig.getDebugLevel() > 0) {
 								System.out.println(
-										"Biome :"+ key + " + r:"+reportlinenumber + " SpawnBalanceUtility XXZZY: p.size() ="+p.size()+" Mob " + b.modAndMob + " Added to " + event.getCategory().toString());
+										"Biome :"+ modBiomeKey + " + r:"+reportlinenumber + " SpawnBalanceUtility XXZZY: p.size() ="+modBiomeMobSpawners.size()+" Mob " + biomeCreatureItem.modAndMob + " Added to " + event.getCategory().toString());
 							}
 
 						} else {
 							System.out.println(
-									reportlinenumber + "SpawnBalanceUtility ERROR: Mob " + b.modAndMob + " not in Entity Type Registry");
+									reportlinenumber + "SpawnBalanceUtility ERROR: Mob " + biomeCreatureItem.modAndMob + " not in Entity Type Registry");
 						}
 					}
 				}
@@ -373,7 +381,6 @@ public class SpawnData {
 
 
 		String sn = event.getStructure().getRegistryName().toString();
-
 		synchronized (structuresProcessed) {
 			if (structuresProcessed.contains(sn)) {
 				return;
@@ -399,10 +406,19 @@ public class SpawnData {
 		for (EntityClassification ec : EntityClassification.values()) {
 			spawners = event.getEntitySpawns(ec);
 			for (Spawners s : spawners) {
-				p.println(++structureLineNumber+ ", " + sn + ", " + ec +", "+ s.type.getRegistryName() + ", " + s.itemWeight
-						+ ", " + s.minCount + ", " + s.maxCount);
-				System.out.println(++structureLineNumber + ", " + sn + ", " + s.type.getRegistryName() + ", "
-						+ s.itemWeight + ", " + s.minCount + ", " + s.maxCount);
+				if (MyConfig.isSuppressMinecraftMobReporting()) {
+					if (s.type.getRegistryName().getNamespace().equals("minecraft")) {
+						continue;
+					}
+				}
+				if (MyConfig.isIncludedMod(s.type.getRegistryName().getNamespace())) {
+					p.println(++structureLineNumber+ ", " + sn + ", " + ec +", "+ s.type.getRegistryName() + ", " + s.itemWeight
+							+ ", " + s.minCount + ", " + s.maxCount);
+					if (MyConfig.debugLevel > 0) {
+						System.out.println(++structureLineNumber + ", " + sn + ", " + s.type.getRegistryName() + ", "
+								+ s.itemWeight + ", " + s.minCount + ", " + s.maxCount);
+					}
+				}
 			}
 		}
 
