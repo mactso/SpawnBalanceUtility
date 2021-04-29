@@ -8,10 +8,13 @@ import org.apache.logging.log4j.Logger;
 
 import com.mactso.spawnbalanceutility.Main;
 import com.mactso.spawnbalanceutility.util.BiomeCreatureManager;
+import com.mactso.spawnbalanceutility.util.MobMassAdditionManager;
+import com.mactso.spawnbalanceutility.util.MobMassAdditionManager.MassAdditionMobItem;
 import com.mactso.spawnbalanceutility.util.StructureCreatureManager;
 import com.sun.jna.StringArray;
 
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.Color;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -130,6 +133,7 @@ public class MyConfig {
 		
 		BiomeCreatureManager.biomeCreatureInit();
 		StructureCreatureManager.structureCreatureInit();
+		MobMassAdditionManager.massAdditionMobsInit();
 	}
 	
 	public static String[] extract(String s) {
@@ -212,6 +216,18 @@ public class MyConfig {
 		}
 	}
 
+	public static void debugMsg (int level, String dMsg) {
+		if (getDebugLevel() > level-1) {
+			System.out.println("L"+level + ":" + dMsg);
+		}
+	}
+
+	public static void debugMsg (int level, BlockPos pos, String dMsg) {
+		if (getDebugLevel() > level-1) {
+			System.out.println("L"+level+" ("+pos.getX()+","+pos.getY()+","+pos.getZ()+"): " + dMsg);
+		}
+	}
+	
 	// support for any color chattext
 	public static void sendChat(PlayerEntity p, String chatMessage, Color color) {
 		StringTextComponent component = new StringTextComponent(chatMessage);

@@ -11,9 +11,8 @@ import java.util.Optional;
 import java.util.Set;
 
 import com.mactso.spawnbalanceutility.config.MyConfig;
-import com.mactso.spawnbalanceutility.entities.ModEntities;
-import com.mactso.spawnbalanceutility.util.BiomeCreatureManager.*;
-import com.mactso.spawnbalanceutility.util.StructureCreatureManager;
+import com.mactso.spawnbalanceutility.util.BiomeCreatureManager.BiomeCreatureItem;
+import com.mactso.spawnbalanceutility.util.MobMassAdditionManager.MassAdditionMobItem;
 import com.mactso.spawnbalanceutility.util.StructureCreatureManager.StructureCreatureItem;
 
 import net.minecraft.entity.EntityClassification;
@@ -23,7 +22,6 @@ import net.minecraft.util.registry.Registry;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.Biome.Category;
 import net.minecraft.world.biome.MobSpawnInfo.Spawners;
-import net.minecraft.world.gen.feature.structure.Structure;
 import net.minecraftforge.common.world.MobSpawnInfoBuilder;
 import net.minecraftforge.event.world.BiomeLoadingEvent;
 import net.minecraftforge.event.world.StructureSpawnListGatherEvent;
@@ -31,16 +29,9 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class SpawnData {
+
 	static {
-		File fd = new File("config/spawnbalanceutility");
-		if (!fd.exists())
-			fd.mkdir();
-		File fb = new File("config/spawnbalanceutility/BiomeMobWeight.txt");
-		if (fb.exists())
-			fb.delete();
-		File fs = new File("config/spawnbalanceutility/StructMobWeight.txt");
-		if (fs.exists())
-			fs.delete();
+		initReports();
 	}
 
 	static int biomelineNumber = 0;
@@ -50,6 +41,23 @@ public class SpawnData {
 	static int structureEventNumber = 0;
 	static Set<String> biomesProcessed = new HashSet<>();
 	static Set<String> structuresProcessed = new HashSet<>();
+	
+	
+
+	public static void initReports () {
+		File fd = new File("config/spawnbalanceutility");
+		if (!fd.exists())
+			fd.mkdir();
+		File fb = new File("config/spawnbalanceutility/BiomeMobWeight.txt");
+		if (fb.exists())
+			fb.delete();
+		File fs = new File("config/spawnbalanceutility/StructMobWeight.txt");
+		if (fs.exists())
+			fs.delete();
+		File fma = new File("config/spawnbalanceutility/MassAdditionMobs.txt");
+		if (!(fma.exists()))
+			generateMassAdditionMobsStubReport();
+	}
 	
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public static void onBiome(BiomeLoadingEvent event) {
@@ -184,13 +192,14 @@ public class SpawnData {
 	private static void fixBiomeSpawnValues(BiomeLoadingEvent event) {
 
 		List<Spawners> lS = new ArrayList<>();
-
+				
 //		String bn = event.getName().toString();
 //		String cn = event.getCategory().getName().toString();
 		MobSpawnInfoBuilder builder = event.getSpawns();
 		boolean classificationMonster = false;
 		boolean zombifiedPiglinSpawner = false;
 		boolean ghastSpawner = false;
+		
 		// given- we have the biome name- the category name.
 
 		for (EntityClassification v : EntityClassification.values()) {
@@ -200,6 +209,9 @@ public class SpawnData {
 
 			lS.clear();
 			for (Spawners s : builder.getSpawner(v)) {
+				
+				ResourceLocation modMob = s.type.getRegistryName();
+				String key = modMob.toString();
 				int newSpawnWeight = s.itemWeight;
 				if (newSpawnWeight > MyConfig.getMaxSpawnWeight()) {
 					newSpawnWeight = MyConfig.getMaxSpawnWeight();
@@ -209,6 +221,7 @@ public class SpawnData {
 				}
 				Spawners newS = new Spawners(s.type, newSpawnWeight, s.minCount, s.maxCount);
 				lS.add(newS);
+
 				if (event.getCategory() == Biome.Category.NETHER) {
 					if (s.type == EntityType.ZOMBIFIED_PIGLIN)
 						zombifiedPiglinSpawner = true;
@@ -216,10 +229,30 @@ public class SpawnData {
 						ghastSpawner = true;
 					}
 				}
-
 			}
 
- 
+			List<MassAdditionMobItem> massAddMobs = MobMassAdditionManager.getFilteredList(v,event.getCategory()); 
+			EntityType<?> et;
+			for (MassAdditionMobItem ma : massAddMobs) {
+				
+				Optional<EntityType<?>> oe = EntityType.byKey(ma.getModAndMob());
+				if (oe.isPresent()) {
+					et = oe.get();
+					boolean mobFound = false;
+					for (Spawners s : lS) {
+						if (s.type == et) {
+							mobFound = true;
+							break;
+						}
+					}
+					if (mobFound == false) {
+						Spawners newS = new Spawners(et, ma.spawnWeight, ma.minCount, ma.maxCount);
+						lS.add(newS);						
+					}
+				}
+				
+			}
+			
 			if (event.getCategory() == Biome.Category.NETHER) {
 				if (v == EntityClassification.MONSTER) {
 					if ((zombifiedPiglinSpawner == false) && (MyConfig.isFixEmptyNether())) {
@@ -426,6 +459,31 @@ public class SpawnData {
 			p.close();
 		}
 	}	
+	
+	private static void generateMassAdditionMobsStubReport() {
+		
+		PrintStream p = null;
+		try {
+			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/MassAdditionMobs.txt", true));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		if (p == null) {
+			p = System.out;
+		}
+
+		p.println("Example mob mass addition file.  Add mobs with the pattern below and rename file to MassAdditionMobs.csv");
+		p.println("Line, Category*, Class**, Namespace:Mob, Weight, Mingroup , Maxgroup");
+		p.println("");
+		p.println("1, A, MONSTER, minecraft:phantom, 10, 1, 4");
+		p.println("");
+		p.println ("* A, O, N, E for All, Overworld, Nether, The End");
+		p.println ("** MONSTER,CREATURE,AMBIENT");
+		if (p != System.out) {
+			p.close();
+		}
+	}
 	
 }
 	

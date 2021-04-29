@@ -12,6 +12,8 @@ import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
+import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.network.FMLNetworkConstants;
 
@@ -53,17 +55,17 @@ public class Main {
 	    @Mod.EventBusSubscriber()
 	    public static class ForgeEvents
 	    {
-//	        @SubscribeEvent
-//	        public static void onServerStarting(FMLServerStartingEvent event)
-//	        {
-//	        	ModEntities.addSpawnData();
-//	        }
-//
-//	        @SubscribeEvent
-//	        public static void onServerStopping(FMLServerStoppingEvent event)
-//	        {
-//	        	ModEntities.removeSpawnData();
-//	        }
+	        @SubscribeEvent
+	        public static void onServerStarting(FMLServerStartingEvent event)
+	        {
+//	        	SpawnData.initReports();
+	        }
+
+	        @SubscribeEvent
+	        public static void onServerStopping(FMLServerStoppingEvent event)
+	        {
+//	        	MyConfig.debugMsg(1, "Spawn Balance Utility: Server Stopping");
+	        }
 	    }
 
 }

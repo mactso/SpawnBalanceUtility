@@ -10,6 +10,8 @@ import java.io.PrintStream;
 import java.util.*;
 import java.util.Map.Entry;
 
+import com.mactso.spawnbalanceutility.config.MyConfig;
+
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.biome.Biome;
@@ -37,6 +39,7 @@ public class BiomeCreatureManager {
 				new FileInputStream("config/spawnbalanceutility/BiomeMobWeight.csv"))) {
 			BufferedReader br = new BufferedReader(input);
 			int x = 3;
+			MyConfig.setDebugLevel(2);
 			while ((line = br.readLine()) != null) {
 				StringTokenizer st = new StringTokenizer(line, ",");
 				linecount++;
@@ -84,7 +87,11 @@ public class BiomeCreatureManager {
 					}
 					
 				} catch (Exception e) {
-					System.out.println("SpawnBalanceUtility Error reading field "+errorField+" on "+linecount+"th line of BiomeMobWeight.csv.");
+					if (!(line.isEmpty())) {
+						System.out.println("SpawnBalanceUtility Error reading field "+errorField+" on "+linecount+"th line of BiomeMobWeight.csv.");
+					} else if (MyConfig.getDebugLevel() > 0 ) {
+						System.out.println("SpawnBalanceUtility Warning blank line at "+linecount+"th line of BiomeMobWeight.csv.");
+					}
 				}
 			}
 			input.close();
