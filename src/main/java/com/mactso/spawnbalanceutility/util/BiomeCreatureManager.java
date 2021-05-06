@@ -38,8 +38,6 @@ public class BiomeCreatureManager {
 		try (InputStreamReader input = new InputStreamReader(
 				new FileInputStream("config/spawnbalanceutility/BiomeMobWeight.csv"))) {
 			BufferedReader br = new BufferedReader(input);
-			int x = 3;
-			MyConfig.setDebugLevel(2);
 			while ((line = br.readLine()) != null) {
 				StringTokenizer st = new StringTokenizer(line, ",");
 				linecount++;

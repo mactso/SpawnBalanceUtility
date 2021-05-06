@@ -4,9 +4,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -17,16 +20,20 @@ import com.mactso.spawnbalanceutility.util.StructureCreatureManager.StructureCre
 
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.registry.DynamicRegistries;
+import net.minecraft.util.registry.MutableRegistry;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.Biome.Category;
+import net.minecraft.world.biome.MobSpawnInfo;
 import net.minecraft.world.biome.MobSpawnInfo.Spawners;
-import net.minecraftforge.common.world.MobSpawnInfoBuilder;
-import net.minecraftforge.event.world.BiomeLoadingEvent;
+import net.minecraftforge.coremod.api.ASMAPI;
 import net.minecraftforge.event.world.StructureSpawnListGatherEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent;
+import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 
 public class SpawnData {
 
@@ -41,10 +48,8 @@ public class SpawnData {
 	static int structureEventNumber = 0;
 	static Set<String> biomesProcessed = new HashSet<>();
 	static Set<String> structuresProcessed = new HashSet<>();
-	
-	
 
-	public static void initReports () {
+	public static void initReports() {
 		File fd = new File("config/spawnbalanceutility");
 		if (!fd.exists())
 			fd.mkdir();
@@ -58,232 +63,206 @@ public class SpawnData {
 		if (!(fma.exists()))
 			generateMassAdditionMobsStubReport();
 	}
-	
-	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public static void onBiome(BiomeLoadingEvent event) {
 
-		String threadname = Thread.currentThread().getName();
-		String biomename = event.getName().toString();
-		
-		if (MyConfig.isBalanceBiomeSpawnValues()) {
-			balanceBiomeSpawnValues(event);
-			if (MyConfig.getDebugLevel() > 0) {
-				System.out.println("SpawnBalanceUtility: Balancing "+ biomename +" with BiomeMobWeight.CSV Spawn weight Values. ");
-			}
-		}
+	@SuppressWarnings("unchecked")
+	public static void balanceBiomeSpawnValues(MinecraftServer server) {
 
-		if (MyConfig.isFixSpawnValues()) {
-			fixBiomeSpawnValues(event);
-			if (MyConfig.getDebugLevel() > 0) {
-				System.out.println("SpawnBalanceUtility: Fixing "+ biomename+ " extreme spawn values. ");
-				if (MyConfig.isFixEmptyNether() && (event.getCategory() == Category.NETHER)) {
-					System.out.print("  Adding zombified piglin and ghasts to Nether Zone.");
-				}
-			}
-		}
-
-		
-		// may be 'format'
-		if (MyConfig.isGenerateReport()) {
-			generateBiomeSpawnValuesReport(event);
-		}
-
-	}
-
-
-	
-	
-	
-	
-	private static void generateBiomeSpawnValuesReport(BiomeLoadingEvent event) {
-		
-		String bn = event.getName().toString();	
-
-		synchronized (biomesProcessed) {
-			if (biomesProcessed.contains(bn)) {
-				return;
-			}
-			biomesProcessed.add(bn);
-		}
-		
-		PrintStream p = null;
+		DynamicRegistries dynreg = server.func_244267_aX();
+		MutableRegistry<Biome> biomeRegistry = dynreg.getRegistry(Registry.BIOME_KEY);
+		Field field = null;
 		try {
-			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/BiomeMobWeight.txt", true));
-		} catch (IOException e) {
-			e.printStackTrace();
+			String name = ASMAPI.mapField("field_242554_e");
+			field = MobSpawnInfo.class.getDeclaredField(name);
+			field.setAccessible(true);
+		} catch (Exception e) {
+			System.out.println("XXX Unexpected Reflection Failure balanceBiomeSpawnValues");
+			return;
 		}
 
-		if (p == null) {
-			p = System.out;
-		}
-
-		String cn = event.getCategory().getName().toString();
-		MobSpawnInfoBuilder builder = event.getSpawns();
-
-		for (EntityClassification v : EntityClassification.values()) {
-
-			for (Spawners s : builder.getSpawner(v)) {
-				if (MyConfig.isSuppressMinecraftMobReporting()) {
-					if (s.type.getRegistryName().getNamespace().equals("minecraft")) {
-						continue;
-					}
-				}
-				String modname = s.type.getRegistryName().getNamespace();
-				if (MyConfig.isIncludedMod(modname)) {
-					p.println(++biomelineNumber + ", " + cn + ", " + bn + ", " + v + ", " + s.type.getRegistryName()
-					+ ", " + s.itemWeight + ", " + s.minCount + ", " + s.maxCount);
-				}
-			}
-		}
-
-		if (p != System.out) {
-			p.close();
-		}
-	}
-
-
-	
-	
-	
-	
-	private static void balanceBiomeSpawnValues(BiomeLoadingEvent event) {
-		String bCl = "";
+//		String bCl = "";
 		String vCl = "";
 
-		MobSpawnInfoBuilder eventSpawnsBuilder = event.getSpawns();
-		biomeEventNumber++;
+		for (Biome b : biomeRegistry) {
+			String bn = biomeRegistry.getKey(b).toString();
 
-		String modBiomeKey = event.getName().toString();
-		List<BiomeCreatureItem> modBiomeMobSpawners = BiomeCreatureManager.biomeCreaturesMap.get(modBiomeKey);
-		
-		if (modBiomeMobSpawners != null) {
+			List<BiomeCreatureItem> modBiomeMobSpawners = BiomeCreatureManager.biomeCreaturesMap.get(bn);
+			if (modBiomeMobSpawners == null) {
+				System.out.println("XXX Balance Biomes True but BiomeMobWeight.CSV missing, empty, or has no valid mobs.");
+				continue;
+			}
+
+			MobSpawnInfo msi = b.getMobSpawnInfo();
+			Map<EntityClassification, List<MobSpawnInfo.Spawners>> map = null;
+			try {
+				map = (Map<EntityClassification, List<MobSpawnInfo.Spawners>>) field.get(msi);
+			} catch (Exception e) {
+				System.out.println("XXX Unexpected Reflection Failure getting map");
+				return;
+			}
+
+			Map<EntityClassification, List<MobSpawnInfo.Spawners>> newMap = new HashMap<>();
+
 			for (EntityClassification v : EntityClassification.values()) {
-				eventSpawnsBuilder.getSpawner(v).clear();
+				List<Spawners> newFixedList = new ArrayList<>();
 				vCl = v.getString();
-				for (int i = 0; i < modBiomeMobSpawners.size(); i++) {
-					BiomeCreatureItem biomeCreatureItem = modBiomeMobSpawners.get(i);
-					bCl = biomeCreatureItem.classification;
+				for (BiomeCreatureItem biomeCreatureItem : modBiomeMobSpawners) {
 					if (biomeCreatureItem.classification.toLowerCase().equals(vCl)) {
+						@SuppressWarnings("deprecation")
 						Optional<EntityType<?>> opt = Registry.ENTITY_TYPE
 								.getOptional(new ResourceLocation(biomeCreatureItem.modAndMob));
 						if (opt.isPresent()) {
-							Spawners newSpawner = new Spawners(opt.get(), biomeCreatureItem.spawnWeight, biomeCreatureItem.minCount, biomeCreatureItem.maxCount);
-							eventSpawnsBuilder.withSpawner(v, newSpawner);
+							Spawners newSpawner = new Spawners(opt.get(), biomeCreatureItem.spawnWeight,
+									biomeCreatureItem.minCount, biomeCreatureItem.maxCount);
+							newFixedList.add(newSpawner);
 							if (MyConfig.getDebugLevel() > 0) {
-								System.out.println(
-										"Biome :"+ modBiomeKey + " + r:"+reportlinenumber + " SpawnBalanceUtility XXZZY: p.size() ="+modBiomeMobSpawners.size()+" Mob " + biomeCreatureItem.modAndMob + " Added to " + event.getCategory().toString());
+								System.out.println("Biome :" + bn + " + r:" + reportlinenumber
+										+ " SpawnBalanceUtility XXZZY: p.size() =" + modBiomeMobSpawners.size()
+										+ " Mob " + biomeCreatureItem.modAndMob + " Added to "
+										+ b.getCategory().getName());
 							}
 
 						} else {
-							System.out.println(
-									reportlinenumber + "SpawnBalanceUtility ERROR: Mob " + biomeCreatureItem.modAndMob + " not in Entity Type Registry");
+							System.out.println(reportlinenumber + "SpawnBalanceUtility ERROR: Mob "
+									+ biomeCreatureItem.modAndMob + " not in Entity Type Registry");
 						}
 					}
 				}
+				newMap.put(v, newFixedList);
 			}
-		}
-	}
-
-	
-	
-	
-	
-	
-	private static void fixBiomeSpawnValues(BiomeLoadingEvent event) {
-
-		List<Spawners> lS = new ArrayList<>();
-				
-//		String bn = event.getName().toString();
-//		String cn = event.getCategory().getName().toString();
-		MobSpawnInfoBuilder builder = event.getSpawns();
-		boolean classificationMonster = false;
-		boolean zombifiedPiglinSpawner = false;
-		boolean ghastSpawner = false;
-		
-		// given- we have the biome name- the category name.
-
-		for (EntityClassification v : EntityClassification.values()) {
-			// and here we have the classification
-			// looks like the mob name can't be part of the key however.
-			// the hashtable.elements() may give an enumeration from a biome.
-
-			lS.clear();
-			for (Spawners s : builder.getSpawner(v)) {
-				
-				ResourceLocation modMob = s.type.getRegistryName();
-				String key = modMob.toString();
-				int newSpawnWeight = s.itemWeight;
-				if (newSpawnWeight > MyConfig.getMaxSpawnWeight()) {
-					newSpawnWeight = MyConfig.getMaxSpawnWeight();
-				}
-				if (newSpawnWeight < MyConfig.getMinSpawnWeight()) {
-					newSpawnWeight = MyConfig.getMinSpawnWeight();
-				}
-				Spawners newS = new Spawners(s.type, newSpawnWeight, s.minCount, s.maxCount);
-				lS.add(newS);
-
-				if (event.getCategory() == Biome.Category.NETHER) {
-					if (s.type == EntityType.ZOMBIFIED_PIGLIN)
-						zombifiedPiglinSpawner = true;
-					if (s.type == EntityType.GHAST) {
-						ghastSpawner = true;
-					}
-				}
-			}
-
-			List<MassAdditionMobItem> massAddMobs = MobMassAdditionManager.getFilteredList(v,event.getCategory()); 
-			EntityType<?> et;
-			for (MassAdditionMobItem ma : massAddMobs) {
-				
-				Optional<EntityType<?>> oe = EntityType.byKey(ma.getModAndMob());
-				if (oe.isPresent()) {
-					et = oe.get();
-					boolean mobFound = false;
-					for (Spawners s : lS) {
-						if (s.type == et) {
-							mobFound = true;
-							break;
-						}
-					}
-					if (mobFound == false) {
-						Spawners newS = new Spawners(et, ma.spawnWeight, ma.minCount, ma.maxCount);
-						lS.add(newS);						
-					}
-				}
-				
-			}
-			
-			if (event.getCategory() == Biome.Category.NETHER) {
-				if (v == EntityClassification.MONSTER) {
-					if ((zombifiedPiglinSpawner == false) && (MyConfig.isFixEmptyNether())) {
-						Spawners newS = new Spawners(EntityType.ZOMBIFIED_PIGLIN, MyConfig.getMinSpawnWeight(), 1, 4);
-						lS.add(newS);
-					}
-
-					if ((ghastSpawner == false) && (MyConfig.isFixEmptyNether())) {
-						Spawners newS = new Spawners(EntityType.GHAST, (int) (MyConfig.getMinSpawnWeight() * 0.75f), 4,
-								4);
-						lS.add(newS);
-					}
-				}
-			}
-
-			builder.getSpawner(v).clear();
-			for (Spawners s : lS) {
-				builder.withSpawner(v, s);
+			try {
+				field.set(msi, newMap);
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 
 	}
 
+	@SuppressWarnings("unchecked")
+	public static void fixBiomeSpawnValues(MinecraftServer server) {
 
+		DynamicRegistries dynreg = server.func_244267_aX();
+		MutableRegistry<Biome> biomeRegistry = dynreg.getRegistry(Registry.BIOME_KEY);
+		Field field = null;
+		try {
+			String name = ASMAPI.mapField("field_242554_e");
+			field = MobSpawnInfo.class.getDeclaredField(name);
+			field.setAccessible(true);
+		} catch (Exception e) {
+			System.out.println("XXX Unexpected Reflection Failure lateBalanceBiomeSpawnValues");
+			return;
+		}
+
+		for (Biome b : biomeRegistry) {
+
+			String bn = biomeRegistry.getKey(b).toString();
+
+			MobSpawnInfo msi = b.getMobSpawnInfo();
+			Map<EntityClassification, List<MobSpawnInfo.Spawners>> map = null;
+			try {
+				map = (Map<EntityClassification, List<MobSpawnInfo.Spawners>>) field.get(msi);
+			} catch (Exception e) {
+				System.out.println("XXX Unexpected Reflection Failure getting map");
+				return;
+			}
+
+			Map<EntityClassification, List<MobSpawnInfo.Spawners>> newMap = new HashMap<>();
+//			boolean classificationMonster = false;
+			boolean zombifiedPiglinSpawner = false;
+			boolean ghastSpawner = false;
+
+			// given- we have the biome name- the category name.
+
+			for (EntityClassification v : EntityClassification.values()) {
+				List<Spawners> originalSpawnerList = map.get(v);
+
+				// and here we have the classification
+				// looks like the mob name can't be part of the key however.
+				// the hashtable.elements() may give an enumeration from a biome.
+
+				List<Spawners> newFixedList = new ArrayList<>();
+				for (Spawners s : originalSpawnerList) {
+
+//					ResourceLocation modMob = s.type.getRegistryName();
+//					String key = modMob.toString();
+					int newSpawnWeight = s.itemWeight;
+					if (newSpawnWeight > MyConfig.getMaxSpawnWeight()) {
+						newSpawnWeight = MyConfig.getMaxSpawnWeight();
+					}
+					if (newSpawnWeight < MyConfig.getMinSpawnWeight()) {
+						newSpawnWeight = MyConfig.getMinSpawnWeight();
+						System.out.println(s.type.getRegistryName() + " minspawn change from " + s.itemWeight + " to "
+								+ newSpawnWeight);
+					}
+					Spawners newS = new Spawners(s.type, newSpawnWeight, s.minCount, s.maxCount);
+					newFixedList.add(newS);
+
+					if (b.getCategory() == Biome.Category.NETHER) {
+						if (s.type == EntityType.ZOMBIFIED_PIGLIN)
+							zombifiedPiglinSpawner = true;
+						if (s.type == EntityType.GHAST) {
+							ghastSpawner = true;
+						}
+					}
+				}
+
+				List<MassAdditionMobItem> massAddMobs = MobMassAdditionManager.getFilteredList(v, b.getCategory());
+				EntityType<?> et;
+				for (MassAdditionMobItem ma : massAddMobs) {
+
+					Optional<EntityType<?>> oe = EntityType.byKey(ma.getModAndMob());
+					if (oe.isPresent()) {
+						et = oe.get();
+						boolean mobFound = false;
+						for (Spawners s : newFixedList) {
+							if (s.type == et) {
+								mobFound = true;
+								break;
+							}
+						}
+						if (mobFound == false) {
+							Spawners newS = new Spawners(et, ma.spawnWeight, ma.minCount, ma.maxCount);
+							newFixedList.add(newS);
+						}
+					}
+
+				}
+
+				if (b.getCategory() == Biome.Category.NETHER) {
+					if (v == EntityClassification.MONSTER) {
+						if ((zombifiedPiglinSpawner == false) && (MyConfig.isFixEmptyNether())) {
+							Spawners newS = new Spawners(EntityType.ZOMBIFIED_PIGLIN, MyConfig.getMinSpawnWeight(), 1,
+									4);
+							newFixedList.add(newS);
+						}
+
+						if ((ghastSpawner == false) && (MyConfig.isFixEmptyNether())) {
+							Spawners newS = new Spawners(EntityType.GHAST, (int) (MyConfig.getMinSpawnWeight() * 0.75f),
+									4, 4);
+							newFixedList.add(newS);
+						}
+					}
+				}
+
+				newMap.put(v, newFixedList);
+			}
+
+			try {
+				field.set(msi, newMap);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+	}
 
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public static void onStructure(StructureSpawnListGatherEvent event) {
-		
+
 		String threadname = Thread.currentThread().getName();
-		String structurename = event.getStructure().getStructureName();
-		
+//		String structurename = event.getStructure().getStructureName();
+
 //		if (MyConfig.isBalanceStructureSpawnValues()) {
 //			balanceStructureSpawnValues(event);
 //			if (MyConfig.getDebugLevel() > 0) {
@@ -294,11 +273,11 @@ public class SpawnData {
 		if (MyConfig.isBalanceStructureSpawnValues()) {
 			balanceStructureSpawnValues(event);
 		}
-		
+
 		if (MyConfig.isFixSpawnValues()) {
 			fixStructureSpawnValues(event);
 		}
-		
+
 		if (MyConfig.isGenerateReport()) {
 			if (threadname.equals("Render thread")) {
 				return;
@@ -308,14 +287,9 @@ public class SpawnData {
 
 	}
 
-	
-	
-	
-	
-	
 	private static void balanceStructureSpawnValues(StructureSpawnListGatherEvent event) {
 
-		String bCl = "";
+//		String bCl = "";
 		String vCl = "";
 
 		structureEventNumber++;
@@ -333,14 +307,15 @@ public class SpawnData {
 				theirSpawnersList.clear();
 				for (int i = 0; i < p.size(); i++) {
 					StructureCreatureItem sci = p.get(i);
-					bCl = sci.classification;
+//					bCl = sci.classification;
 					if (sci.classification.toLowerCase().equals(vCl)) {
+						@SuppressWarnings("deprecation")
 						Optional<EntityType<?>> opt = Registry.ENTITY_TYPE
 								.getOptional(new ResourceLocation(sci.modAndMob));
 						if (opt.isPresent()) {
 							Spawners newSpawner = new Spawners(opt.get(), sci.spawnWeight, sci.minCount, sci.maxCount);
 							newSpawnersList.add(newSpawner);
-							MyConfig.setDebugLevel(0);
+
 							if (MyConfig.getDebugLevel() > 0) {
 								System.out.println("Structure :" + key + " + rl#:" + structureLineNumber
 										+ " SpawnBalanceUtility XXZZY: p.size() =" + p.size() + " Mob " + sci.modAndMob
@@ -354,7 +329,7 @@ public class SpawnData {
 					}
 				}
 				for (Spawners s : event.getEntitySpawns(ec)) {
-					theirSpawnersList.add(s);					
+					theirSpawnersList.add(s);
 				}
 				for (Spawners s : theirSpawnersList) {
 					event.removeEntitySpawn(ec, s);
@@ -362,21 +337,15 @@ public class SpawnData {
 				event.addEntitySpawns(ec, newSpawnersList);
 			}
 
-
 		}
 
 	}
-
-	
-	
-
-	
 
 	private static void fixStructureSpawnValues(StructureSpawnListGatherEvent event) {
 
 		List<Spawners> newSpawnersList = new ArrayList<>();
 		List<Spawners> theirSpawnersList = new ArrayList<>();
-		
+
 		for (EntityClassification ec : EntityClassification.values()) {
 			newSpawnersList.clear();
 			theirSpawnersList.clear();
@@ -396,22 +365,16 @@ public class SpawnData {
 				theirSpawnersList.add(s);
 				newSpawnersList.add(newS);
 			}
-			for (Spawners s: theirSpawnersList) {
+			for (Spawners s : theirSpawnersList) {
 				event.removeEntitySpawn(ec, s);
 			}
 			event.addEntitySpawns(ec, newSpawnersList);
-			
+
 		}
 
 	}
-	
-	
-	
-	
-	
-	
-	private static void generateStructureSpawnValuesReport(StructureSpawnListGatherEvent event) {
 
+	private static void generateStructureSpawnValuesReport(StructureSpawnListGatherEvent event) {
 
 		String sn = event.getStructure().getRegistryName().toString();
 		synchronized (structuresProcessed) {
@@ -420,7 +383,7 @@ public class SpawnData {
 			}
 			structuresProcessed.add(sn);
 		}
-		
+
 		PrintStream p = null;
 		try {
 			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/StructMobWeight.txt", true));
@@ -432,9 +395,8 @@ public class SpawnData {
 			p = System.out;
 		}
 
-
 		List<Spawners> spawners = new ArrayList<>();
-		p.println(++structureLineNumber+ ", " + sn + ", HEADING, header:ignore, 0, 0, 0");
+		p.println(++structureLineNumber + ", " + sn + ", HEADING, header:ignore, 0, 0, 0");
 
 		for (EntityClassification ec : EntityClassification.values()) {
 			spawners = event.getEntitySpawns(ec);
@@ -445,8 +407,8 @@ public class SpawnData {
 					}
 				}
 				if (MyConfig.isIncludedMod(s.type.getRegistryName().getNamespace())) {
-					p.println(++structureLineNumber+ ", " + sn + ", " + ec +", "+ s.type.getRegistryName() + ", " + s.itemWeight
-							+ ", " + s.minCount + ", " + s.maxCount);
+					p.println(++structureLineNumber + ", " + sn + ", " + ec + ", " + s.type.getRegistryName() + ", "
+							+ s.itemWeight + ", " + s.minCount + ", " + s.maxCount);
 					if (MyConfig.debugLevel > 0) {
 						System.out.println(++structureLineNumber + ", " + sn + ", " + s.type.getRegistryName() + ", "
 								+ s.itemWeight + ", " + s.minCount + ", " + s.maxCount);
@@ -458,10 +420,10 @@ public class SpawnData {
 		if (p != System.out) {
 			p.close();
 		}
-	}	
-	
+	}
+
 	private static void generateMassAdditionMobsStubReport() {
-		
+
 		PrintStream p = null;
 		try {
 			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/MassAdditionMobs.txt", true));
@@ -473,18 +435,60 @@ public class SpawnData {
 			p = System.out;
 		}
 
-		p.println("Example mob mass addition file.  Add mobs with the pattern below and rename file to MassAdditionMobs.csv");
+		p.println(
+				"Example mob mass addition file.  Add mobs with the pattern below and rename file to MassAdditionMobs.csv");
 		p.println("Line, Category*, Class**, Namespace:Mob, Weight, Mingroup , Maxgroup");
 		p.println("");
 		p.println("1, A, MONSTER, minecraft:phantom, 10, 1, 4");
 		p.println("");
-		p.println ("* A, O, N, E for All, Overworld, Nether, The End");
-		p.println ("** MONSTER,CREATURE,AMBIENT");
+		p.println("* A, O, N, E for All, Overworld, Nether, The End");
+		p.println("** MONSTER,CREATURE,AMBIENT");
 		if (p != System.out) {
 			p.close();
 		}
 	}
-	
-}
-	
 
+	public static void generateBiomeReport(FMLServerStartingEvent event) {
+
+		PrintStream p = null;
+		try {
+			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/BiomeMobWeight.txt", true));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		if (p == null) {
+			p = System.out;
+		}
+
+		MinecraftServer server = event.getServer();
+		DynamicRegistries dynreg = server.func_244267_aX();
+		MutableRegistry<Biome> biomeRegistry = dynreg.getRegistry(Registry.BIOME_KEY);
+
+		for (Biome b : biomeRegistry) {
+			String cn = b.getCategory().getName();
+			String bn = biomeRegistry.getKey(b).toString();
+			MobSpawnInfo msi = b.getMobSpawnInfo();
+			for (EntityClassification v : EntityClassification.values()) {
+
+				for (Spawners s : msi.getSpawners(v)) {
+					if (MyConfig.isSuppressMinecraftMobReporting()) {
+						if (s.type.getRegistryName().getNamespace().equals("minecraft")) {
+							continue;
+						}
+					}
+					String modname = s.type.getRegistryName().getNamespace();
+					if (MyConfig.isIncludedMod(modname)) {
+						p.println(++biomelineNumber + ", " + cn + ", " + bn + ", " + v + ", " + s.type.getRegistryName()
+								+ ", " + s.itemWeight + ", " + s.minCount + ", " + s.maxCount);
+					}
+				}
+			}
+		}
+
+		if (p != System.out) {
+			p.close();
+		}
+	}
+
+}
