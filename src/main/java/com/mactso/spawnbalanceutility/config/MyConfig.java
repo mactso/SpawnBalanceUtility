@@ -9,9 +9,7 @@ import org.apache.logging.log4j.Logger;
 import com.mactso.spawnbalanceutility.Main;
 import com.mactso.spawnbalanceutility.util.BiomeCreatureManager;
 import com.mactso.spawnbalanceutility.util.MobMassAdditionManager;
-import com.mactso.spawnbalanceutility.util.MobMassAdditionManager.MassAdditionMobItem;
 import com.mactso.spawnbalanceutility.util.StructureCreatureManager;
-import com.sun.jna.StringArray;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
@@ -20,7 +18,6 @@ import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.BooleanValue;
 import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
-import net.minecraftforge.common.ForgeConfigSpec.DoubleValue;
 import net.minecraftforge.common.ForgeConfigSpec.IntValue;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModList;
@@ -231,17 +228,17 @@ public class MyConfig {
 	// support for any color chattext
 	public static void sendChat(PlayerEntity p, String chatMessage, Color color) {
 		StringTextComponent component = new StringTextComponent(chatMessage);
-		component.getStyle().setColor(color);
-		p.sendMessage(component, p.getUniqueID());
+		component.getStyle().withColor(color);
+		p.sendMessage(component, p.getUUID());
 	}
 
 	// support for any color, optionally bold text.
 	public static void sendBoldChat(PlayerEntity p, String chatMessage, Color color) {
 		StringTextComponent component = new StringTextComponent(chatMessage);
 
-		component.getStyle().setBold(true);
-		component.getStyle().setColor(color);
+		component.getStyle().withBold(true);
+		component.getStyle().withColor(color);
 
-		p.sendMessage(component, p.getUniqueID());
+		p.sendMessage(component, p.getUUID());
 	}
 }

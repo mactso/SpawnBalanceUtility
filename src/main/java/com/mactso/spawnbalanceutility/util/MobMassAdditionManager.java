@@ -4,11 +4,8 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.StringTokenizer;
 
 import com.mactso.spawnbalanceutility.config.MyConfig;
@@ -59,7 +56,6 @@ public class MobMassAdditionManager {
 		String category;
 		int minCount = 0;
 		int maxCount = 0;
-		int dimensionType = 0;
 		int linecount = 0;
 		String errorField = "first";
 		String line;

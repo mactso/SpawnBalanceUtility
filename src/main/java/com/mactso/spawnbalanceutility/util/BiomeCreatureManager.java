@@ -2,21 +2,17 @@ package com.mactso.spawnbalanceutility.util;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PrintStream;
-import java.util.*;
-import java.util.Map.Entry;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
 
 import com.mactso.spawnbalanceutility.config.MyConfig;
 
-import net.minecraft.entity.EntityClassification;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.biome.Biome;
-
-import java.io.*;
 
 public class BiomeCreatureManager {
 

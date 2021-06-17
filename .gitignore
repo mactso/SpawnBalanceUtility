@@ -5,6 +5,7 @@
 /bin/
 /run/
 /build/
+/logs/
 /.project
 /runClient.launch
 /runData.launch

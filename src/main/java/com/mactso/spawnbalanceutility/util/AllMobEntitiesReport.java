@@ -36,7 +36,7 @@ public class AllMobEntitiesReport {
 
 		for (EntityType<?> a : Registry.ENTITY_TYPE) {
 			if (isValidClassification(a)) {
-				p.println(a.getRegistryName().toString() + ", " + a.getClassification());
+				p.println(a.getRegistryName().toString() + ", " + a.getCategory());
 			}
 		}
 		
@@ -47,7 +47,7 @@ public class AllMobEntitiesReport {
 	}
 
 	private static boolean isValidClassification(EntityType<?> a) {
-		if (a.getClassification() == EntityClassification.MISC) 
+		if (a.getCategory() == EntityClassification.MISC) 
 			return false;
 		return true;
 	}

@@ -2,7 +2,6 @@ package com.mactso.spawnbalanceutility.util;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,7 +32,6 @@ public class StructureCreatureManager {
 		try (InputStreamReader input = new InputStreamReader(
 				new FileInputStream("config/spawnbalanceutility/StructMobWeight.csv"))) {
 			BufferedReader br = new BufferedReader(input);
-			int x = 3;
 			while ((line = br.readLine()) != null) {
 				StringTokenizer st = new StringTokenizer(line, ",");
 				linecount++;

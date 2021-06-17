@@ -32,7 +32,6 @@ import net.minecraftforge.coremod.api.ASMAPI;
 import net.minecraftforge.event.world.StructureSpawnListGatherEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 
 public class SpawnData {
@@ -64,11 +63,11 @@ public class SpawnData {
 			generateMassAdditionMobsStubReport();
 	}
 
-	@SuppressWarnings("unchecked")
+
 	public static void balanceBiomeSpawnValues(MinecraftServer server) {
 
-		DynamicRegistries dynreg = server.func_244267_aX();
-		MutableRegistry<Biome> biomeRegistry = dynreg.getRegistry(Registry.BIOME_KEY);
+		DynamicRegistries dynreg = server.registryAccess();
+		MutableRegistry<Biome> biomeRegistry =  dynreg.registryOrThrow(Registry.BIOME_REGISTRY);
 		Field field = null;
 		try {
 			String name = ASMAPI.mapField("field_242554_e");
@@ -91,20 +90,21 @@ public class SpawnData {
 				continue;
 			}
 
-			MobSpawnInfo msi = b.getMobSpawnInfo();
-			Map<EntityClassification, List<MobSpawnInfo.Spawners>> map = null;
-			try {
-				map = (Map<EntityClassification, List<MobSpawnInfo.Spawners>>) field.get(msi);
-			} catch (Exception e) {
-				System.out.println("XXX Unexpected Reflection Failure getting map");
-				return;
-			}
+			MobSpawnInfo msi = b.getMobSettings ();
+			
+//			Map<EntityClassification, List<MobSpawnInfo.Spawners>> map = null;
+//			try {
+//				map = (Map<EntityClassification, List<MobSpawnInfo.Spawners>>) field.get(msi);
+//			} catch (Exception e) {
+//				System.out.println("XXX Unexpected Reflection Failure getting map");
+//				return;
+//			}
 
 			Map<EntityClassification, List<MobSpawnInfo.Spawners>> newMap = new HashMap<>();
 
 			for (EntityClassification v : EntityClassification.values()) {
 				List<Spawners> newFixedList = new ArrayList<>();
-				vCl = v.getString();
+				vCl = v.getSerializedName ();
 				for (BiomeCreatureItem biomeCreatureItem : modBiomeMobSpawners) {
 					if (biomeCreatureItem.classification.toLowerCase().equals(vCl)) {
 						@SuppressWarnings("deprecation")
@@ -118,7 +118,7 @@ public class SpawnData {
 								System.out.println("Biome :" + bn + " + r:" + reportlinenumber
 										+ " SpawnBalanceUtility XXZZY: p.size() =" + modBiomeMobSpawners.size()
 										+ " Mob " + biomeCreatureItem.modAndMob + " Added to "
-										+ b.getCategory().getName());
+										+ b.getBiomeCategory().getName());
 							}
 
 						} else {
@@ -141,8 +141,8 @@ public class SpawnData {
 	@SuppressWarnings("unchecked")
 	public static void fixBiomeSpawnValues(MinecraftServer server) {
 
-		DynamicRegistries dynreg = server.func_244267_aX();
-		MutableRegistry<Biome> biomeRegistry = dynreg.getRegistry(Registry.BIOME_KEY);
+		DynamicRegistries dynreg = server.registryAccess();
+		MutableRegistry<Biome> biomeRegistry = dynreg.registryOrThrow(Registry.BIOME_REGISTRY);
 		Field field = null;
 		try {
 			String name = ASMAPI.mapField("field_242554_e");
@@ -155,9 +155,9 @@ public class SpawnData {
 
 		for (Biome b : biomeRegistry) {
 
-			String bn = biomeRegistry.getKey(b).toString();
+//			String bn = biomeRegistry.getKey(b).toString();
 
-			MobSpawnInfo msi = b.getMobSpawnInfo();
+			MobSpawnInfo msi = b.getMobSettings ();
 			Map<EntityClassification, List<MobSpawnInfo.Spawners>> map = null;
 			try {
 				map = (Map<EntityClassification, List<MobSpawnInfo.Spawners>>) field.get(msi);
@@ -185,19 +185,19 @@ public class SpawnData {
 
 //					ResourceLocation modMob = s.type.getRegistryName();
 //					String key = modMob.toString();
-					int newSpawnWeight = s.itemWeight;
+					int newSpawnWeight = s.weight;
 					if (newSpawnWeight > MyConfig.getMaxSpawnWeight()) {
 						newSpawnWeight = MyConfig.getMaxSpawnWeight();
 					}
 					if (newSpawnWeight < MyConfig.getMinSpawnWeight()) {
 						newSpawnWeight = MyConfig.getMinSpawnWeight();
-						System.out.println(s.type.getRegistryName() + " minspawn change from " + s.itemWeight + " to "
+						System.out.println(s.type.getRegistryName() + " minspawn change from " + s.weight + " to "
 								+ newSpawnWeight);
 					}
 					Spawners newS = new Spawners(s.type, newSpawnWeight, s.minCount, s.maxCount);
 					newFixedList.add(newS);
 
-					if (b.getCategory() == Biome.Category.NETHER) {
+					if (b.getBiomeCategory() == Biome.Category.NETHER) {
 						if (s.type == EntityType.ZOMBIFIED_PIGLIN)
 							zombifiedPiglinSpawner = true;
 						if (s.type == EntityType.GHAST) {
@@ -206,11 +206,11 @@ public class SpawnData {
 					}
 				}
 
-				List<MassAdditionMobItem> massAddMobs = MobMassAdditionManager.getFilteredList(v, b.getCategory());
+				List<MassAdditionMobItem> massAddMobs = MobMassAdditionManager.getFilteredList(v, b.getBiomeCategory());
 				EntityType<?> et;
 				for (MassAdditionMobItem ma : massAddMobs) {
 
-					Optional<EntityType<?>> oe = EntityType.byKey(ma.getModAndMob());
+					Optional<EntityType<?>> oe = EntityType.byString(ma.getModAndMob());
 					if (oe.isPresent()) {
 						et = oe.get();
 						boolean mobFound = false;
@@ -228,7 +228,7 @@ public class SpawnData {
 
 				}
 
-				if (b.getCategory() == Biome.Category.NETHER) {
+				if (b.getBiomeCategory() == Biome.Category.NETHER) {
 					if (v == EntityClassification.MONSTER) {
 						if ((zombifiedPiglinSpawner == false) && (MyConfig.isFixEmptyNether())) {
 							Spawners newS = new Spawners(EntityType.ZOMBIFIED_PIGLIN, MyConfig.getMinSpawnWeight(), 1,
@@ -302,7 +302,7 @@ public class SpawnData {
 
 		if (p != null) {
 			for (EntityClassification ec : EntityClassification.values()) {
-				vCl = ec.getString();
+				vCl = ec.getSerializedName ();
 				newSpawnersList.clear();
 				theirSpawnersList.clear();
 				for (int i = 0; i < p.size(); i++) {
@@ -350,7 +350,7 @@ public class SpawnData {
 			newSpawnersList.clear();
 			theirSpawnersList.clear();
 			for (Spawners s : event.getEntitySpawns(ec)) {
-				int newSpawnWeight = s.itemWeight;
+				int newSpawnWeight = s.weight;
 				if (newSpawnWeight < MyConfig.getMinSpawnWeight()) {
 					if ((newSpawnWeight > 1) && (newSpawnWeight * 10 < MyConfig.getMaxSpawnWeight())) {
 						newSpawnWeight = newSpawnWeight * 10;
@@ -408,10 +408,10 @@ public class SpawnData {
 				}
 				if (MyConfig.isIncludedMod(s.type.getRegistryName().getNamespace())) {
 					p.println(++structureLineNumber + ", " + sn + ", " + ec + ", " + s.type.getRegistryName() + ", "
-							+ s.itemWeight + ", " + s.minCount + ", " + s.maxCount);
+							+ s.weight + ", " + s.minCount + ", " + s.maxCount);
 					if (MyConfig.debugLevel > 0) {
 						System.out.println(++structureLineNumber + ", " + sn + ", " + s.type.getRegistryName() + ", "
-								+ s.itemWeight + ", " + s.minCount + ", " + s.maxCount);
+								+ s.weight + ", " + s.minCount + ", " + s.maxCount);
 					}
 				}
 			}
@@ -462,16 +462,16 @@ public class SpawnData {
 		}
 
 		MinecraftServer server = event.getServer();
-		DynamicRegistries dynreg = server.func_244267_aX();
-		MutableRegistry<Biome> biomeRegistry = dynreg.getRegistry(Registry.BIOME_KEY);
+		DynamicRegistries dynreg = server.registryAccess();
+		MutableRegistry<Biome> biomeRegistry = dynreg.registryOrThrow(Registry.BIOME_REGISTRY);
 
 		for (Biome b : biomeRegistry) {
-			String cn = b.getCategory().getName();
+			String cn = b.getBiomeCategory().getName();
 			String bn = biomeRegistry.getKey(b).toString();
-			MobSpawnInfo msi = b.getMobSpawnInfo();
+			MobSpawnInfo msi = b.getMobSettings();
 			for (EntityClassification v : EntityClassification.values()) {
 
-				for (Spawners s : msi.getSpawners(v)) {
+				for (Spawners s : msi.getMobs(v)) {
 					if (MyConfig.isSuppressMinecraftMobReporting()) {
 						if (s.type.getRegistryName().getNamespace().equals("minecraft")) {
 							continue;
@@ -480,7 +480,7 @@ public class SpawnData {
 					String modname = s.type.getRegistryName().getNamespace();
 					if (MyConfig.isIncludedMod(modname)) {
 						p.println(++biomelineNumber + ", " + cn + ", " + bn + ", " + v + ", " + s.type.getRegistryName()
-								+ ", " + s.itemWeight + ", " + s.minCount + ", " + s.maxCount);
+								+ ", " + s.weight + ", " + s.minCount + ", " + s.maxCount);
 					}
 				}
 			}

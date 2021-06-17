@@ -6,7 +6,6 @@ import com.mactso.spawnbalanceutility.config.MyConfig;
 import com.mactso.spawnbalanceutility.util.AllMobEntitiesReport;
 import com.mactso.spawnbalanceutility.util.SpawnData;
 
-import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -40,7 +39,7 @@ public class Main {
 
 		@SubscribeEvent 
 		public void preInit (final FMLCommonSetupEvent event) {
-				System.out.println(MODID + ": Registering Handlers");
+				System.out.println(MODID + ": Registering Handlers.  Version 1");
 				AllMobEntitiesReport.doReport();
 //				MinecraftForge.EVENT_BUS.register(new SpawnerBreakEvent ());
 //				MinecraftForge.EVENT_BUS.register(new SpawnEventHandler());
