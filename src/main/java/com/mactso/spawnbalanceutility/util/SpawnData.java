@@ -194,6 +194,11 @@ public class SpawnData {
 						System.out.println(s.type.getRegistryName() + " minspawn change from " + s.weight + " to "
 								+ newSpawnWeight);
 					}
+					String key = s.type.getRegistryName().toString();
+					int dSW = MyConfig.getDefaultSpawnWeight(key);
+					if (dSW != MyConfig.NO_DEFAULT_SPAWN_WEIGHT_FOUND) {
+						newSpawnWeight = dSW;
+					}
 					Spawners newS = new Spawners(s.type, newSpawnWeight, s.minCount, s.maxCount);
 					newFixedList.add(newS);
 
