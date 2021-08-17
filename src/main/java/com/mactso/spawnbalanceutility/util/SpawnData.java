@@ -86,7 +86,9 @@ public class SpawnData {
 
 			List<BiomeCreatureItem> modBiomeMobSpawners = BiomeCreatureManager.biomeCreaturesMap.get(bn);
 			if (modBiomeMobSpawners == null) {
-				System.out.println("XXX Balance Biomes True but BiomeMobWeight.CSV missing, empty, or has no valid mobs.");
+				if (MyConfig.getDebugLevel() > 0) {
+					System.out.println("XXX Balance Biomes True but BiomeMobWeight.CSV missing, empty, or has no valid mobs.");
+				}
 				continue;
 			}
 
@@ -191,8 +193,10 @@ public class SpawnData {
 					}
 					if (newSpawnWeight < MyConfig.getMinSpawnWeight()) {
 						newSpawnWeight = MyConfig.getMinSpawnWeight();
-						System.out.println(s.type.getRegistryName() + " minspawn change from " + s.weight + " to "
-								+ newSpawnWeight);
+						if (MyConfig.getDebugLevel() > 0) {
+							System.out.println(s.type.getRegistryName() + " minspawn change from " + s.weight + " to "
+									+ newSpawnWeight);
+						}
 					}
 					String key = s.type.getRegistryName().toString();
 					int dSW = MyConfig.getDefaultSpawnWeight(key);
