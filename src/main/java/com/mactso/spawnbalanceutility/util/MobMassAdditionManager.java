@@ -10,9 +10,8 @@ import java.util.StringTokenizer;
 
 import com.mactso.spawnbalanceutility.config.MyConfig;
 
-import net.minecraft.entity.EntityClassification;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.biome.Biome.Category;
+import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.level.biome.Biome.BiomeCategory;
 
 public class MobMassAdditionManager {
 	
@@ -24,23 +23,23 @@ public class MobMassAdditionManager {
 	public static String CATEGORY_NETHER = "N";
 	public static String CATEGORY_THEEND = "E";
 
-	public static List<MassAdditionMobItem> getFilteredList(EntityClassification v, Category category) {
+	public static List<MassAdditionMobItem> getFilteredList(MobCategory v, BiomeCategory category) {
 		List<MassAdditionMobItem> ma = new ArrayList<>();
 		for (MassAdditionMobItem m : massAdditionMobsHashtable.values()) {
 			if (v.getName().equalsIgnoreCase(m.getClassification())) {
 				if (m.getCategory().equals(CATEGORY_ALL)) {
 					ma.add(m);
-				} else 	if (category == Category.NETHER) {
+				} else 	if (category == BiomeCategory.NETHER) {
 					if (m.getCategory().equals(CATEGORY_NETHER)) {
 						ma.add(m);	
 					}
 				}
-				else if (category == Category.THEEND) {
+				else if (category == BiomeCategory.THEEND) {
 					if (m.getCategory().equals(CATEGORY_THEEND)) {
 						ma.add(m);
 					}
 				}
-				else if (category != Category.NONE) {
+				else if (category != BiomeCategory.NONE) {
 					if (m.getCategory().equals(CATEGORY_OVERWORLD)) {
 						ma.add(m);
 					}
@@ -79,7 +78,6 @@ public class MobMassAdditionManager {
 					String classification = st.nextToken().trim();
 					errorField = "modAndMob";
 					String modAndMob = st.nextToken().trim();
-					ResourceLocation r = new ResourceLocation(modAndMob);					
 					errorField = "spawnWeight";
 					spawnWeight = Integer.parseInt(st.nextToken().trim());
 					errorField = "minCount";
@@ -122,7 +120,7 @@ public class MobMassAdditionManager {
 	}
 
 	public static boolean validClassification (String classification) {
-		for (EntityClassification e : EntityClassification.values()) {
+		for (MobCategory e : MobCategory.values()) {
 			if (classification.equalsIgnoreCase(e.getName())) {
 				return true;
 			}

@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import net.minecraft.util.ResourceLocation;
+import com.mactso.spawnbalanceutility.config.MyConfig;
 
 public class StructureCreatureManager {
 
@@ -41,12 +41,10 @@ public class StructureCreatureManager {
 					lastgoodline = lineNumber;
 					errorField = "modAndStructure";
 					String modAndStructure = st.nextToken().trim();
-					ResourceLocation r = new ResourceLocation(modAndStructure);
 					errorField = "classification";
 					String classification = st.nextToken().trim();
 					errorField = "modAndMob";
 					String modAndMob = st.nextToken().trim();
-					r = new ResourceLocation(modAndMob);					
 					errorField = "spawnWeight";
 					spawnWeight = Integer.parseInt(st.nextToken().trim());
 					errorField = "minCount";
@@ -65,6 +63,8 @@ public class StructureCreatureManager {
 					}					
 					String key = modAndStructure;
 					if (spawnWeight > 0){
+						// TODO set this debug value to 1.
+						MyConfig.debugMsg(0, lineNumber +", "+ lastgoodline+", "+ modAndStructure+", "+ classification+", "+ modAndMob+", "+ spawnWeight+", "+minCount+", "+ maxCount);
 						StructureCreatureItem bci = new StructureCreatureItem(lineNumber, modAndStructure, classification, modAndMob, spawnWeight, minCount, maxCount);
 						List<StructureCreatureItem> p = structureCreaturesMap.get(key);
 						if (p == null) {

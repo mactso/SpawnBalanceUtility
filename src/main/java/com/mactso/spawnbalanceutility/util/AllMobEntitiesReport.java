@@ -5,9 +5,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
-import net.minecraft.entity.EntityClassification;
-import net.minecraft.entity.EntityType;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.core.Registry;
 
 public class AllMobEntitiesReport {
 	
@@ -47,7 +47,7 @@ public class AllMobEntitiesReport {
 	}
 
 	private static boolean isValidClassification(EntityType<?> a) {
-		if (a.getCategory() == EntityClassification.MISC) 
+		if (a.getCategory() == MobCategory.MISC) 
 			return false;
 		return true;
 	}

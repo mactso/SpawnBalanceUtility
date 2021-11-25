@@ -12,8 +12,6 @@ import java.util.StringTokenizer;
 
 import com.mactso.spawnbalanceutility.config.MyConfig;
 
-import net.minecraft.util.ResourceLocation;
-
 public class BiomeCreatureManager {
 
 	public static Map<String,List<BiomeCreatureItem>> biomeCreaturesMap = new HashMap<>();
@@ -45,12 +43,10 @@ public class BiomeCreatureManager {
 					String category = st.nextToken().trim();
 					errorField = "modAndBiome";
 					String modAndBiome = st.nextToken().trim();
-					ResourceLocation r = new ResourceLocation(modAndBiome);
 					errorField = "classification";
 					String classification = st.nextToken().trim();
 					errorField = "modAndMob";
 					String modAndMob = st.nextToken().trim();
-					r = new ResourceLocation(modAndMob);					
 					errorField = "spawnWeight";
 					spawnWeight = Integer.parseInt(st.nextToken().trim());
 					errorField = "minCount";
