@@ -33,10 +33,11 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.biome.MobSpawnSettings.SpawnerData;
 import net.minecraftforge.coremod.api.ASMAPI;
+import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.world.StructureSpawnListGatherEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fmlserverevents.FMLServerStartingEvent;
+
 
 
 public class SpawnData {
@@ -87,7 +88,7 @@ public class SpawnData {
 
 //		String bCl = "";
 		String vCl = "";
-		int x = 3;
+
 		for (Biome b : biomeRegistry) {
 			String bn = biomeRegistry.getKey(b).toString();
 
@@ -459,7 +460,7 @@ public class SpawnData {
 		}
 	}
 
-	public static void generateBiomeReport(FMLServerStartingEvent event) {
+	public static void generateBiomeReport(ServerStartingEvent event) {
 
 		PrintStream p = null;
 		try {

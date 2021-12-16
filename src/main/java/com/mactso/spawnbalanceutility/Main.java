@@ -5,6 +5,9 @@ import com.mactso.spawnbalanceutility.util.AllMobEntitiesReport;
 import com.mactso.spawnbalanceutility.util.SpawnData;
 
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.server.ServerAboutToStartEvent;
+import net.minecraftforge.event.server.ServerStartingEvent;
+import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.IExtensionPoint.DisplayTest;
@@ -13,10 +16,8 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fmllegacy.network.FMLNetworkConstants;
-import net.minecraftforge.fmlserverevents.FMLServerAboutToStartEvent;
-import net.minecraftforge.fmlserverevents.FMLServerStartingEvent;
-import net.minecraftforge.fmlserverevents.FMLServerStoppingEvent;
+import net.minecraftforge.network.NetworkConstants;
+
 
 
 @Mod("spawnbalanceutility")
@@ -26,9 +27,10 @@ public class Main {
 	    
 	    public Main()
 	    {
+
 	    	System.out.println(MODID + ": Registering Mod.");
 	        ModLoadingContext.get().registerExtensionPoint(DisplayTest.class,
-	        		() -> new DisplayTest(() -> FMLNetworkConstants.IGNORESERVERONLY, (a, b) -> true));
+	        		() -> new DisplayTest(() -> NetworkConstants.IGNORESERVERONLY, (a, b) -> true));
 	    	FMLJavaModLoadingContext.get().getModEventBus().register(this);
  	        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON,MyConfig.COMMON_SPEC );
  			MinecraftForge.EVENT_BUS.register(SpawnData.class);
@@ -59,7 +61,7 @@ public class Main {
 	    public static class ForgeEvents
 	    {
 	        @SubscribeEvent(priority = EventPriority.LOWEST)
-	        public static void onServerAboutToStart(FMLServerAboutToStartEvent event)
+	        public static void onServerAboutToStart(ServerAboutToStartEvent event)
 	        {
 	    		if (MyConfig.isBalanceBiomeSpawnValues()) {
 		        	SpawnData.balanceBiomeSpawnValues(event.getServer());
@@ -79,7 +81,7 @@ public class Main {
 	        }
 	        
 	    	@SubscribeEvent
-	        public static void onServerStarting(FMLServerStartingEvent event)
+	        public static void onServerStarting(ServerStartingEvent event)
 	        {
 
 	    		if (MyConfig.isGenerateReport()) {
@@ -88,7 +90,7 @@ public class Main {
 	        }
 
 	        @SubscribeEvent
-	        public static void onServerStopping(FMLServerStoppingEvent event)
+	        public static void onServerStopping(ServerStoppingEvent event)
 	        {
 //	        	MyConfig.debugMsg(1, "Spawn Balance Utility: Server Stopping");
 	        }
