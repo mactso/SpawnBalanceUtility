@@ -30,6 +30,7 @@ import net.minecraft.util.random.WeightedRandomList;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.Biome.BiomeCategory;
 import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.biome.MobSpawnSettings.SpawnerData;
 import net.minecraftforge.coremod.api.ASMAPI;
@@ -41,10 +42,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 
 public class SpawnData {
-
-	static {
-		initReports();
-	}
+	private static Field fieldBiomeCategory = null;
 	private static final Logger LOGGER = LogManager.getLogger();
 	static int biomelineNumber = 0;
 	static int structureLineNumber = 0;
@@ -54,6 +52,17 @@ public class SpawnData {
 	static Set<String> biomesProcessed = new HashSet<>();
 	static Set<String> structuresProcessed = new HashSet<>();
 
+	static {
+		initReports();
+		try {
+			String name = ASMAPI.mapField("f_47442_");
+			fieldBiomeCategory = Biome.class.getDeclaredField(name);
+			fieldBiomeCategory.setAccessible(true);
+		} catch (Exception e) {
+			LOGGER.error("XXX Unexpected Reflection Failure trying set Biome.biomeCategory accessible");
+		}		
+	}
+	
 	public static void initReports() {
 		File fd = new File("config/spawnbalanceutility");
 		if (!fd.exists())
@@ -86,6 +95,16 @@ public class SpawnData {
 			return;
 		}
 
+		Field fieldBiomeCategory = null;
+		try {
+			String name = ASMAPI.mapField("f_47442_");
+			fieldBiomeCategory = Biome.class.getDeclaredField(name);
+			fieldBiomeCategory.setAccessible(true);
+		} catch (Exception e) {
+			LOGGER.error("XXX Unexpected Reflection Failure set Biome.biomeCategory accessible");
+			return;
+		}
+		
 //		String bCl = "";
 		String vCl = "";
 
@@ -116,10 +135,11 @@ public class SpawnData {
 									biomeCreatureItem.minCount, biomeCreatureItem.maxCount);
 							newFixedList.add(newSpawner);
 							if (MyConfig.getDebugLevel() > 0) {
+								BiomeCategory bc = getBiomeCategory(b);
 								System.out.println("Biome :" + bn + " + r:" + reportlinenumber
 										+ " SpawnBalanceUtility XXZZY: p.size() =" + modBiomeMobSpawners.size()
 										+ " Mob " + biomeCreatureItem.modAndMob + " Added to "
-										+ b.getBiomeCategory().getName());
+										+ bc.getName());
 							}
 
 						} else {
@@ -137,6 +157,21 @@ public class SpawnData {
 			}
 		}
 
+	}
+
+
+	private static BiomeCategory getBiomeCategory(Biome b) {
+		BiomeCategory bc = BiomeCategory.PLAINS;
+		try {
+			bc = (BiomeCategory) fieldBiomeCategory.get(b);
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return bc;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -209,7 +244,7 @@ public class SpawnData {
 					SpawnerData newS = new SpawnerData(s.type, Weight.of(newSpawnWeight), s.minCount, s.maxCount);
 					newFixedList.add(newS);
 
-					if (b.getBiomeCategory() == Biome.BiomeCategory.NETHER) {
+					if (getBiomeCategory(b) == Biome.BiomeCategory.NETHER) {
 						if (s.type == EntityType.ZOMBIFIED_PIGLIN)
 							zombifiedPiglinSpawner = true;
 						if (s.type == EntityType.GHAST) {
@@ -218,7 +253,7 @@ public class SpawnData {
 					}
 				}
 
-				List<MassAdditionMobItem> massAddMobs = MobMassAdditionManager.getFilteredList(v, b.getBiomeCategory());
+				List<MassAdditionMobItem> massAddMobs = MobMassAdditionManager.getFilteredList(v, getBiomeCategory(b));
 				EntityType<?> et;
 				for (MassAdditionMobItem ma : massAddMobs) {
 
@@ -240,7 +275,7 @@ public class SpawnData {
 
 				}
 
-				if (b.getBiomeCategory() == Biome.BiomeCategory.NETHER) {
+				if (getBiomeCategory(b) == Biome.BiomeCategory.NETHER) {
 					if (v == MobCategory.MONSTER) {
 						if ((zombifiedPiglinSpawner == false) && (MyConfig.isFixEmptyNether())) {
 							SpawnerData newS = new SpawnerData(EntityType.ZOMBIFIED_PIGLIN, Weight.of(MyConfig.getMinSpawnWeight()), 1,
@@ -447,14 +482,18 @@ public class SpawnData {
 			p = System.out;
 		}
 
-		p.println(
-				"Example mob mass addition file.  Add mobs with the pattern below and rename file to MassAdditionMobs.csv");
-		p.println("Line, Category*, Class**, Namespace:Mob, Weight, Mingroup , Maxgroup");
-		p.println("");
-		p.println("1, A, MONSTER, minecraft:phantom, 10, 1, 4");
-		p.println("");
-		p.println("* A, O, N, E for All, Overworld, Nether, The End");
-		p.println("** MONSTER,CREATURE,AMBIENT");
+		p.println("* Example mob mass addition file.  Add mobs with the pattern below and rename file to MassAdditionMobs.csv");
+		p.println("* Line, Dimension , Class**, Namespace:Mob, Weight, Mingroup , Maxgroup");
+		p.println("*");
+		p.println("* Example... 1, A, MONSTER, minecraft:phantom, 10, 1, 4");
+		p.println("*");
+		p.println("* Parm Dimension  : A, O, N, E for All, Overworld, Nether, The End");
+		p.println("* Parm Class      : MONSTER, CREATURE, AMBIENT, UNDERWATER, etc.");
+		p.println("* Parm Resource   : modname:mobname");
+		p.println("* Parm Weight     : a number 1 or higher.  1 is superrare, 5 is rare, 20 is uncommon, 80 is common.");
+		p.println("* Parm MinGroup   : a number 1 and less than MaxGroup");
+		p.println("* Parm MaxGroup   : a number higher than MinGroup and usually 5 or less.");
+		p.println("*");
 		if (p != System.out) {
 			p.close();
 		}
@@ -478,7 +517,7 @@ public class SpawnData {
 		Registry<Biome> biomeRegistry = dynreg.registryOrThrow(Registry.BIOME_REGISTRY);
 
 		for (Biome b : biomeRegistry) {
-			String cn = b.getBiomeCategory().getName();
+			String cn = getBiomeCategory(b).getName();
 			String bn = biomeRegistry.getKey(b).toString();
 			MobSpawnSettings msi = b.getMobSettings();
 			for (MobCategory v : MobCategory.values()) {

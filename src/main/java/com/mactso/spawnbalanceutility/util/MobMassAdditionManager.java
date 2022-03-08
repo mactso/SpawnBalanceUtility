@@ -8,6 +8,9 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.mactso.spawnbalanceutility.config.MyConfig;
 
 import net.minecraft.world.entity.MobCategory;
@@ -17,6 +20,7 @@ public class MobMassAdditionManager {
 	
 	public static Hashtable<String, MassAdditionMobItem> massAdditionMobsHashtable = new Hashtable<>();
 	static int lastgoodline = 0;
+	private static final Logger LOGGER = LogManager.getLogger();
 	
 	public static String CATEGORY_ALL = "A";
 	public static String CATEGORY_OVERWORLD = "O";
@@ -65,54 +69,60 @@ public class MobMassAdditionManager {
 		try (InputStreamReader input = new InputStreamReader(
 				new FileInputStream("config/spawnbalanceutility/MassAdditionMobs.csv"))) {
 			BufferedReader br = new BufferedReader(input);
+			int lineNumber = 0;
 			while ((line = br.readLine()) != null) {
 				StringTokenizer st = new StringTokenizer(line, ",");
 				linecount++;
 				try {
-					errorField = "linenumber";
-					int lineNumber = Integer.parseInt( st.nextToken().trim());
-					lastgoodline = lineNumber;
-					errorField = "category";
-					category =  st.nextToken().trim();
-					errorField = "classification";
-					String classification = st.nextToken().trim();
-					errorField = "modAndMob";
-					String modAndMob = st.nextToken().trim();
-					errorField = "spawnWeight";
-					spawnWeight = Integer.parseInt(st.nextToken().trim());
-					errorField = "minCount";
-					minCount = Integer.parseInt(st.nextToken().trim());
-					errorField = "maxCount";
-					maxCount  = Integer.parseInt(st.nextToken().trim());
+					errorField = "comment line test";
+					String token = st.nextToken().trim();
+					if (!token.startsWith("*")) {
+						errorField = "linenumber";
+						lineNumber = Integer.parseInt(token);
+						lastgoodline = lineNumber;
+						errorField = "category";
+						category =  st.nextToken().trim();
+						errorField = "classification";
+						String classification = st.nextToken().trim();
+						errorField = "modAndMob";
+						String modAndMob = st.nextToken().trim();
+						errorField = "spawnWeight";
+						spawnWeight = Integer.parseInt(st.nextToken().trim());
+						errorField = "minCount";
+						minCount = Integer.parseInt(st.nextToken().trim());
+						errorField = "maxCount";
+						maxCount  = Integer.parseInt(st.nextToken().trim());
 
-					if (minCount < 1) {
-						minCount = 1;
-					}
-					if (maxCount > 12) {
-						maxCount = 12;
-					}
-					if (minCount > maxCount) {
-						minCount = maxCount;
-					}					
-					String key = modAndMob;
-					if (!(validClassification(classification))) {
-						System.out.println("SpawnBalanceUtility invalid classification "+classification+" on "+linecount+"th line of MassAdditionMobs.csv.");
-					} else if (spawnWeight > 0){
-						MassAdditionMobItem bci = new MassAdditionMobItem(lineNumber, category, classification, modAndMob, spawnWeight, minCount, maxCount);
-						massAdditionMobsHashtable.put(key, bci);  // uses last one in file if dupes
+						if (minCount < 1) {
+							minCount = 1;
+						}
+						if (maxCount > 12) {
+							maxCount = 12;
+						}
+						if (minCount > maxCount) {
+							minCount = maxCount;
+						}					
+						String key = modAndMob;
+						if (!(validClassification(classification))) {
+							System.out.println("SpawnBalanceUtility invalid classification "+classification+" on "+linecount+"th line of MassAdditionMobs.csv.");
+						} else if (spawnWeight > 0){
+							MassAdditionMobItem bci = new MassAdditionMobItem(lineNumber, category, classification, modAndMob, spawnWeight, minCount, maxCount);
+							massAdditionMobsHashtable.put(key, bci);  // uses last one in file if dupes
+						}
+						
 					}
 					
 				} catch (Exception e) {
 					if (!(line.isEmpty())) {
-						System.out.println("SpawnBalanceUtility Error reading field "+errorField+" on "+linecount+"th line of MassAdditionMobs.csv.");
+						LOGGER.warn("SpawnBalanceUtility Error reading field "+errorField+" on "+linecount+"th line of MassAdditionMobs.csv.");
 					} else if (MyConfig.getDebugLevel() > 0 ) {
-						System.out.println("SpawnBalanceUtility Warning blank line at "+linecount+"th line of MassAdditionMobs.csv.");
+						LOGGER.warn("SpawnBalanceUtility Warning blank line at "+linecount+"th line of MassAdditionMobs.csv.");
 					}
 				}
 			}
 			input.close();
 		} catch (Exception e) {
-			System.out.println("MassAdditionMobs.csv not found in subdirectory SpawnBalanceUtility");
+			LOGGER.info("SpawnBalanceUtility: Mass Addition Not Configured.  File config/spawnbalanceutility/MassAdditionMobs.csv not found.");
 			// e.printStackTrace();
 		}
 		
