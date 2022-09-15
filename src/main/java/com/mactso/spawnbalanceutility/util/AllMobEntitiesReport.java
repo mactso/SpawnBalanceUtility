@@ -36,7 +36,7 @@ public class AllMobEntitiesReport {
 
 		for (EntityType<?> a : Registry.ENTITY_TYPE) {
 			if (isValidClassification(a)) {
-				p.println(a.getRegistryName().toString() + ", " + a.getCategory());
+				p.println(EntityType.getKey(a).toString() + ", " + a.getCategory());
 			}
 		}
 		

@@ -14,7 +14,7 @@ import org.apache.logging.log4j.Logger;
 import com.mactso.spawnbalanceutility.config.MyConfig;
 
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.level.biome.Biome.BiomeCategory;
+
 
 public class MobMassAdditionManager {
 	
@@ -27,23 +27,23 @@ public class MobMassAdditionManager {
 	public static String CATEGORY_NETHER = "N";
 	public static String CATEGORY_THEEND = "E";
 
-	public static List<MassAdditionMobItem> getFilteredList(MobCategory v, BiomeCategory category) {
+	public static List<MassAdditionMobItem> getFilteredList(MobCategory v, String category) {
 		List<MassAdditionMobItem> ma = new ArrayList<>();
 		for (MassAdditionMobItem m : massAdditionMobsHashtable.values()) {
 			if (v.getName().equalsIgnoreCase(m.getClassification())) {
 				if (m.getCategory().equals(CATEGORY_ALL)) {
 					ma.add(m);
-				} else 	if (category == BiomeCategory.NETHER) {
+				} else 	if (category == Utility.NETHER) {
 					if (m.getCategory().equals(CATEGORY_NETHER)) {
 						ma.add(m);	
 					}
 				}
-				else if (category == BiomeCategory.THEEND) {
+				else if (category == Utility.THEEND) {
 					if (m.getCategory().equals(CATEGORY_THEEND)) {
 						ma.add(m);
 					}
 				}
-				else if (category != BiomeCategory.NONE) {
+				else if (category != Utility.NONE) {
 					if (m.getCategory().equals(CATEGORY_OVERWORLD)) {
 						ma.add(m);
 					}

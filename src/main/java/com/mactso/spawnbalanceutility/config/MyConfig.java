@@ -10,11 +10,8 @@ import com.mactso.spawnbalanceutility.Main;
 import com.mactso.spawnbalanceutility.util.BiomeCreatureManager;
 import com.mactso.spawnbalanceutility.util.MobMassAdditionManager;
 import com.mactso.spawnbalanceutility.util.StructureCreatureManager;
+import com.mactso.spawnbalanceutility.util.Utility;
 
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.TextColor;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.BooleanValue;
 import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
@@ -89,11 +86,11 @@ public class MyConfig {
 	public static int getDefaultSpawnWeight (String key) {
 		if (defaultSpawnWeightList.isEmpty()) return -999;
 		String[]arrayItem = defaultSpawnWeightList.toArray(new String[0]);
-		MyConfig.debugMsg(1, "Considering Default Spawn Weight 'key' : " + key);
+		Utility.debugMsg(1, "Considering Default Spawn Weight 'key' : " + key);
 		for (int i = 0; i<defaultSpawnWeightList.size();i++) {
 			String s = arrayItem[i];
 			String[] ret = s.split(",");
-			MyConfig.debugMsg(0, "ret ='" + ret[0] + "', default spawn weight: " + ret[1]);
+			Utility.debugMsg(0, "ret ='" + ret[0] + "', default spawn weight: " + ret[1]);
 			if (ret[0].equals(key)) {
 				int dSW = Integer.parseInt(ret[1]);  
 				return dSW;
@@ -222,7 +219,7 @@ public class MyConfig {
 					.translation(Main.MODID + ".config." + "fixEmptyNether")
 					.define("fixEmptyNether", true);
 
-			balanceBiomeSpawnValues = builder.comment("Use the BiomeMobWeight.CSV file to balance Biome spawn values")
+			balanceBiomeSpawnValues = builder.comment("Use the 'BiomeMobWeight.csv' file to balance Biome spawn values")
 					.translation(Main.MODID + ".config." + "balanceBiomeSpawnValues")
 					.define("balanceBiomeSpawnValues", true);
 
@@ -230,7 +227,7 @@ public class MyConfig {
 					.translation(Main.MODID + ".config." + "fixSpawnValues")
 					.define("fixSpawnValues", true);
 
-			balanceStructureSpawnValues = builder.comment("Use the StructMobWeight.CSV file to balance structure spawn values")
+			balanceStructureSpawnValues = builder.comment("Use the 'StructMobWeight.csv' file to balance structure spawn values")
 					.translation(Main.MODID + ".config." + "balanceStructureSpawnValues")
 					.define("balanceStructureSpawnValues", true);
 			
@@ -256,32 +253,4 @@ public class MyConfig {
 		}
 	}
 
-	public static void debugMsg (int level, String dMsg) {
-		if (getDebugLevel() > level-1) {
-			System.out.println("L"+level + ":" + dMsg);
-		}
-	}
-
-	public static void debugMsg (int level, BlockPos pos, String dMsg) {
-		if (getDebugLevel() > level-1) {
-			System.out.println("L"+level+" ("+pos.getX()+","+pos.getY()+","+pos.getZ()+"): " + dMsg);
-		}
-	}
-	
-	// support for any color chattext
-	public static void sendChat(Player p, String chatMessage, TextColor color) {
-		TextComponent component = new TextComponent(chatMessage);
-		component.getStyle().withColor(color);
-		p.sendMessage(component, p.getUUID());
-	}
-
-	// support for any color, optionally bold text.
-	public static void sendBoldChat(Player p, String chatMessage, TextColor color) {
-		TextComponent component = new TextComponent(chatMessage);
-
-		component.getStyle().withBold(true);
-		component.getStyle().withColor(color);
-
-		p.sendMessage(component, p.getUUID());
-	}
 }
