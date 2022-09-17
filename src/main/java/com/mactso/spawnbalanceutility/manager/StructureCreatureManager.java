@@ -1,4 +1,4 @@
-package com.mactso.spawnbalanceutility.util;
+package com.mactso.spawnbalanceutility.manager;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -9,6 +9,8 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+
+import com.mactso.spawnbalanceutility.util.Utility;
 
 public class StructureCreatureManager {
 

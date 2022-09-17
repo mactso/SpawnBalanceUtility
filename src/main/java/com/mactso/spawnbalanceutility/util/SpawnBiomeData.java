@@ -17,8 +17,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mactso.spawnbalanceutility.config.MyConfig;
-import com.mactso.spawnbalanceutility.util.BiomeCreatureManager.BiomeCreatureItem;
-import com.mactso.spawnbalanceutility.util.MobMassAdditionManager.MassAdditionMobItem;
+import com.mactso.spawnbalanceutility.manager.BiomeCreatureManager;
+import com.mactso.spawnbalanceutility.manager.MobMassAdditionManager;
+import com.mactso.spawnbalanceutility.manager.BiomeCreatureManager.BiomeCreatureItem;
+import com.mactso.spawnbalanceutility.manager.MobMassAdditionManager.MassAdditionMobItem;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -113,24 +115,24 @@ public class SpawnBiomeData {
 				List<SpawnerData> newFixedList = new ArrayList<>();
 				vCl = v.getSerializedName ();
 				for (BiomeCreatureItem biomeCreatureItem : modBiomeMobSpawners) {
-					if (biomeCreatureItem.classification.toLowerCase().equals(vCl)) {
+					if (biomeCreatureItem.getClassification().toLowerCase().equals(vCl)) {
 						@SuppressWarnings("deprecation")
 						Optional<EntityType<?>> opt = Registry.ENTITY_TYPE
-								.getOptional(new ResourceLocation(biomeCreatureItem.modAndMob));
+								.getOptional(new ResourceLocation(biomeCreatureItem.getModAndMob()));
 						if (opt.isPresent()) {
-							SpawnerData newSpawner = new SpawnerData(opt.get(), Weight.of(biomeCreatureItem.spawnWeight),
-									biomeCreatureItem.minCount, biomeCreatureItem.maxCount);
+							SpawnerData newSpawner = new SpawnerData(opt.get(), Weight.of(biomeCreatureItem.getSpawnWeight()),
+									biomeCreatureItem.getMinCount(), biomeCreatureItem.getMaxCount());
 							newFixedList.add(newSpawner);
 							if (MyConfig.getDebugLevel() > 0) {
 								System.out.println("Biome :" + bn + " + r:" + reportlinenumber
 										+ " SpawnBalanceUtility XXZZY: p.size() =" + modBiomeMobSpawners.size()
-										+ " Mob " + biomeCreatureItem.modAndMob + " Added to "
+										+ " Mob " + biomeCreatureItem.getModAndMob() + " Added to "
 										+ bcName);
 							}
 
 						} else {
 							System.out.println(reportlinenumber + "SpawnBalanceUtility ERROR: Mob "
-									+ biomeCreatureItem.modAndMob + " not in Entity Type Registry");
+									+ biomeCreatureItem.getModAndMob() + " not in Entity Type Registry");
 						}
 					}
 				}
@@ -245,7 +247,7 @@ public class SpawnBiomeData {
 							}
 						}
 						if (mobFound == false) {
-							SpawnerData newS = new SpawnerData(et, Weight.of(ma.spawnWeight), ma.minCount, ma.maxCount);
+							SpawnerData newS = new SpawnerData(et, Weight.of(ma.getSpawnWeight()), ma.getMinCount(), ma.getMaxCount());
 							newFixedList.add(newS);
 						}
 					}

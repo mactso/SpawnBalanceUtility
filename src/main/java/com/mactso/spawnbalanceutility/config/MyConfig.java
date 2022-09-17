@@ -7,9 +7,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mactso.spawnbalanceutility.Main;
-import com.mactso.spawnbalanceutility.util.BiomeCreatureManager;
-import com.mactso.spawnbalanceutility.util.MobMassAdditionManager;
-import com.mactso.spawnbalanceutility.util.StructureCreatureManager;
+import com.mactso.spawnbalanceutility.manager.BiomeCreatureManager;
+import com.mactso.spawnbalanceutility.manager.MobMassAdditionManager;
+import com.mactso.spawnbalanceutility.manager.StructureCreatureManager;
 import com.mactso.spawnbalanceutility.util.Utility;
 
 import net.minecraftforge.common.ForgeConfigSpec;

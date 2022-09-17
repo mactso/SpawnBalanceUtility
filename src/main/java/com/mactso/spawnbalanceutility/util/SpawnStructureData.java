@@ -16,7 +16,8 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
 import com.mactso.spawnbalanceutility.config.MyConfig;
-import com.mactso.spawnbalanceutility.util.StructureCreatureManager.StructureCreatureItem;
+import com.mactso.spawnbalanceutility.manager.StructureCreatureManager;
+import com.mactso.spawnbalanceutility.manager.StructureCreatureManager.StructureCreatureItem;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -175,17 +176,17 @@ public class SpawnStructureData {
 				for (int i = 0; i < structureMobList.size(); i++) {
 					StructureCreatureItem sci = structureMobList.get(i);
 
-					if (sci.classification.toLowerCase().equals(vCl)) {
+					if (sci.getClassification().toLowerCase().equals(vCl)) {
 						@SuppressWarnings("deprecation")
 						Optional<EntityType<?>> opt = Registry.ENTITY_TYPE
-								.getOptional(new ResourceLocation(sci.modAndMob));
+								.getOptional(new ResourceLocation(sci.getModAndMob()));
 						if (opt.isPresent()) {
-							SpawnerData newSpawner = new SpawnerData(opt.get(), Weight.of(sci.spawnWeight),
-									sci.minCount, sci.maxCount);
+							SpawnerData newSpawner = new SpawnerData(opt.get(), Weight.of(sci.getSpawnWeight()),
+									sci.getMinCount(), sci.getMaxCount());
 							newSpawnersList.add(newSpawner);
 
 						} else {
-							LOGGER.error(reportlinenumber + "SpawnBalanceUtility ERROR: Mob " + sci.modAndMob
+							LOGGER.error(reportlinenumber + "SpawnBalanceUtility ERROR: Mob " + sci.getModAndMob()
 									+ " not in Entity Type Registry");
 						}
 					}

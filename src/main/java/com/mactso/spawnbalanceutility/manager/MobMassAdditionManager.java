@@ -1,4 +1,4 @@
-package com.mactso.spawnbalanceutility.util;
+package com.mactso.spawnbalanceutility.manager;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -12,6 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mactso.spawnbalanceutility.config.MyConfig;
+import com.mactso.spawnbalanceutility.util.Utility;
 
 import net.minecraft.world.entity.MobCategory;
 
