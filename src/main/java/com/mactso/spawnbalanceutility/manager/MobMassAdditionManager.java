@@ -1,4 +1,4 @@
-package com.mactso.spawnbalanceutility.util;
+package com.mactso.spawnbalanceutility.manager;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;

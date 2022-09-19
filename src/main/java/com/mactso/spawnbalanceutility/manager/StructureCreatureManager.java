@@ -1,4 +1,4 @@
-package com.mactso.spawnbalanceutility.util;
+package com.mactso.spawnbalanceutility.manager;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -12,13 +12,13 @@ import java.util.StringTokenizer;
 
 import com.mactso.spawnbalanceutility.config.MyConfig;
 
-public class BiomeCreatureManager {
+public class StructureCreatureManager {
 
-	public static Map<String,List<BiomeCreatureItem>> biomeCreaturesMap = new HashMap<>();
-	public static Hashtable<String, BiomeCreatureItem> biomeCreatureHashtable = new Hashtable<>();
+	public static Map<String,List<StructureCreatureItem>> structureCreaturesMap = new HashMap<>();
+	public static Hashtable<String, StructureCreatureItem> structureCreatureHashtable = new Hashtable<>();
 	static int lastgoodline = 0;
 	
-	public static void biomeCreatureInit() {
+	public static void structureCreatureInit() {
 		int spawnWeight = 0;
 		int minCount = 0;
 		int maxCount = 0;
@@ -26,11 +26,11 @@ public class BiomeCreatureManager {
 		String errorField = "first";
 		String line;
 		
-		if (biomeCreaturesMap.size() > 0) {
+		if (structureCreaturesMap.size() > 0) {
 			return;
 		}
 		try (InputStreamReader input = new InputStreamReader(
-				new FileInputStream("config/spawnbalanceutility/BiomeMobWeight.csv"))) {
+				new FileInputStream("config/spawnbalanceutility/StructMobWeight.csv"))) {
 			BufferedReader br = new BufferedReader(input);
 			while ((line = br.readLine()) != null) {
 				StringTokenizer st = new StringTokenizer(line, ",");
@@ -39,10 +39,8 @@ public class BiomeCreatureManager {
 					errorField = "linenumber";
 					int lineNumber = Integer.parseInt( st.nextToken().trim());
 					lastgoodline = lineNumber;
-					errorField = "category";
-					String category = st.nextToken().trim();
-					errorField = "modAndBiome";
-					String modAndBiome = st.nextToken().trim();
+					errorField = "modAndStructure";
+					String modAndStructure = st.nextToken().trim();
 					errorField = "classification";
 					String classification = st.nextToken().trim();
 					errorField = "modAndMob";
@@ -63,13 +61,15 @@ public class BiomeCreatureManager {
 					if (minCount > maxCount) {
 						minCount = maxCount;
 					}					
-					String key = modAndBiome;
+					String key = modAndStructure;
 					if (spawnWeight > 0){
-						BiomeCreatureItem bci = new BiomeCreatureItem(lineNumber, category, modAndBiome, classification, modAndMob, spawnWeight, minCount, maxCount);
-						List<BiomeCreatureItem> p = biomeCreaturesMap.get(key);
+						// TODO set this debug value to 1.
+						MyConfig.debugMsg(0, lineNumber +", "+ lastgoodline+", "+ modAndStructure+", "+ classification+", "+ modAndMob+", "+ spawnWeight+", "+minCount+", "+ maxCount);
+						StructureCreatureItem bci = new StructureCreatureItem(lineNumber, modAndStructure, classification, modAndMob, spawnWeight, minCount, maxCount);
+						List<StructureCreatureItem> p = structureCreaturesMap.get(key);
 						if (p == null) {
 							p = new ArrayList<>();
-							biomeCreaturesMap.put(key, p);
+							structureCreaturesMap.put(key, p);
 						}
 						// TODO maybe check for duplicates here later
 						// for now okay as long as spawn weight > 0.
@@ -77,37 +77,31 @@ public class BiomeCreatureManager {
 					}
 					
 				} catch (Exception e) {
-					if (!(line.isEmpty())) {
-						System.out.println("SpawnBalanceUtility Error reading field "+errorField+" on "+linecount+"th line of BiomeMobWeight.csv.");
-					} else if (MyConfig.getDebugLevel() > 0 ) {
-						System.out.println("SpawnBalanceUtility Warning blank line at "+linecount+"th line of BiomeMobWeight.csv.");
-					}
+					System.out.println("SpawnBalanceUtility Error reading field "+errorField+" on "+linecount+"th line of StructureMobWeight.csv.");
 				}
 			}
 			input.close();
 		} catch (Exception e) {
-			System.out.println("BiomeMobWeight.csv not found in subdirectory SpawnBalanceUtility");
-			// e.printStackTrace();
+			System.out.println("StructMobWeight.csv not found in subdirectory SpawnBalanceUtility");
+
 		}
 		
 	}
 	
 	
-	public static class BiomeCreatureItem  {
+	public static class StructureCreatureItem  {
 		int lineNumber;
-		String category;
-		String modAndBiome;
+		String modAndStructure;
 		String classification;
 		String modAndMob;
 		int spawnWeight;
 		int minCount;
 		int maxCount;
 
-		public BiomeCreatureItem(int lineNumber, String category, String modAndBiome, String classification, 
+		public StructureCreatureItem(int lineNumber, String modAndStructure, String classification, 
 				String modAndMob, int spawnWeight, int min, int max) {
 			this.lineNumber = lineNumber;
-			this.category = category;
-			this.modAndBiome = modAndBiome;
+			this.modAndStructure = modAndStructure;
 			this.classification = classification;
 			this.modAndMob = modAndMob;
 			this.spawnWeight = spawnWeight;
@@ -115,12 +109,8 @@ public class BiomeCreatureManager {
 			this.maxCount = max;
 		}
 		
-		public String getCategory() {
-			return category;
-		}
-
-		public String getModAndBiome() {
-			return modAndBiome;
+		public String getModAndStructure() {
+			return modAndStructure;
 		}
 
 		public String getClassification() {
@@ -130,8 +120,6 @@ public class BiomeCreatureManager {
 		public String getModAndMob() {
 			return modAndMob;
 		}
-
-
 
 		public int getSpawnWeight() {
 			return spawnWeight;
