@@ -4,9 +4,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -22,23 +25,23 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.random.Weight;
+import net.minecraft.util.random.WeightedRandomList;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.entity.monster.Witch;
-import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.biome.MobSpawnSettings.SpawnerData;
 import net.minecraft.world.level.levelgen.feature.ConfiguredStructureFeature;
-import net.minecraft.world.level.levelgen.feature.StructureFeature;
-import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
 import net.minecraft.world.level.levelgen.structure.StructureSpawnOverride;
-import net.minecraftforge.event.world.StructureSpawnListGatherEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraft.world.level.levelgen.structure.StructureSpawnOverride.BoundingBoxType;
+import net.minecraftforge.coremod.api.ASMAPI;
 
 public class SpawnStructData {
 
+	private static Field fieldStructSpawnOverride = null;
+
 	private static final Logger LOGGER = LogManager.getLogger();
+	public static final WeightedRandomList<MobSpawnSettings.SpawnerData> SBU_FIX_EMPTY_MOB_LIST = WeightedRandomList
+			.create();
 
 	static int structureLineNumber = 0;
 	static int structureEventNumber = 0;
@@ -50,6 +53,18 @@ public class SpawnStructData {
 		initReports();
 	}
 
+	// minecraft/world/level/levelgen/feature/ConfiguredStructureFeature/f_209744_
+	// net/minecraft/world/level/levelgen/feature/ConfiguredStructureFeature/spawnOverrides
+	static {
+		try {
+			String name = ASMAPI.mapField("f_209744_");
+			fieldStructSpawnOverride = ConfiguredStructureFeature.class.getDeclaredField(name);
+			fieldStructSpawnOverride.setAccessible(true);
+		} catch (Exception e) {
+			LOGGER.error("XXX Unexpected Reflection Failure trying set Biome.biomeCategory accessible");
+		}
+	}
+
 	public static void initReports() {
 		File fd = new File("config/spawnbalanceutility");
 		if (!fd.exists())
@@ -59,114 +74,114 @@ public class SpawnStructData {
 			fs.delete();
 	}
 
-	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public static void onStructure(StructureSpawnListGatherEvent event) {
+	public static void doStructureActions(MinecraftServer server) {
 
-		String threadname = Thread.currentThread().getName();
+		RegistryAccess ra = server.registryAccess();
+
+		Registry<ConfiguredStructureFeature<?, ?>> csfreg = ra
+				.registryOrThrow(Registry.CONFIGURED_STRUCTURE_FEATURE_REGISTRY);
 
 		if (MyConfig.isBalanceStructureSpawnValues()) {
-			balanceStructureSpawnValues(event);
+			balanceStructureSpawnValues(csfreg);
 		}
-
 		if (MyConfig.isFixSpawnValues()) {
-			fixStructureSpawnValues(event);
+			fixStructureSpawnValues(csfreg);
 		}
-
 		if (MyConfig.isGenerateReport()) {
-			if (threadname.equals("Render thread")) {
-				return;
-			}
-//			generateStructureSpawnValuesReport(event);
+			generateStructureSpawnValuesReport(csfreg);
 		}
-
 	}
 
-	private static void balanceStructureSpawnValues(StructureSpawnListGatherEvent event) {
 
-//		String bCl = "";
-		String vCl = "";
-
-		structureEventNumber++;
-
-		String key = event.getStructure().getRegistryName().toString();
-		List<StructureCreatureItem> p = StructureCreatureManager.structureCreaturesMap.get(key);
+	private static void balanceStructureSpawnValues(Registry<ConfiguredStructureFeature<?, ?>> csfreg) {
 
 		List<SpawnerData> newSpawnersList = new ArrayList<>();
-		List<SpawnerData> theirSpawnersList = new ArrayList<>();
 
-		if (p != null) {
-			for (MobCategory ec : MobCategory.values()) {
-				vCl = ec.getSerializedName();
-				newSpawnersList.clear();
-				theirSpawnersList.clear();
-				for (int i = 0; i < p.size(); i++) {
-					StructureCreatureItem sci = p.get(i);
-//					bCl = sci.classification;
-					if (sci.getClassification().toLowerCase().equals(vCl)) {
-						@SuppressWarnings("deprecation")
-						Optional<EntityType<?>> opt = Registry.ENTITY_TYPE
-								.getOptional(new ResourceLocation(sci.getModAndMob()));
-						if (opt.isPresent()) {
-							SpawnerData newSpawner = new SpawnerData(opt.get(), Weight.of(sci.getSpawnWeight()),
-									sci.getMinCount(), sci.getMaxCount());
-							newSpawnersList.add(newSpawner);
+		for (ConfiguredStructureFeature<?, ?> csf : csfreg) {
 
-							if (MyConfig.getDebugLevel() > 0) {
-								System.out.println("Structure :" + key + " + rl#:" + structureLineNumber
-										+ " SpawnBalanceUtility XXZZY: p.size() =" + p.size() + " Mob "
-										+ sci.getModAndMob() + " Added to " + key + ".");
+			ResourceLocation key = csfreg.getKey(csf);
+			ResourceLocation key2 = csf.feature.getRegistryName();
+
+			ResourceLocation csfKey = csfreg.getKey(csf);
+			String csfName = csfKey.toString();
+			List<StructureCreatureItem> p = StructureCreatureManager.structureCreaturesMap.get(csfName);
+			Map<MobCategory, StructureSpawnOverride> newMap = new HashMap<>();
+			if (p != null) {
+				for (MobCategory mc : MobCategory.values()) {
+					String vCl = mc.getSerializedName();
+					for (int i = 0; i < p.size(); i++) {
+						StructureCreatureItem sci = p.get(i);
+
+						if (sci.getClassification().toLowerCase().equals(vCl)) {
+							@SuppressWarnings("deprecation")
+							Optional<EntityType<?>> opt = Registry.ENTITY_TYPE
+									.getOptional(new ResourceLocation(sci.getModAndMob()));
+							if (opt.isPresent()) {
+								SpawnerData newS = new SpawnerData(opt.get(), Weight.of(sci.getSpawnWeight()),
+										sci.getMinCount(), sci.getMaxCount());
+								newSpawnersList.add(newS);
 							}
+							newMap.put(mc, new StructureSpawnOverride(BoundingBoxType.STRUCTURE,
+									WeightedRandomList.create(newSpawnersList)));
+						}
 
-						} else {
-							System.out.println(reportlinenumber + "SpawnBalanceUtility ERROR: Mob " + sci.getModAndMob()
-									+ " not in Entity Type Registry");
+					}
+					if (!newMap.isEmpty()) {
+						try {
+							fieldStructSpawnOverride.set(csf, newMap);
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
 						}
 					}
 				}
-				for (SpawnerData s : event.getEntitySpawns(ec)) {
-					theirSpawnersList.add(s);
-				}
-				for (SpawnerData s : theirSpawnersList) {
-					event.removeEntitySpawn(ec, s);
-				}
-				event.addEntitySpawns(ec, newSpawnersList);
 			}
-
 		}
-
 	}
 
-	private static void fixStructureSpawnValues(StructureSpawnListGatherEvent event) {
+	private static void fixStructureSpawnValues(Registry<ConfiguredStructureFeature<?, ?>> csfreg) {
 
 		List<SpawnerData> newSpawnersList = new ArrayList<>();
-		List<SpawnerData> theirSpawnersList = new ArrayList<>();
 
-		for (MobCategory ec : MobCategory.values()) {
-			newSpawnersList.clear();
-			theirSpawnersList.clear();
-			for (SpawnerData s : event.getEntitySpawns(ec)) {
-				int newSpawnWeight = s.getWeight().asInt();
-				if (newSpawnWeight < MyConfig.getMinSpawnWeight()) {
-					if ((newSpawnWeight > 1) && (newSpawnWeight * 10 < MyConfig.getMaxSpawnWeight())) {
-						newSpawnWeight = newSpawnWeight * 10;
-					} else {
-						newSpawnWeight = MyConfig.getMinSpawnWeight();
+		for (ConfiguredStructureFeature<?, ?> csf : csfreg) {
+			String csfName = csfreg.getKey(csf).toString();
+			ResourceLocation key = csfreg.getKey(csf);
+			ResourceLocation key2 = csf.feature.getRegistryName();
+			Map<MobCategory, StructureSpawnOverride> newMap = new HashMap<>();
+
+			for (MobCategory mc : MobCategory.values()) {
+				StructureSpawnOverride mobs = csf.spawnOverrides.get(mc);
+				if (mobs == null)
+					continue;
+				WeightedRandomList<SpawnerData> oldwrl = mobs.spawns();
+				newSpawnersList.clear();
+				for (SpawnerData s : oldwrl.unwrap()) {
+					int newSpawnWeight = s.getWeight().asInt();
+					if (newSpawnWeight < MyConfig.getMinSpawnWeight()) {
+						if ((newSpawnWeight > 1) && (newSpawnWeight * 10 < MyConfig.getMaxSpawnWeight())) {
+							newSpawnWeight = newSpawnWeight * 10;
+						} else {
+							newSpawnWeight = MyConfig.getMinSpawnWeight();
+						}
 					}
+					if (newSpawnWeight > MyConfig.getMaxSpawnWeight()) {
+						newSpawnWeight = MyConfig.getMaxSpawnWeight();
+					}
+					SpawnerData newS = new SpawnerData(s.type, Weight.of(newSpawnWeight), s.minCount, s.maxCount);
+
+					newSpawnersList.add(newS);
 				}
-				if (newSpawnWeight > MyConfig.getMaxSpawnWeight()) {
-					newSpawnWeight = MyConfig.getMaxSpawnWeight();
-				}
-				SpawnerData newS = new SpawnerData(s.type, Weight.of(newSpawnWeight), s.minCount, s.maxCount);
-				theirSpawnersList.add(s);
-				newSpawnersList.add(newS);
+				newMap.put(mc,
+						new StructureSpawnOverride(mobs.boundingBox(), WeightedRandomList.create(newSpawnersList)));
 			}
-			for (SpawnerData s : theirSpawnersList) {
-				event.removeEntitySpawn(ec, s);
+			try {
+				fieldStructSpawnOverride.set(csf, newMap);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			event.addEntitySpawns(ec, newSpawnersList);
 
 		}
-
 	}
 
 	private static void generateStructureSpawnValuesReport(Registry<ConfiguredStructureFeature<?, ?>> csfreg) {
@@ -186,22 +201,20 @@ public class SpawnStructData {
 			p.println(++structureLineNumber + ", " + csfName + ", HEADING, header:ignore, 0, 0, 0");
 			ResourceLocation key = csfreg.getKey(csf);
 			ResourceLocation key2 = csf.feature.getRegistryName();
-			StructureSpawnOverride mobs = csf.spawnOverrides.get(MobCategory.MONSTER);
-			if (mobs == null)
-				continue;
-			for (MobCategory ec : MobCategory.values()) {
 
+			for (MobCategory mc : MobCategory.values()) {
+				StructureSpawnOverride mobs = csf.spawnOverrides.get(mc);
+				if (mobs == null)
+					continue;
 				for (SpawnerData s : mobs.spawns().unwrap()) {
-					if (s.type.getCategory() != ec) {
-						continue;
-					}
+
 					if (MyConfig.isSuppressMinecraftMobReporting()) {
 						if (s.type.getRegistryName().getNamespace().equals("minecraft")) {
 							continue;
 						}
 					}
 					if (MyConfig.isIncludedMod(s.type.getRegistryName().getNamespace())) {
-						p.println(++structureLineNumber + ", " + csfName + ", " + ec + ", " + s.type.getRegistryName()
+						p.println(++structureLineNumber + ", " + csfName + ", " + mc + ", " + s.type.getRegistryName()
 								+ ", " + s.getWeight().asInt() + ", " + s.minCount + ", " + s.maxCount);
 
 					}
@@ -212,25 +225,6 @@ public class SpawnStructData {
 		}
 		if (p != System.out) {
 			p.close();
-		}
-	}
-
-	public static void doStructureActions(MinecraftServer server) {
-
-		RegistryAccess ra = server.registryAccess();
-
-		@SuppressWarnings("deprecation")
-		Registry<ConfiguredStructureFeature<?, ?>> csfreg = ra
-				.registryOrThrow(Registry.CONFIGURED_STRUCTURE_FEATURE_REGISTRY);
-
-		if (MyConfig.isBalanceStructureSpawnValues()) {
-//			balanceStructureSpawnValues(csfreg);
-		}
-		if (MyConfig.isFixSpawnValues()) {
-			fixStructureSpawnValues(csfreg);
-		}
-		if (MyConfig.isGenerateReport()) {
-			generateStructureSpawnValuesReport(csfreg);
 		}
 	}
 
