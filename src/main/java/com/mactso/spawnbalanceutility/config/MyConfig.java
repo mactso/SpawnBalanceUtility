@@ -90,7 +90,7 @@ public class MyConfig {
 		for (int i = 0; i<defaultSpawnWeightList.size();i++) {
 			String s = arrayItem[i];
 			String[] ret = s.split(",");
-			Utility.debugMsg(0, "ret ='" + ret[0] + "', default spawn weight: " + ret[1]);
+			Utility.debugMsg(1, "ret ='" + ret[0] + "', default spawn weight: " + ret[1]);
 			if (ret[0].equals(key)) {
 				int dSW = Integer.parseInt(ret[1]);  
 				return dSW;

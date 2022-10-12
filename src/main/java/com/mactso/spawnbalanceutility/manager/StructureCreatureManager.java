@@ -64,7 +64,7 @@ public class StructureCreatureManager {
 					String key = modAndStructure;
 					if (spawnWeight > 0){
 						// TODO set this debug value to 1.
-						Utility.debugMsg(0, lineNumber +", "+ lastgoodline+", "+ modAndStructure+", "+ classification+", "+ modAndMob+", "+ spawnWeight+", "+minCount+", "+ maxCount);
+						Utility.debugMsg(1, lineNumber +", "+ lastgoodline+", "+ modAndStructure+", "+ classification+", "+ modAndMob+", "+ spawnWeight+", "+minCount+", "+ maxCount);
 						StructureCreatureItem bci = new StructureCreatureItem(lineNumber, modAndStructure, classification, modAndMob, spawnWeight, minCount, maxCount);
 						List<StructureCreatureItem> structureMobList = structureCreaturesMap.get(key);
 						if (structureMobList == null) {
