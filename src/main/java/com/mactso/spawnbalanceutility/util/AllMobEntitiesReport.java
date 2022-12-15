@@ -5,9 +5,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
-import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.core.Registry;
+import net.minecraft.entity.EntityType;
+import net.minecraft.util.registry.Registry;
+
+//import net.minecraft.core.Registry;
 
 public class AllMobEntitiesReport {
 	
@@ -20,7 +21,7 @@ public class AllMobEntitiesReport {
 			fb.delete();
 	}
 	
-	@SuppressWarnings("deprecation")
+
 	public static void doReport() {
 		
 		PrintStream p = null;
@@ -36,7 +37,8 @@ public class AllMobEntitiesReport {
 
 		for (EntityType<?> a : Registry.ENTITY_TYPE) {
 			if (isValidClassification(a)) {
-				p.println(a.getRegistryName().toString() + ", " + a.getCategory());
+				int debug = 5;
+				//	TODO			p.println(a.getRegistryEntry().toString() + ", " + a.getCategory());
 			}
 		}
 		
@@ -47,8 +49,9 @@ public class AllMobEntitiesReport {
 	}
 
 	private static boolean isValidClassification(EntityType<?> a) {
-		if (a.getCategory() == MobCategory.MISC) 
-			return false;
+		int debug = 5;
+// TODO		if (a.getCategory() == MobCategory.MISC) 
+//			return false;
 		return true;
 	}
 	
