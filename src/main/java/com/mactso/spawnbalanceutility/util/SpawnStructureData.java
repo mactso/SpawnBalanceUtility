@@ -22,6 +22,8 @@ import com.mactso.spawnbalanceutility.manager.StructureCreatureManager.Structure
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -118,7 +120,7 @@ public class SpawnStructureData {
 		int structlinenumber = 0;
 		MinecraftServer server = event.getServer();
 		RegistryAccess dynreg = server.registryAccess();
-		Registry<Structure> structRegistry = dynreg.registryOrThrow(Registry.STRUCTURE_REGISTRY);
+		Registry<Structure> structRegistry = dynreg.registryOrThrow(Registries.STRUCTURE);
 
 		for (Structure struct : structRegistry) {
 			String sn = structRegistry.getKey(struct).toString();
@@ -178,7 +180,7 @@ public class SpawnStructureData {
 
 					if (sci.getClassification().toLowerCase().equals(vCl)) {
 						@SuppressWarnings("deprecation")
-						Optional<EntityType<?>> opt = Registry.ENTITY_TYPE
+						Optional<EntityType<?>> opt = BuiltInRegistries.ENTITY_TYPE
 								.getOptional(new ResourceLocation(sci.getModAndMob()));
 						if (opt.isPresent()) {
 							SpawnerData newSpawner = new SpawnerData(opt.get(), Weight.of(sci.getSpawnWeight()),

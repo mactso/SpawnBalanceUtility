@@ -5,9 +5,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
-import net.minecraft.world.entity.MobCategory;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.core.Registry;
+import net.minecraft.world.entity.MobCategory;
 
 public class AllMobEntitiesReport {
 	
@@ -33,8 +33,9 @@ public class AllMobEntitiesReport {
 		if (p == null) {
 			p = System.out;
 		}
+		
 
-		for (EntityType<?> a : Registry.ENTITY_TYPE) {
+		for (EntityType<?> a : BuiltInRegistries.ENTITY_TYPE) {
 			if (isValidClassification(a)) {
 				p.println(EntityType.getKey(a).toString() + ", " + a.getCategory());
 			}

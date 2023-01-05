@@ -209,8 +209,7 @@ public class Utility {
 			return false;
 		for (int i = 0; i <= numZP; i++) {
 
-			e = (Mob) et.spawn(level, null, null, null, savePos.north().west(), MobSpawnType.NATURAL, true, true);
-
+			e = (Mob) et.spawn(level, savePos.north(2).west(2), MobSpawnType.NATURAL);
 			if (persistant) 
 				e.setPersistenceRequired();
 			e.setBaby(isBaby);
@@ -222,7 +221,7 @@ public class Utility {
 		Mob e;
 
 		for (int i = 0; i < X; i++) {
-			e = (Mob) et.spawn(level, null, null, null, savePos.north().west(), MobSpawnType.NATURAL, true, true);
+			e = (Mob) et.spawn(level, savePos.north(2).west(2), MobSpawnType.NATURAL);
 			e.setBaby(isBaby);
 		}
 		return true;

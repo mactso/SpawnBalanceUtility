@@ -25,6 +25,8 @@ import com.mactso.spawnbalanceutility.manager.MobMassAdditionManager.MassAdditio
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.random.Weight;
@@ -76,8 +78,7 @@ public class SpawnBiomeData {
 	public static void balanceBiomeSpawnValues(MinecraftServer server) {
 
 		RegistryAccess dynreg = server.registryAccess();
-
-		Registry<Biome> biomeRegistry =  dynreg.registryOrThrow(Registry.BIOME_REGISTRY);
+		Registry<Biome> biomeRegistry =  dynreg.registryOrThrow(Registries.BIOME);
 		Field field = null;
 		// get net/minecraft/world/level/biome/MobSpawnSettings/f_48329_ net/minecraft/world/level/biome/MobSpawnSettings/spawners
 		try {
@@ -93,7 +94,8 @@ public class SpawnBiomeData {
 
 		for (Biome b : biomeRegistry) {
 			String bn = biomeRegistry.getKey(b).toString();
-			Optional<Holder<Biome>> oBH = biomeRegistry.getHolder(biomeRegistry.getId(b));
+
+			Optional<Holder.Reference<Biome>> oBH = biomeRegistry.getHolder(biomeRegistry.getId(b));
 			if (!oBH.isPresent()) {
 				continue;
 			}
@@ -117,7 +119,7 @@ public class SpawnBiomeData {
 				for (BiomeCreatureItem biomeCreatureItem : modBiomeMobSpawners) {
 					if (biomeCreatureItem.getClassification().toLowerCase().equals(vCl)) {
 						@SuppressWarnings("deprecation")
-						Optional<EntityType<?>> opt = Registry.ENTITY_TYPE
+						Optional<EntityType<?>> opt = BuiltInRegistries.ENTITY_TYPE
 								.getOptional(new ResourceLocation(biomeCreatureItem.getModAndMob()));
 						if (opt.isPresent()) {
 							SpawnerData newSpawner = new SpawnerData(opt.get(), Weight.of(biomeCreatureItem.getSpawnWeight()),
@@ -152,7 +154,7 @@ public class SpawnBiomeData {
 	public static void fixBiomeSpawnValues(MinecraftServer server) {
 
 		RegistryAccess dynreg = server.registryAccess();
-		Registry<Biome> biomeRegistry = dynreg.registryOrThrow(Registry.BIOME_REGISTRY);
+		Registry<Biome> biomeRegistry =  dynreg.registryOrThrow(Registries.BIOME);
 		Field field = null;
 		try {
 			String name = ASMAPI.mapField("f_48329_");
@@ -166,7 +168,7 @@ public class SpawnBiomeData {
 		for (Biome b : biomeRegistry) {
 
 			String bn = biomeRegistry.getKey(b).toString();
-			Optional<Holder<Biome>> oBH = biomeRegistry.getHolder(biomeRegistry.getId(b));
+			Optional<Holder.Reference<Biome>> oBH = biomeRegistry.getHolder(biomeRegistry.getId(b));
 			if (!oBH.isPresent()) {
 				continue;
 			}
@@ -329,11 +331,11 @@ public class SpawnBiomeData {
 		int biomelineNumber = 0;
 		MinecraftServer server = event.getServer();
 		RegistryAccess dynreg = server.registryAccess();
-		Registry<Biome> biomeRegistry = dynreg.registryOrThrow(Registry.BIOME_REGISTRY);
+		Registry<Biome> biomeRegistry =  dynreg.registryOrThrow(Registries.BIOME);
 
 		for (Biome b : biomeRegistry) {
 			String bn = biomeRegistry.getKey(b).toString();
-			Optional<Holder<Biome>> oBH = biomeRegistry.getHolder(biomeRegistry.getId(b));
+			Optional<Holder.Reference<Biome>> oBH = biomeRegistry.getHolder(biomeRegistry.getId(b));
 			String cn = Utility.getMyBC(oBH.get());
 			MobSpawnSettings msi = b.getMobSettings();
 			for (MobCategory v : MobCategory.values()) {
