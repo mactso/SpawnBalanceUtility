@@ -15,13 +15,16 @@ import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
-import net.minecraft.text.LiteralText;
+import net.minecraft.tag.BiomeTags;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.util.registry.RegistryEntry;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.Biome.Category;
+
 
 public class Utility {
 	private static Field fieldBiomeCategory = null;
@@ -50,7 +53,6 @@ public class Utility {
 	
 	
 	static {
-		// TODO this is failing too.
 		try {
 			MappingResolver mapping = FabricLoader.getInstance().getMappingResolver();
 			String fieldName = mapping.mapFieldName("intermediary", "net.minecraft.class_1959", "field_9329",
@@ -72,70 +74,58 @@ public class Utility {
 		}
 	}
 
-	public static String getMyBC(Biome testBiome) {
-//		BiomeTags.DESERT_PYRAMID_HAS_STRUCTURE.
-//		if (testBiome.is(BiomeTags.DESERT_PYRAMID_HAS_STRUCTURE))
-//			return Utility.DESERT;
-//		if (testBiome.is(BiomeTags.IS_FOREST))
-//			return Utility.FOREST;
-//		if (testBiome.is(BiomeTags.IS_BEACH))
-//			return Utility.BEACH;
-//		if (testBiome.is(BiomeTags.IGLOO_HAS_STRUCTURE))
-//			return Utility.ICY;		
-//		if (testBiome.is(BiomeTags.IS_JUNGLE))
-//			return Utility.JUNGLE;		
-//		if (testBiome.is(BiomeTags.IS_OCEAN))
-//			return Utility.OCEAN;		
-//		if (testBiome.is(BiomeTags.IS_DEEP_OCEAN))
-//			return Utility.OCEAN;		
-//		if (testBiome.is(BiomeTags.VILLAGE_PLAINS_HAS_STRUCTURE))
-//			return Utility.PLAINS;		
-//		if (testBiome.is(BiomeTags.IS_RIVER))
-//			return Utility.RIVER;		
-//		if (testBiome.is(BiomeTags.VILLAGE_SAVANNA_HAS_STRUCTURE))
-//			return Utility.SAVANNA;		
-//		if (testBiome.is(BiomeTags.SWAMP_HUT_HAS_STRUCTURE))
-//			return Utility.SWAMP;		
-//		if (testBiome.is(BiomeTags.IS_TAIGA))
-//			return Utility.TAIGA;		
-//		if (testBiome.is(BiomeTags.IS_BADLANDS))
-//			return Utility.BADLANDS;		
-//		if (testBiome.is(BiomeTags.IS_MOUNTAIN))
-//			return Utility.EXTREME_HILLS;		
-//		if (testBiome.is(BiomeTags.IS_NETHER))
-//			return Utility.NETHER;
+	public static String getMyBC(RegistryEntry<Biome> registryEntry) {
+		//BiomeTags.DESERT_PYRAMID_HAS_STRUCTURE.
+
+		if (registryEntry.isIn(BiomeTags.DESERT_PYRAMID_HAS_STRUCTURE))
+			return Utility.DESERT;
+		if (registryEntry.isIn(BiomeTags.IS_FOREST))
+			return Utility.FOREST;
+		if (registryEntry.isIn(BiomeTags.IS_BEACH))
+			return Utility.BEACH;
+		if (registryEntry.isIn(BiomeTags.IGLOO_HAS_STRUCTURE))
+			return Utility.ICY;		
+		if (registryEntry.isIn(BiomeTags.IS_JUNGLE))
+			return Utility.JUNGLE;		
+		if (registryEntry.isIn(BiomeTags.IS_OCEAN))
+			return Utility.OCEAN;		
+		if (registryEntry.isIn(BiomeTags.IS_DEEP_OCEAN))
+			return Utility.OCEAN;		
+		if (registryEntry.isIn(BiomeTags.VILLAGE_PLAINS_HAS_STRUCTURE))
+			return Utility.PLAINS;		
+		if (registryEntry.isIn(BiomeTags.IS_RIVER))
+			return Utility.RIVER;		
+		if (registryEntry.isIn(BiomeTags.VILLAGE_SAVANNA_HAS_STRUCTURE))
+			return Utility.SAVANNA;		
+		if (registryEntry.isIn(BiomeTags.SWAMP_HUT_HAS_STRUCTURE))
+			return Utility.SWAMP;		
+		if (registryEntry.isIn(BiomeTags.IS_TAIGA))
+			return Utility.TAIGA;		
+		if (registryEntry.isIn(BiomeTags.IS_BADLANDS))
+			return Utility.BADLANDS;		
+		if (registryEntry.isIn(BiomeTags.IS_MOUNTAIN))
+			return Utility.EXTREME_HILLS;		
+		if (registryEntry.isIn(BiomeTags.IS_NETHER))
+			return Utility.NETHER;
 		return "private";
 	}
 	public static String GetBiomeName(Biome b) {
 		return b.toString();
 	}
-	public static Category getBiomeCategory(Biome b) {
-		Category bc = Category.PLAINS;
-		try {
-			bc = (Category) fieldBiomeCategory.get(b);
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		}
-		return bc;
-	}
 
 	// support for any color chattext
 	public static void sendChat(PlayerEntity p, String chatMessage, TextColor color) {
-		Text component = new LiteralText(chatMessage);
+		MutableText component = Text.literal(chatMessage);
 		component.getStyle().withColor(color);
-		p.sendSystemMessage(component, p.getUuid());
+		p.sendMessage(component);
 	}
 
 	// support for any color, optionally bold text.
 	public static void sendBoldChat(PlayerEntity p, String chatMessage, TextColor color) {
-		Text component = new LiteralText(chatMessage);
-
-		component.getStyle().withBold(true);
-		component.getStyle().withColor(color);
-
-		p.sendSystemMessage(component, p.getUuid());
+		MutableText component = Text.literal(chatMessage);
+		component.setStyle(component.getStyle().withBold(true));
+		component.setStyle(component.getStyle().withColor(color));
+		p.sendMessage(component);
 	}
 
 	public static void warn (String dMsg) {

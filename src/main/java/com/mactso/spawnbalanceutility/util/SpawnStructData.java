@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 
@@ -35,26 +36,28 @@ import net.minecraft.world.StructureSpawns;
 import net.minecraft.world.StructureSpawns.BoundingBox;
 import net.minecraft.world.biome.SpawnSettings;
 import net.minecraft.world.biome.SpawnSettings.SpawnEntry;
-import net.minecraft.world.gen.feature.ConfiguredStructureFeature;
+import net.minecraft.world.gen.structure.Structure;
+import net.minecraft.world.gen.structure.Structure.Config;
 
 public class SpawnStructData {
 
-	private static Field fieldStructSpawnOverride = null;
+	private static Field fieldStructConfig = null;
 
 	private static final Logger LOGGER = LogManager.getLogger();
 	public static final Pool<SpawnSettings.SpawnEntry> SBU_FIX_EMPTY_MOB_LIST = Pool.of();
 
 	static int structureLineNumber = 0;
-	static int structureEventNumber = 0;
+	static Set<String> structuresProcessed = new HashSet<>();
 	static int reportlinenumber = 0;
 
-	static Set<String> structuresProcessed = new HashSet<>();
+	static int structureEventNumber = 0;
 
 	static {
 		initReports();
 
 		// minecraft/world/level/levelgen/feature/ConfiguredStructureFeature/f_209744_
-		// net/minecraft/world/level/levelgen/feature/ConfiguredStructureFeature/spawnOverrides
+		// net/minecraft/world/level/levelgen/feature/Structure/config/
+		// from there, I'll get the spawnOverrides
 
 		// mappings.jar entry for /Biome -
 		// Fabric : f Lcbr$b; l field_9329 category
@@ -62,13 +65,12 @@ public class SpawnStructData {
 
 		try {
 			MappingResolver mapping = FabricLoader.getInstance().getMappingResolver();
-			String fieldName = mapping.mapFieldName("intermediary", "net.minecraft.class_5312", "field_37143",
-					"Ljava/util/Map;");
-			fieldStructSpawnOverride = ConfiguredStructureFeature.class.getDeclaredField(fieldName);
-			fieldStructSpawnOverride.setAccessible(true);
+			String fieldName = mapping.mapFieldName("intermediary", "net.minecraft.class_3195", "field_38429",
+					"Lnet/minecraft/class_3195$class_7302;");
+			fieldStructConfig = Structure.class.getDeclaredField(fieldName);
+			fieldStructConfig.setAccessible(true);
 		} catch (Exception e) {
-			LOGGER.error(
-					"XXX Unexpected Reflection Failure trying set ConfiguredStructureFeature.SpawnOverrides Map accessible");
+			LOGGER.error("XXX Unexpected Reflection Failure trying set Structure.Config record accessible");
 		}
 	}
 
@@ -85,8 +87,7 @@ public class SpawnStructData {
 	public static void doStructureActions(MinecraftServer server) {
 
 		DynamicRegistryManager dynreg = server.getRegistryManager();
-		Registry<ConfiguredStructureFeature<?, ?>> csfreg = dynreg
-				.getManaged(Registry.CONFIGURED_STRUCTURE_FEATURE_KEY);
+		Registry<Structure> csfreg = dynreg.getManaged(Registry.STRUCTURE_KEY);
 		initReports();
 
 		if (MyConfig.isBalanceStructureSpawnValues()) {
@@ -100,17 +101,19 @@ public class SpawnStructData {
 		}
 	}
 
-	private static void balanceStructureSpawnValues(Registry<ConfiguredStructureFeature<?, ?>> csfreg) {
+	private static void balanceStructureSpawnValues(Registry<Structure> csfreg) {
 
 		List<SpawnEntry> newSpawnEntriesList = new ArrayList<>();
 
-		for (ConfiguredStructureFeature<?, ?> csf : csfreg) {
+		for (Entry<RegistryKey<Structure>, Structure> csf : csfreg.getEntrySet()) {
 
-			RegistryKey<ConfiguredStructureFeature<?, ?>> csfKey = csfreg.getKey(csf).get();
+			RegistryKey<Structure> csfKey = csf.getKey();
 
 			String csfIdentifier = csfKey.getValue().toString();
+
 			List<StructureCreatureItem> creaturesInStructure = StructureCreatureManager.structureCreaturesMap
 					.get(csfIdentifier);
+
 			Map<SpawnGroup, StructureSpawns> newMap = new HashMap<>();
 			if (creaturesInStructure != null) {
 				for (SpawnGroup mc : SpawnGroup.values()) {
@@ -136,8 +139,11 @@ public class SpawnStructData {
 
 				}
 				if (!newMap.isEmpty()) {
+					Structure workStruct = csf.getValue();
 					try {
-						fieldStructSpawnOverride.set(csf, newMap);
+						Config cfg = (Config) fieldStructConfig.get(workStruct);
+						fieldStructConfig.set(workStruct,
+								new Config(cfg.biomes(), newMap, cfg.step(), cfg.terrainAdaptation()));
 					} catch (Exception e) {
 						if (MyConfig.getDebugLevel() > 0) {
 							e.printStackTrace();
@@ -151,23 +157,27 @@ public class SpawnStructData {
 		}
 	}
 
-	private static void fixStructureSpawnValues(Registry<ConfiguredStructureFeature<?, ?>> csfreg) {
+	private static void fixStructureSpawnValues(Registry<Structure> csfreg) {
 
 		List<SpawnEntry> newSpawnersList = new ArrayList<>();
 
-		for (ConfiguredStructureFeature<?, ?> csf : csfreg) {
+		for (Entry<RegistryKey<Structure>, Structure> csf : csfreg.getEntrySet()) {
 
-			RegistryKey<ConfiguredStructureFeature<?, ?>> csfKey = csfreg.getKey(csf).get();
+			RegistryKey<Structure> csfKey = csf.getKey();
+			String csfIdentifier = csfKey.getValue().toString();
 			String csfName = csfKey.toString();
 
 			Map<SpawnGroup, StructureSpawns> newMap = new HashMap<>();
-
+			Structure workStruct = csf.getValue();
+			Map<SpawnGroup, StructureSpawns> mobs = workStruct.getStructureSpawns();
+			if (mobs == null)
+				continue;
 			for (SpawnGroup mc : SpawnGroup.values()) {
-				StructureSpawns mobs = csf.field_37143.get(mc);
-
-				if (mobs == null)
+				StructureSpawns old = mobs.get(mc);
+				if (old == null) {
 					continue;
-				Pool<SpawnEntry> oldwrl = mobs.spawns();
+				}
+				Pool<SpawnEntry> oldwrl = old.spawns();
 				newSpawnersList.clear();
 				for (SpawnEntry s : oldwrl.getEntries()) {
 					int newSpawnWeight = s.getWeight().getValue();
@@ -184,24 +194,21 @@ public class SpawnStructData {
 					SpawnEntry newS = new SpawnEntry(s.type, Weight.of(newSpawnWeight), s.minGroupSize, s.maxGroupSize);
 					newSpawnersList.add(newS);
 				}
-				newMap.put(mc, new StructureSpawns(mobs.boundingBox(), Pool.of(newSpawnersList)));
-
+				newMap.put(mc, new StructureSpawns(BoundingBox.STRUCTURE, Pool.of(newSpawnersList)));
 			}
+
 			try {
-				fieldStructSpawnOverride.set(csf, newMap);
+				Config cfg = (Config) fieldStructConfig.get(workStruct);
+				fieldStructConfig.set(workStruct,
+						new Config(cfg.biomes(), newMap, cfg.step(), cfg.terrainAdaptation()));
 			} catch (Exception e) {
-				if (MyConfig.getDebugLevel() > 0) {
-					e.printStackTrace();
-				} else {
-					LOGGER.error(
-							"Failed to fix " + csfName + " spawnentries map.  Set debugValue to 1 to see stacktrace.");
-				}
+				LOGGER.error("Failed to fix " + csfName + " spawnentries map.  Set debugValue to 1 to see stacktrace.");
 			}
-
 		}
+
 	}
 
-	private static void generateStructureSpawnValuesReport(Registry<ConfiguredStructureFeature<?, ?>> csfreg) {
+	private static void generateStructureSpawnValuesReport(Registry<Structure> csfreg) {
 
 		PrintStream p = null;
 		try {
@@ -213,14 +220,31 @@ public class SpawnStructData {
 		if (p == null) {
 			p = System.out;
 		}
-		for (ConfiguredStructureFeature<?, ?> csf : csfreg) {
-			String csfName = csfreg.getKey(csf).get().getValue().toString();
-			p.println(++structureLineNumber + ", " + csfName + ", HEADING, header:ignore, 0, 0, 0");
+
+		for (Entry<RegistryKey<Structure>, Structure> csf : csfreg.getEntrySet()) {
+			RegistryKey<Structure> csfKey = csf.getKey();
+			String csfIdentifier = csfKey.getValue().toString();
+			Structure workStruct = csf.getValue();
+			Config cfg = null;
+			try {
+				cfg = (Config) fieldStructConfig.get(workStruct);
+			} catch (Exception e) {
+				if (MyConfig.getDebugLevel() > 0) {
+					e.printStackTrace();
+				} else {
+					LOGGER.error("Failed to load " + csfIdentifier
+							+ " Config/SpawnGroup map.  Set debugValue to 1 to see stacktrace.");
+				}
+			}
+			if (cfg == null) {
+				LOGGER.error("error:" + csfIdentifier + " Config/SpawnGroup map is null.");
+				continue;
+			}
+			p.println(++structureLineNumber + ", " + csfIdentifier + ", HEADING, header:ignore, 0, 0, 0");
 
 			// mob category ( "MONSTER", "AMBIENT", etc.)
 			for (SpawnGroup spawnGroup : SpawnGroup.values()) {
-
-				StructureSpawns mobs = csf.field_37143.get(spawnGroup);
+				StructureSpawns mobs = cfg.spawnOverrides().get(spawnGroup);
 				if (mobs == null)
 					continue;
 				for (SpawnEntry s : mobs.spawns().getEntries()) {
@@ -234,8 +258,8 @@ public class SpawnStructData {
 					String mobIdentifier = s.type.getRegistryEntry().getKey().get().getValue().toString();
 // note this relies on the forge "modslist" feature which I don't know how to do in fabric if possible at all.
 //					if (MyConfig.isIncludedMod(modName)) {
-					p.println(++structureLineNumber + ", " + csfName + ", " + spawnGroup + ", " + mobIdentifier + ", "
-							+ s.getWeight().getValue() + ", " + s.minGroupSize + ", " + s.maxGroupSize);
+					p.println(++structureLineNumber + ", " + csfIdentifier + ", " + spawnGroup + ", " + mobIdentifier
+							+ ", " + s.getWeight().getValue() + ", " + s.minGroupSize + ", " + s.maxGroupSize);
 
 //					}
 

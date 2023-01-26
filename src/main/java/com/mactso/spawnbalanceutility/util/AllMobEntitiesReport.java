@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.SpawnGroup;
 import net.minecraft.util.registry.Registry;
 
 //import net.minecraft.core.Registry;
@@ -37,8 +38,7 @@ public class AllMobEntitiesReport {
 
 		for (EntityType<?> a : Registry.ENTITY_TYPE) {
 			if (isValidClassification(a)) {
-				int debug = 5;
-				//	TODO			p.println(a.getRegistryEntry().toString() + ", " + a.getCategory());
+				p.println(a.getRegistryEntry().toString() + ", " + a.getSpawnGroup().asString());
 			}
 		}
 		
@@ -49,9 +49,10 @@ public class AllMobEntitiesReport {
 	}
 
 	private static boolean isValidClassification(EntityType<?> a) {
-		int debug = 5;
-// TODO		if (a.getCategory() == MobCategory.MISC) 
-//			return false;
+		if (a.getSpawnGroup() == SpawnGroup.MISC) {
+			return false;
+		}
+
 		return true;
 	}
 	

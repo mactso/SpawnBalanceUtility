@@ -7,6 +7,4 @@
 /build/
 /logs/
 /.project
-/runClient.launch
-/runData.launch
-/runServer.launch
+/*.launch

@@ -63,17 +63,16 @@ public class StructureCreatureManager {
 					}					
 					String key = modAndStructure;
 					if (spawnWeight > 0){
-						// TODO set this debug value to 1.
-						Utility.debugMsg(0, lineNumber +", "+ lastgoodline+", "+ modAndStructure+", "+ classification+", "+ modAndMob+", "+ spawnWeight+", "+minCount+", "+ maxCount);
+						Utility.debugMsg(1, lineNumber +", "+ lastgoodline+", "+ modAndStructure+", "+ classification+", "+ modAndMob+", "+ spawnWeight+", "+minCount+", "+ maxCount);
 						StructureCreatureItem bci = new StructureCreatureItem(lineNumber, modAndStructure, classification, modAndMob, spawnWeight, minCount, maxCount);
-						List<StructureCreatureItem> p = structureCreaturesMap.get(key);
-						if (p == null) {
-							p = new ArrayList<>();
-							structureCreaturesMap.put(key, p);
+						List<StructureCreatureItem> structureMobList = structureCreaturesMap.get(key);
+						if (structureMobList == null) {
+							structureMobList = new ArrayList<>();
+							structureCreaturesMap.put(key, structureMobList);
 						}
 						// TODO maybe check for duplicates here later
 						// for now okay as long as spawn weight > 0.
-						p.add(bci);
+						structureMobList.add(bci);
 					}
 					
 				} catch (Exception e) {
@@ -85,7 +84,6 @@ public class StructureCreatureManager {
 			System.out.println("StructMobWeight.csv not found in subdirectory SpawnBalanceUtility");
 
 		}
-		
 		
 	}
 	

@@ -109,11 +109,11 @@ public class MyConfig {
 		configs.addKeyValuePair(new Pair<>("key.debugLevel", 0), "int");
 
 		configs.addKeyValuePair(new Pair<>("key.generateReport", "true"), "String");
-		configs.addKeyValuePair(new Pair<>("key.suppressMinecraftMobReporting", "true"), "String");
+		configs.addKeyValuePair(new Pair<>("key.suppressMinecraftMobReporting", "false"), "String");
 		configs.addKeyValuePair(new Pair<>("key.fixEmptyNether", "true"), "String");
-		configs.addKeyValuePair(new Pair<>("key.balanceBiomeSpawnValues", "true"), "String");
+		configs.addKeyValuePair(new Pair<>("key.balanceBiomeSpawnValues", "false"), "String");
 		configs.addKeyValuePair(new Pair<>("key.fixSpawnValues", "true"), "String");
-		configs.addKeyValuePair(new Pair<>("key.balanceStructureSpawnValues", "true"), "String");
+		configs.addKeyValuePair(new Pair<>("key.balanceStructureSpawnValues", "false"), "String");
 
 		configs.addKeyValuePair(new Pair<>("key.includedReportModsSet", defaultIncludedReportModsSet), "String");
 		configs.addKeyValuePair(new Pair<>("key.minSpawnWeight", 5), "int");

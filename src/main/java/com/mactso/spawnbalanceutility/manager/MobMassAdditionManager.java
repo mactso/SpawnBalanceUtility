@@ -12,9 +12,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mactso.spawnbalanceutility.config.MyConfig;
+import com.mactso.spawnbalanceutility.utility.Utility;
 
 import net.minecraft.entity.SpawnGroup;
-import net.minecraft.world.biome.Biome.Category;
 
 public class MobMassAdditionManager {
 
@@ -28,23 +28,23 @@ public class MobMassAdditionManager {
 	public static String CATEGORY_NETHER = "N";
 	public static String CATEGORY_THEEND = "E";
 
-	public static List<MassAdditionMobItem> getFilteredList(SpawnGroup v, Category category) {
+	public static List<MassAdditionMobItem> getFilteredList(SpawnGroup v, String category) {
 		List<MassAdditionMobItem> ma = new ArrayList<>();
 		for (MassAdditionMobItem m : massAdditionMobsHashtable.values()) {
 			if (v.getName().equalsIgnoreCase(m.getClassification())) {
 				if (m.getCategory().equals(CATEGORY_ALL)) {
 					ma.add(m);
-				} else 	if (category == Category.NETHER) {
+				} else 	if (category == Utility.NETHER) {
 					if (m.getCategory().equals(CATEGORY_NETHER)) {
 						ma.add(m);	
 					}
 				}
-				else if (category == Category.THEEND) {
+				else if (category == Utility.THEEND) {
 					if (m.getCategory().equals(CATEGORY_THEEND)) {
 						ma.add(m);
 					}
 				}
-				else if (category != Category.NONE) {
+				else if (category != Utility.NONE) {
 					if (m.getCategory().equals(CATEGORY_OVERWORLD)) {
 						ma.add(m);
 					}

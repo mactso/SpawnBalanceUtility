@@ -33,9 +33,9 @@ import net.minecraft.util.collection.Pool;
 import net.minecraft.util.collection.Weight;
 import net.minecraft.util.registry.DynamicRegistryManager;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.util.registry.RegistryEntry;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.Biome.Category;
 import net.minecraft.world.biome.SpawnSettings;
 import net.minecraft.world.biome.SpawnSettings.SpawnEntry;
 
@@ -54,16 +54,17 @@ public class SpawnBiomeData {
 //         Fabric : 	f	Lcbr$b;	l	field_9329	category
 // note- must have semicolon at end of type "Lcbr$b;"
 
-		try {
-			MappingResolver mapping = FabricLoader.getInstance().getMappingResolver();
-			String fieldName = mapping.mapFieldName("intermediary", "net.minecraft.class_1959", "field_9329",
-					"Lnet/minecraft/class_1959$class_1961;");
-			fieldBiomeCategory = Biome.class.getDeclaredField(fieldName); // fieldname makes work in dev and runtime.
-			fieldBiomeCategory.setAccessible(true);
-		} catch (Exception e) {
-			e.printStackTrace();
-			LOGGER.error("XXX Unexpected Reflection Failure set Biome.biomeCategory accessible");
-		}
+		// don't need biome category in 1.19
+//		try {
+//			MappingResolver mapping = FabricLoader.getInstance().getMappingResolver();
+//			String fieldName = mapping.mapFieldName("intermediary", "net.minecraft.class_1959", "field_9329",
+//					"Lnet/minecraft/class_1959$class_1961;");
+//			fieldBiomeCategory = Biome.class.getDeclaredField(fieldName); // fieldname makes work in dev and runtime.
+//			fieldBiomeCategory.setAccessible(true);
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			LOGGER.error("XXX Unexpected Reflection Failure set Biome.biomeCategory accessible");
+//		}
 	}
 
 //	
@@ -82,28 +83,26 @@ public class SpawnBiomeData {
 
 	public static void doBiomeActions(MinecraftServer server) {
 
-		DynamicRegistryManager dynreg = server.getRegistryManager();
-		Registry<Biome> csfreg = dynreg
-				.getManaged(Registry.BIOME_KEY);
+
     	initReports();
 
 		if (MyConfig.isBalanceStructureSpawnValues()) {
-			balanceBiomeSpawnValues(csfreg);
+			balanceBiomeSpawnValues(server);
 		}
 		if (MyConfig.isFixSpawnValues()) {
-			fixBiomeSpawnValues(csfreg);
+			fixBiomeSpawnValues(server);
 		}
 		if (MyConfig.isGenerateReport()) {
-			generateBiomeSpawnValuesReport(csfreg);
+			generateBiomeSpawnValuesReport(server);
 		}
 	}
 	
-	public static void balanceBiomeSpawnValues(Registry<Biome> registry) {
+	public static void balanceBiomeSpawnValues(MinecraftServer server) {
 
-		LOGGER.warn("SpawnBalanceUtility: Balancing Biomes with BiomeMobWeight.CSV Spawn weight Values. ");
-
+		DynamicRegistryManager dynreg = server.getRegistryManager();
+		Registry<Biome> biomeRegistry = dynreg.getManaged(Registry.BIOME_KEY);
 		Field fieldSpawners = null;
-
+		// get net/minecraft/world/level/biome/MobSpawnSettings/field_26405_ net/minecraft/world/level/biome/MobSpawnSettings/spawners
 		try {
 			MappingResolver mapping = FabricLoader.getInstance().getMappingResolver();
 			String fieldName = mapping.mapFieldName("intermediary", "net.minecraft.class_5483", "field_26405",
@@ -118,11 +117,15 @@ public class SpawnBiomeData {
 		String vCl = "";
 		List<SpawnEntry> newBalancedList = new ArrayList<>();
 		
-		for (Biome b : registry) {
-			RegistryKey<Biome> bk = registry.getKey(b).get();
-			Identifier bi = bk.getValue();
-			String bn = bi.toString();
-			int debug = 7;
+		for (Biome b : biomeRegistry) {
+			RegistryKey<Biome> bk = biomeRegistry.getKey(b).get();
+			
+			Optional<RegistryEntry<Biome>> oRE = biomeRegistry.getEntry(bk);
+			if (!oRE.isPresent()) {
+				continue;
+			}
+
+			String bn = biomeRegistry.getId(b).toString();
 			List<BiomeCreatureItem> modBiomeMobSpawners = BiomeCreatureManager.biomeCreaturesMap.get(bn);
 			if (modBiomeMobSpawners == null) {
 				LOGGER.warn("No spawn values found for biome: "+ bn + " when balance flag is true.");
@@ -135,8 +138,8 @@ public class SpawnBiomeData {
 			Map<SpawnGroup, Pool<SpawnEntry>> newMap = new HashMap<>();
 
 			for (SpawnGroup v : SpawnGroup.values()) {
-				vCl = v.getName();
 				newBalancedList.clear();
+				vCl = v.getName();
 				for (BiomeCreatureItem biomeCreatureItem : modBiomeMobSpawners) {
 					if (biomeCreatureItem.getClassification().toLowerCase().equals(vCl)) {
 
@@ -164,31 +167,58 @@ public class SpawnBiomeData {
 
 	}
 
-//
-//
-	private static Category getBiomeCategory(Biome b) {
-		Category bc = Category.PLAINS;
-		try {
-			bc = (Category) fieldBiomeCategory.get(b);
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return bc;
-	}
-
-
-	public static void fixBiomeSpawnValues(Registry<Biome> registry) {
+	public static void fixBiomeSpawnValues(MinecraftServer server) {
 
 		LOGGER.warn(" SpawnBalanceUtility: Fixing biome extreme spawn values. ");
-		if (MyConfig.isFixEmptyNether() ) {
-			LOGGER.warn(" SpawnBalanceUtility: Adding zombified piglin and ghasts to all Nether Zones.");
-		}	
-		
-		Field fieldSpawners = null;
+
+		DynamicRegistryManager dynreg = server.getRegistryManager();
+		Registry<Biome> biomeRegistry = dynreg.getManaged(Registry.BIOME_KEY);
+
+//		Biome r = null;
+//		for (Biome b : biomeRegistry) {
+//			r = b;
+//			break;
+//		}
+
+//		Class obj = r.getClass();
+//		System.out.println(obj.descriptorString());
+//	      // using object of Class to
+//	      // get all the declared methods of Dog
+//	      Method[] methods = obj.getDeclaredMethods();
+//
+//	      // create an object of the Method class
+//          System.out.println("Methods ----------------------------------");
+//
+//	      for (Method m : methods) {
+//
+//	        // get names of methods
+//	        System.out.println("Method Name: " + m.getName());
+//
+//	        // get the access modifier of methods
+//	        int modifier = m.getModifiers();
+//	        System.out.println("Modifier: " + Modifier.toString(modifier));
+//
+//	        // get the return types of method
+//	        System.out.println("Return Types: " + m.getReturnType());
+//	        System.out.println(" ");
+//	      }
+//          System.out.println("Fields----------------------------------");
+//
+//	      Field[] fields = obj.getDeclaredFields();
+//
+//	      // create an object of the Method class
+//	      for (Field f : fields) {
+//
+//	        // get names of methods
+//	        System.out.println("Field Name: " + f.getName());
+//
+//	        // get the access modifier of methods
+//	        int modifier = f.getModifiers();
+//	        System.out.println("Modifier: " + Modifier.toString(modifier));
+//	      }	      
+//          System.out.println("----------------------------------");
+
+	      Field fieldSpawners = null;
 		try {
 			MappingResolver mapping = FabricLoader.getInstance().getMappingResolver();
 			String fieldName = mapping.mapFieldName("intermediary", "net.minecraft.class_5483", "field_26405",
@@ -202,23 +232,30 @@ public class SpawnBiomeData {
 
 		List<SpawnEntry> newFixedList = new ArrayList<>();
 
-		for (Biome b : registry) {
+		for (Biome b : biomeRegistry) {
+			
+			RegistryKey<Biome> bk = biomeRegistry.getKey(b).get();
+			
+			Optional<RegistryEntry<Biome>> oRE = biomeRegistry.getEntry(bk);
+			if (!oRE.isPresent()) {
+				continue;
+			}
+			String bcName = biomeRegistry.getKey(b).toString();
+			
 			boolean zombifiedPiglinSpawner = false;
 			boolean ghastSpawner = false;
-			RegistryKey<Biome> brk = registry.getKey(b).get();
-			Identifier bi = brk.getValue();
-			String bn = bi.toString();
+
 
 			SpawnSettings msi = b.getSpawnSettings();
 			Map<SpawnGroup, Pool<SpawnEntry>> map = null;
 
 			Map<SpawnGroup, Pool<SpawnEntry>> newMap = new HashMap<>();
 
-			for (SpawnGroup v : SpawnGroup.values()) {
+			for (SpawnGroup mc : SpawnGroup.values()) {
 
 				newFixedList.clear();
 				Utility.debugMsg(1, "biome:" + b.REGISTRY_CODEC.simple() + ", " + b.toString());
-				Pool<SpawnEntry> originalSpawnerEntryList = b.getSpawnSettings().getSpawnEntries(v);
+				Pool<SpawnEntry> originalSpawnerEntryList = b.getSpawnSettings().getSpawnEntries(mc);
 				for (SpawnEntry s : originalSpawnerEntryList.getEntries()) {
 
 					int newSpawnWeight = s.getWeight().getValue();
@@ -229,18 +266,26 @@ public class SpawnBiomeData {
 						newSpawnWeight = MyConfig.getMinSpawnWeight();
 					}
 					String key = s.type.toString();
+
+					// FORGE			int dSW = MyConfig.getDefaultSpawnWeight(key);
+// FORGE			if (dSW != MyConfig.NO_DEFAULT_SPAWN_WEIGHT_FOUND) {
+// FORGE				newSpawnWeight = dSW;
+// FORGE			}
+
 					SpawnEntry newS = new SpawnEntry(s.type, Weight.of(newSpawnWeight), s.minGroupSize, s.maxGroupSize);
 					newFixedList.add(newS);
-					if (getBiomeCategory(b) == Biome.Category.NETHER) {
+
+					if (Utility.getMyBC(oRE.get()) == Utility.NETHER) {
 						if (s.type == EntityType.ZOMBIFIED_PIGLIN)
 							zombifiedPiglinSpawner = true;
 						if (s.type == EntityType.GHAST) {
 							ghastSpawner = true;
 						}
 					}
+					
 				}
 
-				List<MassAdditionMobItem> massAddMobs = MobMassAdditionManager.getFilteredList(v, getBiomeCategory(b));
+				List<MassAdditionMobItem> massAddMobs = MobMassAdditionManager.getFilteredList(mc, bcName);
 				EntityType<?> et;
 				for (MassAdditionMobItem ma : massAddMobs) {
 
@@ -263,8 +308,8 @@ public class SpawnBiomeData {
 
 				}
 
-				if (getBiomeCategory(b) == Biome.Category.NETHER) {
-					if (v == SpawnGroup.MONSTER) {
+				if (Utility.getMyBC(oRE.get()) == Utility.NETHER) {
+					if (mc == SpawnGroup.MONSTER) {
 						if ((zombifiedPiglinSpawner == false) && (MyConfig.isFixEmptyNether())) {
 							SpawnEntry newS = new SpawnEntry(EntityType.ZOMBIFIED_PIGLIN,
 									Weight.of(MyConfig.getMinSpawnWeight()), 1, 4);
@@ -279,13 +324,12 @@ public class SpawnBiomeData {
 					}
 				}
 
-				newMap.put(v, Pool.of(newFixedList));
+				newMap.put(mc, Pool.of(newFixedList));
 			}
-			int debug = 3;
+
 			try {
 				fieldSpawners.set(msi, newMap);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -328,8 +372,11 @@ public class SpawnBiomeData {
 	}
 
 //
-	public static void generateBiomeSpawnValuesReport(Registry<Biome> registry) {
+	public static void generateBiomeSpawnValuesReport(MinecraftServer server) {
 
+		DynamicRegistryManager dynreg = server.getRegistryManager();
+		Registry<Biome> biomeRegistry = dynreg.getManaged(Registry.BIOME_KEY);
+		
 		PrintStream p = null;
 		try {
 			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/BiomeMobWeight.txt", false));
@@ -342,15 +389,19 @@ public class SpawnBiomeData {
 		}
 
 
-		for (Biome b : registry) {
-			String categoryName = getBiomeCategory(b).asString();
-			RegistryKey<Biome> bk = registry.getKey(b).get();
+		for (Biome b : biomeRegistry) {
+
+			RegistryKey<Biome> bk = biomeRegistry.getKey(b).get();
+			
+			Optional<RegistryEntry<Biome>> oRE = biomeRegistry.getEntry(bk);
+			if (!oRE.isPresent()) {
+				continue;
+			}
+			
+			String categoryName = Utility.getMyBC(oRE.get());
 			Identifier bi = bk.getValue();
 			String biomeIdAsString = bi.toString();
 
-			
-
-			
 			SpawnSettings msi = b.getSpawnSettings();
 			for (SpawnGroup v : SpawnGroup.values()) {
 
