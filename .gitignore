@@ -2,6 +2,7 @@
 /build/
 /.classpath
 /.settings/
+/.metadata
 /bin/
 /run/
 /build/

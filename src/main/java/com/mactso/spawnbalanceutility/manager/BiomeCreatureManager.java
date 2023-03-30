@@ -10,10 +10,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.mactso.spawnbalanceutility.config.MyConfig;
 
 public class BiomeCreatureManager {
 
+	private static final Logger LOGGER = LogManager.getLogger();
 	public static Map<String,List<BiomeCreatureItem>> biomeCreaturesMap = new HashMap<>();
 	public static Hashtable<String, BiomeCreatureItem> biomeCreatureHashtable = new Hashtable<>();
 	static int lastgoodline = 0;
@@ -62,7 +66,8 @@ public class BiomeCreatureManager {
 					}
 					if (minCount > maxCount) {
 						minCount = maxCount;
-					}					
+					}		
+				
 					String key = modAndBiome;
 					if (spawnWeight > 0){
 						BiomeCreatureItem bci = new BiomeCreatureItem(lineNumber, category, modAndBiome, classification, modAndMob, spawnWeight, minCount, maxCount);
@@ -78,16 +83,16 @@ public class BiomeCreatureManager {
 					
 				} catch (Exception e) {
 					if (!(line.isEmpty())) {
-						System.out.println("SpawnBalanceUtility Error reading field "+errorField+" on "+linecount+"th line of BiomeMobWeight.csv.");
+						LOGGER.warn("SpawnBalanceUtility problem reading field "+errorField+" on "+linecount+"th line of BiomeMobWeight.csv.");
 					} else if (MyConfig.getDebugLevel() > 0 ) {
-						System.out.println("SpawnBalanceUtility Warning blank line at "+linecount+"th line of BiomeMobWeight.csv.");
+						LOGGER.warn("SpawnBalanceUtility blank line at "+linecount+"th line of BiomeMobWeight.csv.");
 					}
 				}
 			}
 			input.close();
 		} catch (Exception e) {
-			System.out.println("BiomeMobWeight.csv not found in subdirectory SpawnBalanceUtility");
-			// e.printStackTrace();
+			LOGGER.warn("config/spawnbalanceutility/BiomeMobWeight.csv not found.");
+			e.printStackTrace();
 		}
 		
 	}

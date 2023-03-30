@@ -1,37 +1,51 @@
 package com.mactso.spawnbalanceutility.util;
 
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
 
 import com.mactso.spawnbalanceutility.config.MyConfig;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BiomeTags;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.SpawnPlacements;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.monster.piglin.Piglin;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.Heightmap.Types;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.registries.ForgeRegistries;
 
 public class Utility {
-	
+
 	public static String NONE = "none";
 	public static String BEACH = "beach";
 	public static String BADLANDS = "badlands";
@@ -52,7 +66,7 @@ public class Utility {
 	public static String SWAMP = "swamp";
 	public static String TAIGA = "taiga";
 	public static String UNDERGROUND = "underground";
-	
+
 	public final static int FOUR_SECONDS = 80;
 	public final static int TWO_SECONDS = 40;
 	public final static float Pct00 = 0.00f;
@@ -73,52 +87,107 @@ public class Utility {
 	private static final Logger LOGGER = LogManager.getLogger();
 
 	public static String getMyBC(Holder<Biome> testBiome) {
-		
-	if (testBiome.is(BiomeTags.HAS_VILLAGE_DESERT))
-		return Utility.DESERT;
-	if (testBiome.is(BiomeTags.IS_FOREST))
-		return Utility.FOREST;
-	if (testBiome.is(BiomeTags.IS_BEACH))
-		return Utility.BEACH;
-	if (testBiome.is(BiomeTags.HAS_VILLAGE_SNOWY))
-		return Utility.ICY;		
-	if (testBiome.is(BiomeTags.IS_JUNGLE))
-		return Utility.JUNGLE;		
-	if (testBiome.is(BiomeTags.IS_OCEAN))
-		return Utility.OCEAN;		
-	if (testBiome.is(BiomeTags.IS_DEEP_OCEAN))
-		return Utility.OCEAN;		
-	if (testBiome.is(BiomeTags.HAS_VILLAGE_PLAINS))
-		return Utility.PLAINS;		
-	if (testBiome.is(BiomeTags.IS_RIVER))
-		return Utility.RIVER;		
-	if (testBiome.is(BiomeTags.IS_SAVANNA))
-		return Utility.SAVANNA;		
-	if (testBiome.is(BiomeTags.ALLOWS_SURFACE_SLIME_SPAWNS))
-		return Utility.SWAMP;		
-	if (testBiome.is(BiomeTags.IS_TAIGA))
-		return Utility.TAIGA;		
-	if (testBiome.is(BiomeTags.IS_BADLANDS))
-		return Utility.BADLANDS;		
-	if (testBiome.is(BiomeTags.IS_MOUNTAIN))
-		return Utility.EXTREME_HILLS;		
-	if (testBiome.is(BiomeTags.IS_NETHER))
-		return Utility.NETHER;		
-	
-	return NONE;
 
-}
+		if (testBiome.is(BiomeTags.HAS_VILLAGE_DESERT))
+			return Utility.DESERT;
+		if (testBiome.is(BiomeTags.IS_FOREST))
+			return Utility.FOREST;
+		if (testBiome.is(BiomeTags.IS_BEACH))
+			return Utility.BEACH;
+		if (testBiome.is(BiomeTags.HAS_VILLAGE_SNOWY))
+			return Utility.ICY;
+		if (testBiome.is(BiomeTags.IS_JUNGLE))
+			return Utility.JUNGLE;
+		if (testBiome.is(BiomeTags.IS_OCEAN))
+			return Utility.OCEAN;
+		if (testBiome.is(BiomeTags.IS_DEEP_OCEAN))
+			return Utility.OCEAN;
+		if (testBiome.is(BiomeTags.HAS_VILLAGE_PLAINS))
+			return Utility.PLAINS;
+		if (testBiome.is(BiomeTags.IS_RIVER))
+			return Utility.RIVER;
+		if (testBiome.is(BiomeTags.IS_SAVANNA))
+			return Utility.SAVANNA;
+		if (testBiome.is(BiomeTags.ALLOWS_SURFACE_SLIME_SPAWNS))
+			return Utility.SWAMP;
+		if (testBiome.is(BiomeTags.IS_TAIGA))
+			return Utility.TAIGA;
+		if (testBiome.is(BiomeTags.IS_BADLANDS))
+			return Utility.BADLANDS;
+		if (testBiome.is(BiomeTags.IS_MOUNTAIN))
+			return Utility.EXTREME_HILLS;
+		if (testBiome.is(BiomeTags.IS_NETHER))
+			return Utility.NETHER;
+
+		return NONE;
+
+	}
+
+	@SuppressWarnings("deprecation")
+	public static void registerMissingSpawnPlacements() {
+
+		// Loop over each entity resource location and register the spawn placement
+		for (String rlString : MyConfig.getFixSpawnPlacementMobsSet()) {
+			// Parse the entity resource location
+			try {
+				ResourceLocation entityResourceLocation = new ResourceLocation(rlString.trim());
+				@Nullable
+				EntityType<?> entityType = ForgeRegistries.ENTITY_TYPES.getValue(entityResourceLocation);
+				if ((entityType != EntityType.PIG) && (entityType.getCategory() != MobCategory.MISC)) {
+					@SuppressWarnings("unchecked")
+					EntityType<? extends Mob> entity = (EntityType<? extends Mob>) entityType;
+					// Register the spawn placement on the ground for the entity type
+					try {
+						SpawnPlacements.register(entity, SpawnPlacements.Type.ON_GROUND,
+								Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Utility::genericMobSpawnRules);
+					} catch (IllegalStateException e) {
+						LOGGER.error(rlString + " already had a SpawnPlacement Registered.  It has been replaced.  Did you mean to do that?");
+					}
+				} else {
+					LOGGER.warn(rlString + " is a configured spawn placement entity for a mod that is not loaded.");
+				}
+			} catch( Exception e ) {
+				LOGGER.warn(rlString + " for spawn placement config has a bad an illegal character (should be lower case?).");
+			}
+		}
+	}
+	
+	public static boolean genericMobSpawnRules(EntityType<? extends Mob> entityType, LevelAccessor level,
+			MobSpawnType spawnReason, BlockPos pos, RandomSource rand) {
+
+		System.out.println(entityType.getDescriptionId());
+		if (spawnReason == MobSpawnType.SPAWNER)
+				return true;
+
+		if (spawnReason == MobSpawnType.SPAWN_EGG)
+			return true;
+
+		if (level.getDifficulty() == Difficulty.PEACEFUL)
+			return false;
+		
+		BlockState bs = level.getBlockState(pos.below());
+
+		if (!(bs.isValidSpawn(level, pos.below(), entityType))) {
+			return false;
+		}
+		
+		if (Monster.isDarkEnoughToSpawn((ServerLevelAccessor) level, pos, rand)) {
+			return true;
+		}
+
+		return true;
+	}
+
 	public static String GetBiomeName(Biome b) {
 		return b.toString();
 	}
-	
+
 	public static void dbgChatln(Player p, String msg, int level) {
 		if (MyConfig.getDebugLevel() > level - 1) {
 			sendChat(p, msg, ChatFormatting.YELLOW);
 		}
 	}
-	
-	
+
 	public static void debugMsg(int level, String dMsg) {
 
 		if (MyConfig.getDebugLevel() > level - 1) {
@@ -134,15 +203,11 @@ public class Utility {
 		}
 
 	}
-	
-	
 
 	public static void debugMsg(int level, LivingEntity le, String dMsg) {
 
 		if (MyConfig.getDebugLevel() > level - 1) {
-			LOGGER.info("L" + level + " (" 
-					+ le.blockPosition().getX() + "," 
-					+ le.blockPosition().getY() + ","
+			LOGGER.info("L" + level + " (" + le.blockPosition().getX() + "," + le.blockPosition().getY() + ","
 					+ le.blockPosition().getZ() + "): " + dMsg);
 		}
 
@@ -155,7 +220,6 @@ public class Utility {
 		component.setStyle(component.getStyle().withColor(textColor));
 		p.sendSystemMessage(component);
 
-
 	}
 
 	public static void sendChat(Player p, String chatMessage, ChatFormatting textColor) {
@@ -165,7 +229,6 @@ public class Utility {
 		p.sendSystemMessage(component);
 
 	}
-
 
 	public static void updateEffect(LivingEntity e, int amplifier, MobEffect mobEffect, int duration) {
 		MobEffectInstance ei = e.getEffect(mobEffect);
@@ -210,14 +273,15 @@ public class Utility {
 		for (int i = 0; i <= numZP; i++) {
 
 			e = (Mob) et.spawn(level, savePos.north(2).west(2), MobSpawnType.NATURAL);
-			if (persistant) 
+			if (persistant)
 				e.setPersistenceRequired();
 			e.setBaby(isBaby);
 		}
 		return true;
 	}
 
-	public static boolean populateXEntityType(EntityType<?> et, ServerLevel level, BlockPos savePos, int X,  boolean isBaby) {
+	public static boolean populateXEntityType(EntityType<?> et, ServerLevel level, BlockPos savePos, int X,
+			boolean isBaby) {
 		Mob e;
 
 		for (int i = 0; i < X; i++) {
@@ -227,24 +291,20 @@ public class Utility {
 		return true;
 	}
 
-	
-	public static void setName(ItemStack stack, String inString)
-	{
+	public static void setName(ItemStack stack, String inString) {
 		CompoundTag tag = stack.getOrCreateTagElement("display");
 		ListTag list = new ListTag();
 		list.add(StringTag.valueOf(inString));
 		tag.put("Name", list);
 	}
-	
-	
-	public static void setLore(ItemStack stack, String inString)
-	{
+
+	public static void setLore(ItemStack stack, String inString) {
 		CompoundTag tag = stack.getOrCreateTagElement("display");
 		ListTag list = new ListTag();
 		list.add(StringTag.valueOf(inString));
 		tag.put("Lore", list);
 	}
-	
+
 	public static boolean isNotNearWebs(BlockPos pos, ServerLevel serverLevel) {
 
 		if (serverLevel.getBlockState(pos).getBlock() == Blocks.COBWEB)
@@ -284,10 +344,9 @@ public class Utility {
 		}
 	}
 
-
 	public static void sendChat(ServerPlayer serverPlayerEntity, String chatMessage) {
-		sendChat(serverPlayerEntity,chatMessage, ChatFormatting.GOLD);
-		
+		sendChat(serverPlayerEntity, chatMessage, ChatFormatting.GOLD);
+
 	}
 
 }

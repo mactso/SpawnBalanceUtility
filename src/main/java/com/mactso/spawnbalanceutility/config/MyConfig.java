@@ -99,6 +99,14 @@ public class MyConfig {
 		return NO_DEFAULT_SPAWN_WEIGHT_FOUND;
 	}
 	
+
+	
+	public static HashSet<String> getFixSpawnPlacementMobsSet() {
+		return fixSpawnPlacementMobsSet;
+	}
+
+
+
 	public static int debugLevel;
 	private static boolean generateReport;
 	private static boolean suppressMinecraftMobReporting;
@@ -110,7 +118,7 @@ public class MyConfig {
 	public static int maxSpawnWeight;
 	public static HashSet<String> includedReportModsSet;
 	public static HashSet<String> defaultSpawnWeightList;
-
+	public static HashSet<String> fixSpawnPlacementMobsSet;
 	
 	@SubscribeEvent
 	public static void onModConfigEvent(final ModConfigEvent configEvent) {
@@ -138,7 +146,8 @@ public class MyConfig {
 		fixSpawnValues = COMMON.fixSpawnValues.get();
 		balanceStructureSpawnValues = COMMON.balanceStructureSpawnValues.get();
 		includedReportModsSet = getModStringSet (extract(COMMON.includedReportModsSet.get()));
-
+		fixSpawnPlacementMobsSet = getFixSpawnPlacementMobs (extract(COMMON.fixSpawnPlacementMobs.get()));
+		
 		minSpawnWeight = COMMON.minSpawnWeight.get();
 		maxSpawnWeight = COMMON.maxSpawnWeight.get();
 		defaultSpawnWeightList = getSpawnWeightStringSet(extract(COMMON.defaultSpawnWeightList.get()));
@@ -152,9 +161,22 @@ public class MyConfig {
 		MobMassAdditionManager.massAdditionMobsInit();
 	}
 	
+
+
 	public static String[] extract(String s) {
 		String[] ret = s.split(";");
 		return ret;
+	}
+
+	private static HashSet<String> getFixSpawnPlacementMobs(String[] values) {
+		HashSet<String> set = new HashSet<>();
+		for (String s : values) {
+			String s2 = s.trim().toLowerCase();
+			if (!s2.isEmpty()) {
+				set.add(s2);
+			}
+		}
+		return set;
 	}
 	
 	public static HashSet<String> getModStringSet (String[] values) {
@@ -186,8 +208,6 @@ public class MyConfig {
 	
 	public static class Common {
 
-
-		
 		public final IntValue debugLevel;
 		public final BooleanValue generateReport;
 		public final BooleanValue suppressMinecraftMobReporting;
@@ -199,7 +219,9 @@ public class MyConfig {
 		public final IntValue minSpawnWeight;
 		public final IntValue maxSpawnWeight;
 		public final ConfigValue<String> defaultSpawnWeightList;
-	
+		public final ConfigValue<String> fixSpawnPlacementMobs;
+		
+		
 		
 		public Common(ForgeConfigSpec.Builder builder) {
 			builder.push("Spawn Biome Utility Control Values");
@@ -236,6 +258,13 @@ public class MyConfig {
 					.define("includedReportModsSet", "exampleModName;");
 
 			builder.pop();
+			builder.push("Spawn Placement Fixes");
+			
+			fixSpawnPlacementMobs = builder.comment("Add mobs spawning in the air and falling to this list .")
+					.translation(Main.MODID + ".config" + "fixSpawnPlacementMobs")
+					.define("defaultSpawnWeightList", "minecraft:piglin_brute;goblinanddungeon:gob;goblinanddungeon:hobgob;");
+			
+			builder.pop();			
 
 			builder.push("Spawn Weight Values");
 			minSpawnWeight = builder.comment("minimum Spawn Weight")

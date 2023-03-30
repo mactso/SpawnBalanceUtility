@@ -107,7 +107,6 @@ public class SpawnBiomeData {
 				modBiomeMobSpawners = new ArrayList<>();
 				continue;
 			}
-			int x = 3;
 			
 			MobSpawnSettings msi = b.getMobSettings ();
 
@@ -118,6 +117,7 @@ public class SpawnBiomeData {
 				vCl = v.getSerializedName ();
 				for (BiomeCreatureItem biomeCreatureItem : modBiomeMobSpawners) {
 					if (biomeCreatureItem.getClassification().toLowerCase().equals(vCl)) {
+
 						@SuppressWarnings("deprecation")
 						Optional<EntityType<?>> opt = BuiltInRegistries.ENTITY_TYPE
 								.getOptional(new ResourceLocation(biomeCreatureItem.getModAndMob()));
@@ -125,13 +125,6 @@ public class SpawnBiomeData {
 							SpawnerData newSpawner = new SpawnerData(opt.get(), Weight.of(biomeCreatureItem.getSpawnWeight()),
 									biomeCreatureItem.getMinCount(), biomeCreatureItem.getMaxCount());
 							newFixedList.add(newSpawner);
-							if (MyConfig.getDebugLevel() > 0) {
-								System.out.println("Biome :" + bn + " + r:" + reportlinenumber
-										+ " SpawnBalanceUtility XXZZY: p.size() =" + modBiomeMobSpawners.size()
-										+ " Mob " + biomeCreatureItem.getModAndMob() + " Added to "
-										+ bcName);
-							}
-
 						} else {
 							System.out.println(reportlinenumber + "SpawnBalanceUtility ERROR: Mob "
 									+ biomeCreatureItem.getModAndMob() + " not in Entity Type Registry");
@@ -153,8 +146,11 @@ public class SpawnBiomeData {
 	@SuppressWarnings("unchecked")
 	public static void fixBiomeSpawnValues(MinecraftServer server) {
 
+		LOGGER.warn(" SpawnBalanceUtility: Fixing biome extreme spawn values. ");
+
 		RegistryAccess dynreg = server.registryAccess();
 		Registry<Biome> biomeRegistry =  dynreg.registryOrThrow(Registries.BIOME);
+
 		Field field = null;
 		try {
 			String name = ASMAPI.mapField("f_48329_");
@@ -190,12 +186,10 @@ public class SpawnBiomeData {
 
 			// given- we have the biome name- the category name.
 
-			for (MobCategory v : MobCategory.values()) {
+			for (MobCategory mc : MobCategory.values()) {
 				
 				// TODO Hard Exception Here.
-				// TODO remove print statement.
-				System.out.println ("biome:" + bn + ", " + b.toString());
-				WeightedRandomList<SpawnerData> originalSpawnerList = map.get(v);
+				WeightedRandomList<SpawnerData> originalSpawnerList = map.get(mc);
 
 				// and here we have the classification
 				// looks like the mob name can't be part of the key however.
@@ -203,9 +197,6 @@ public class SpawnBiomeData {
 
 				List<SpawnerData> newFixedList = new ArrayList<>();
 				for (SpawnerData s : originalSpawnerList.unwrap()) {
-
-//					ResourceLocation modMob = s.type.getRegistryName();
-//					String key = modMob.toString();
 
 					int newSpawnWeight = s.getWeight().asInt();
 					if (newSpawnWeight > MyConfig.getMaxSpawnWeight()) {
@@ -234,7 +225,7 @@ public class SpawnBiomeData {
 					}
 				}
 
-				List<MassAdditionMobItem> massAddMobs = MobMassAdditionManager.getFilteredList(v, bcName);
+				List<MassAdditionMobItem> massAddMobs = MobMassAdditionManager.getFilteredList(mc, bcName);
 				EntityType<?> et;
 				for (MassAdditionMobItem ma : massAddMobs) {
 
@@ -257,7 +248,7 @@ public class SpawnBiomeData {
 				}
 
 				if (Utility.getMyBC(oBH.get()) == Utility.NETHER) {
-					if (v == MobCategory.MONSTER) {
+					if (mc == MobCategory.MONSTER) {
 						if ((zombifiedPiglinSpawner == false) && (MyConfig.isFixEmptyNether())) {
 							SpawnerData newS = new SpawnerData(EntityType.ZOMBIFIED_PIGLIN, Weight.of(MyConfig.getMinSpawnWeight()), 1,
 									4);
@@ -272,7 +263,7 @@ public class SpawnBiomeData {
 					}
 				}
 
-				newMap.put(v, WeightedRandomList.create( newFixedList) );
+				newMap.put(mc, WeightedRandomList.create( newFixedList) );
 			}
 
 			try {
