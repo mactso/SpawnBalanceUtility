@@ -7,7 +7,8 @@ import java.io.PrintStream;
 
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.registry.Registries;
+
 
 //import net.minecraft.core.Registry;
 
@@ -23,6 +24,7 @@ public class AllMobEntitiesReport {
 	}
 	
 
+	@SuppressWarnings("deprecation")
 	public static void doReport() {
 		
 		PrintStream p = null;
@@ -36,7 +38,7 @@ public class AllMobEntitiesReport {
 			p = System.out;
 		}
 
-		for (EntityType<?> a : Registry.ENTITY_TYPE) {
+		for (EntityType<?> a : Registries.ENTITY_TYPE) {
 			if (isValidClassification(a)) {
 				p.println(a.getRegistryEntry().toString() + ", " + a.getSpawnGroup().asString());
 			}

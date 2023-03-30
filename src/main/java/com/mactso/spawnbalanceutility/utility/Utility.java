@@ -15,13 +15,12 @@ import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
-import net.minecraft.tag.BiomeTags;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.tag.BiomeTags;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.registry.RegistryEntry;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 
@@ -53,25 +52,25 @@ public class Utility {
 	
 	
 	static {
-		try {
-			MappingResolver mapping = FabricLoader.getInstance().getMappingResolver();
-			String fieldName = mapping.mapFieldName("intermediary", "net.minecraft.class_1959", "field_9329",
-					"Lnet/minecraft/class_1959$class_1961;");
-			fieldBiomeCategory = Biome.class.getDeclaredField(fieldName);
-			fieldBiomeCategory.setAccessible(true);
-		} catch (Exception e) {
-			LOGGER.error("Unexpected Reflection Failure set Biome.category accessible");
-		}
-		if (fieldBiomeCategory == null) {
-			try {
-				String name = "category";  // see mappings.jar
-				fieldBiomeCategory = Biome.class.getDeclaredField(name);
-				fieldBiomeCategory.setAccessible(true);
-			} catch (Exception e) {
-				LOGGER.error("Development Biome field 'category' not found.");
-			}
-			
-		}
+//		try {
+//			MappingResolver mapping = FabricLoader.getInstance().getMappingResolver();
+//			String fieldName = mapping.mapFieldName("intermediary", "net.minecraft.class_1959", "field_9329",
+//					"Lnet/minecraft/class_1959$class_1961;");
+//			fieldBiomeCategory = Biome.class.getDeclaredField(fieldName);
+//			fieldBiomeCategory.setAccessible(true);
+//		} catch (Exception e) {
+//			LOGGER.error("Unexpected Reflection Failure set Biome.category accessible");
+//		}
+//		if (fieldBiomeCategory == null) {
+//			try {
+//				String name = "category";  // see mappings.jar
+//				fieldBiomeCategory = Biome.class.getDeclaredField(name);
+//				fieldBiomeCategory.setAccessible(true);
+//			} catch (Exception e) {
+//				LOGGER.error("Development Biome field 'category' not found.");
+//			}
+//			
+//		}
 	}
 
 	public static String getMyBC(RegistryEntry<Biome> registryEntry) {

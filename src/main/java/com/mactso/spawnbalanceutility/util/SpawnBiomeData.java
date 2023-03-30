@@ -27,20 +27,21 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.MappingResolver;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
+import net.minecraft.registry.DynamicRegistryManager;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry.Reference;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.Pool;
 import net.minecraft.util.collection.Weight;
-import net.minecraft.util.registry.DynamicRegistryManager;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.registry.RegistryEntry;
-import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.SpawnSettings;
 import net.minecraft.world.biome.SpawnSettings.SpawnEntry;
 
 public class SpawnBiomeData {
-	private static Field fieldBiomeCategory = null;
 	private static final Logger LOGGER = LogManager.getLogger();
 	static int biomelineNumber = 0;
 	static int reportlinenumber = 0;
@@ -100,7 +101,7 @@ public class SpawnBiomeData {
 	public static void balanceBiomeSpawnValues(MinecraftServer server) {
 
 		DynamicRegistryManager dynreg = server.getRegistryManager();
-		Registry<Biome> biomeRegistry = dynreg.getManaged(Registry.BIOME_KEY);
+		Registry<Biome> biomeRegistry = dynreg.get(RegistryKeys.BIOME);
 		Field fieldSpawners = null;
 		// get net/minecraft/world/level/biome/MobSpawnSettings/field_26405_ net/minecraft/world/level/biome/MobSpawnSettings/spawners
 		try {
@@ -120,7 +121,7 @@ public class SpawnBiomeData {
 		for (Biome b : biomeRegistry) {
 			RegistryKey<Biome> bk = biomeRegistry.getKey(b).get();
 			
-			Optional<RegistryEntry<Biome>> oRE = biomeRegistry.getEntry(bk);
+			Optional<Reference<Biome>> oRE = biomeRegistry.getEntry(bk);
 			if (!oRE.isPresent()) {
 				continue;
 			}
@@ -142,9 +143,9 @@ public class SpawnBiomeData {
 				vCl = v.getName();
 				for (BiomeCreatureItem biomeCreatureItem : modBiomeMobSpawners) {
 					if (biomeCreatureItem.getClassification().toLowerCase().equals(vCl)) {
-
-						Optional<EntityType<?>> opt = Registry.ENTITY_TYPE
-								.getOrEmpty(new Identifier(biomeCreatureItem.getModAndMob()));
+						
+						Optional<EntityType<?>> opt = Registries.ENTITY_TYPE.getOrEmpty(new Identifier(biomeCreatureItem.getModAndMob()));
+	
 						if (opt.isPresent()) {
 							SpawnEntry newSpawner = new SpawnEntry(opt.get(),
 									Weight.of(biomeCreatureItem.getSpawnWeight()), biomeCreatureItem.getMinCount(),
@@ -172,7 +173,7 @@ public class SpawnBiomeData {
 		LOGGER.warn(" SpawnBalanceUtility: Fixing biome extreme spawn values. ");
 
 		DynamicRegistryManager dynreg = server.getRegistryManager();
-		Registry<Biome> biomeRegistry = dynreg.getManaged(Registry.BIOME_KEY);
+		Registry<Biome> biomeRegistry = dynreg.get(RegistryKeys.BIOME);
 
 //		Biome r = null;
 //		for (Biome b : biomeRegistry) {
@@ -236,7 +237,7 @@ public class SpawnBiomeData {
 			
 			RegistryKey<Biome> bk = biomeRegistry.getKey(b).get();
 			
-			Optional<RegistryEntry<Biome>> oRE = biomeRegistry.getEntry(bk);
+			Optional<Reference<Biome>> oRE = biomeRegistry.getEntry(bk);
 			if (!oRE.isPresent()) {
 				continue;
 			}
@@ -254,7 +255,7 @@ public class SpawnBiomeData {
 			for (SpawnGroup mc : SpawnGroup.values()) {
 
 				newFixedList.clear();
-				Utility.debugMsg(1, "biome:" + b.REGISTRY_CODEC.simple() + ", " + b.toString());
+				Utility.debugMsg(1, "biome:" + Biome.REGISTRY_CODEC.simple() + ", " + b.toString());
 				Pool<SpawnEntry> originalSpawnerEntryList = b.getSpawnSettings().getSpawnEntries(mc);
 				for (SpawnEntry s : originalSpawnerEntryList.getEntries()) {
 
@@ -375,7 +376,7 @@ public class SpawnBiomeData {
 	public static void generateBiomeSpawnValuesReport(MinecraftServer server) {
 
 		DynamicRegistryManager dynreg = server.getRegistryManager();
-		Registry<Biome> biomeRegistry = dynreg.getManaged(Registry.BIOME_KEY);
+		Registry<Biome> biomeRegistry = dynreg.get(RegistryKeys.BIOME);
 		
 		PrintStream p = null;
 		try {
@@ -393,7 +394,7 @@ public class SpawnBiomeData {
 
 			RegistryKey<Biome> bk = biomeRegistry.getKey(b).get();
 			
-			Optional<RegistryEntry<Biome>> oRE = biomeRegistry.getEntry(bk);
+			Optional<Reference<Biome>> oRE = biomeRegistry.getEntry(bk);
 			if (!oRE.isPresent()) {
 				continue;
 			}
@@ -407,7 +408,9 @@ public class SpawnBiomeData {
 
 				for (SpawnEntry s : msi.getSpawnEntries(v).getEntries()) {
 					String creatureName = s.type.getUntranslatedName();
+					@SuppressWarnings("deprecation")
 					String creatureIdAsString = s.type.getRegistryEntry().getKey().get().getValue().toString();
+					@SuppressWarnings("deprecation")
 					String modname = s.type.getRegistryEntry().getKey().get().getValue().getNamespace() ;
 					if (MyConfig.isSuppressMinecraftMobReporting()) {
 						if (modname.equals("minecraft")) {

@@ -25,13 +25,15 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.MappingResolver;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
+import net.minecraft.registry.DynamicRegistryManager;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.Pool;
 import net.minecraft.util.collection.Weight;
-import net.minecraft.util.registry.DynamicRegistryManager;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.StructureSpawns;
 import net.minecraft.world.StructureSpawns.BoundingBox;
 import net.minecraft.world.biome.SpawnSettings;
@@ -87,7 +89,7 @@ public class SpawnStructData {
 	public static void doStructureActions(MinecraftServer server) {
 
 		DynamicRegistryManager dynreg = server.getRegistryManager();
-		Registry<Structure> csfreg = dynreg.getManaged(Registry.STRUCTURE_KEY);
+		Registry<Structure> csfreg = dynreg.get(RegistryKeys.STRUCTURE);
 		initReports();
 
 		if (MyConfig.isBalanceStructureSpawnValues()) {
@@ -123,8 +125,7 @@ public class SpawnStructData {
 						StructureCreatureItem sci = creaturesInStructure.get(i);
 
 						if (sci.getClassification().toLowerCase().equals(vCl)) {
-							@SuppressWarnings("deprecation")
-							Optional<EntityType<?>> opt = Registry.ENTITY_TYPE
+							Optional<EntityType<?>> opt = Registries.ENTITY_TYPE
 									.getOrEmpty(new Identifier(sci.getModAndMob()));
 							if (opt.isPresent()) {
 								SpawnEntry newS = new SpawnEntry(opt.get(), Weight.of(sci.getSpawnWeight()),
@@ -248,6 +249,7 @@ public class SpawnStructData {
 				if (mobs == null)
 					continue;
 				for (SpawnEntry s : mobs.spawns().getEntries()) {
+					@SuppressWarnings("deprecation")
 					String modName = s.type.getRegistryEntry().getKey().get().getValue().getNamespace();
 					if (MyConfig.isSuppressMinecraftMobReporting()) {
 						if (modName.equals("minecraft")) {
@@ -255,6 +257,7 @@ public class SpawnStructData {
 						}
 					}
 
+					@SuppressWarnings("deprecation")
 					String mobIdentifier = s.type.getRegistryEntry().getKey().get().getValue().toString();
 // note this relies on the forge "modslist" feature which I don't know how to do in fabric if possible at all.
 //					if (MyConfig.isIncludedMod(modName)) {

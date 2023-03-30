@@ -1,6 +1,5 @@
 package com.mactso.spawnbalanceutility;
 
-import com.google.common.eventbus.Subscribe;
 import com.mactso.spawnbalanceutility.config.MyConfig;
 import com.mactso.spawnbalanceutility.util.SpawnBiomeData;
 import com.mactso.spawnbalanceutility.util.SpawnStructData;
@@ -8,7 +7,6 @@ import com.mactso.spawnbalanceutility.util.SpawnStructData;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.ServerStarted;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.ServerStarting;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
 
