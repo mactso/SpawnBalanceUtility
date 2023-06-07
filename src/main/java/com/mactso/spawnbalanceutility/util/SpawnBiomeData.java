@@ -87,7 +87,7 @@ public class SpawnBiomeData {
 
     	initReports();
 
-		if (MyConfig.isBalanceStructureSpawnValues()) {
+		if (MyConfig.isBalanceBiomeSpawnValues()) {
 			balanceBiomeSpawnValues(server);
 		}
 		if (MyConfig.isFixSpawnValues()) {
