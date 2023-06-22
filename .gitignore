@@ -1,13 +1,12 @@
 .gradle
 /build/
+/logs/
 /.classpath
 /.settings/
-/.metadata
 /bin/
 /run/
 /build/
-/logs/
 /.project
-/runClient.launch
-/runData.launch
-/runServer.launch
+/*.launch
+/go16.bat
+/.eclipse
