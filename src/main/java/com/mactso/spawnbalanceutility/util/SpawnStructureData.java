@@ -85,10 +85,9 @@ public class SpawnStructureData {
 			theirSpawnersList.clear();
 
 			for (SpawnerData s : spob.getSpawns()) {
-				int weight = Math.max(MyConfig.getMinSpawnWeight(), s.getWeight().asInt());
-				weight = Math.min(MyConfig.getMaxSpawnWeight(), weight);
-
-				SpawnerData newSpawner = new SpawnerData(s.type, Weight.of(weight), s.minCount,
+				int newSpawnWeight = Math.max(MyConfig.getMinSpawnWeight(), s.getWeight().asInt());
+				if (newSpawnWeight > 0) newSpawnWeight = Math.min(MyConfig.getMaxSpawnWeight(), newSpawnWeight);
+				SpawnerData newSpawner = new SpawnerData(s.type, Weight.of(newSpawnWeight), s.minCount,
 						s.maxCount);
 				newSpawnersList.add(newSpawner);
 

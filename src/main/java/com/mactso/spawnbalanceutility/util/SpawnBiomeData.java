@@ -198,19 +198,14 @@ public class SpawnBiomeData {
 				List<SpawnerData> newFixedList = new ArrayList<>();
 				for (SpawnerData s : originalSpawnerList.unwrap()) {
 
-					int newSpawnWeight = s.getWeight().asInt();
-					if (newSpawnWeight > MyConfig.getMaxSpawnWeight()) {
-						newSpawnWeight = MyConfig.getMaxSpawnWeight();
-					}
-					if (newSpawnWeight < MyConfig.getMinSpawnWeight()) {
-						newSpawnWeight = MyConfig.getMinSpawnWeight();
-						System.out.println(s.type.getDescriptionId() + " minspawn change from " + s.getWeight().asInt() + " to "
-								+ newSpawnWeight);
-					}
+					int newSpawnWeight = Math.max(MyConfig.getMinSpawnWeight(), s.getWeight().asInt());
+					if (newSpawnWeight > 0) newSpawnWeight = Math.min(MyConfig.getMaxSpawnWeight(), newSpawnWeight);
+
 					String key = EntityType.getKey(s.type).toString();
 					int dSW = MyConfig.getDefaultSpawnWeight(key);
 					if (dSW != MyConfig.NO_DEFAULT_SPAWN_WEIGHT_FOUND) {
-						newSpawnWeight = dSW;
+						if (newSpawnWeight != 0)
+							newSpawnWeight = dSW;
 					}
 
 					SpawnerData newS = new SpawnerData(s.type, Weight.of(newSpawnWeight), s.minCount, s.maxCount);
