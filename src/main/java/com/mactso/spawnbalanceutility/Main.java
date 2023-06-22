@@ -1,9 +1,6 @@
 package com.mactso.spawnbalanceutility;
 
-import java.lang.System.Logger;
-
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.mactso.spawnbalanceutility.config.MyConfig;
 import com.mactso.spawnbalanceutility.util.AllMobEntitiesReport;
@@ -14,12 +11,6 @@ import com.mactso.spawnbalanceutility.util.Utility;
 
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.entity.SpawnPlacements;
-import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
@@ -43,7 +34,7 @@ public class Main {
 
 	public Main() {
 
-		System.out.println(MODID + ": Registering Mod.");
+		Utility.debugMsg(0, MODID + ": Registering Mod.");
 		ModLoadingContext.get().registerExtensionPoint(DisplayTest.class,
 				() -> new DisplayTest(() -> NetworkConstants.IGNORESERVERONLY, (a, b) -> true));
 		FMLJavaModLoadingContext.get().getModEventBus().register(this);
@@ -53,7 +44,7 @@ public class Main {
 
 	@SubscribeEvent
 	public void preInit(final FMLCommonSetupEvent event) {
-		System.out.println(MODID + ": Registering Handlers.  Version 1");
+		Utility.debugMsg(1, MODID + ": Registering Handlers.  Version 1");
 		AllMobEntitiesReport.doReport();
 	}
 
@@ -76,16 +67,14 @@ public class Main {
 		public static void onServerAboutToStart(ServerAboutToStartEvent event) {
 			if (MyConfig.isBalanceBiomeSpawnValues()) {
 				SpawnBiomeData.balanceBiomeSpawnValues(event.getServer());
-				System.out
-						.println("SpawnBalanceUtility: Balancing Biomes with BiomeMobWeight.CSV Spawn weight Values. ");
+				Utility.debugMsg(1, "SpawnBalanceUtility: Balancing Biomes with BiomeMobWeight.CSV Spawn weight Values. ");
 			}
 			if (MyConfig.isFixSpawnValues()) {
 
 				SpawnBiomeData.fixBiomeSpawnValues(event.getServer());
-				System.out.println(" SpawnBalanceUtility: Fixing biome extreme spawn values. ");
+				Utility.debugMsg(1, " SpawnBalanceUtility: Fixing biome extreme spawn values. ");
 				if (MyConfig.isFixEmptyNether()) {
-					System.out
-							.println(" SpawnBalanceUtility: Zombified piglin and ghasts will be added to Nether Zone.");
+					Utility.debugMsg(2, " SpawnBalanceUtility: Zombified piglin and ghasts will be added to Nether Zone.");
 				}
 
 			}

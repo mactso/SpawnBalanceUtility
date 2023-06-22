@@ -122,16 +122,14 @@ public class MyConfig {
 	
 	@SubscribeEvent
 	public static void onModConfigEvent(final ModConfigEvent configEvent) {
-		System.out.println("Spawn Balance Config Event");
+		Utility.debugMsg(0, Main.MODID + " Reload Configuration");
 		if (configEvent.getConfig().getSpec() == MyConfig.COMMON_SPEC) {
 			bakeConfig();
 		}
 	}
 
 	public static void pushDebugValue() {
-		if (debugLevel > 0) {
-			System.out.println("SpawnBalanceUtility debugLevel:" + MyConfig.debugLevel);
-		}
+		Utility.debugMsg(0, " Change DebugLevel:" + MyConfig.debugLevel);
 		COMMON.debugLevel.set(MyConfig.debugLevel);
 	}
 
@@ -151,10 +149,6 @@ public class MyConfig {
 		minSpawnWeight = COMMON.minSpawnWeight.get();
 		maxSpawnWeight = COMMON.maxSpawnWeight.get();
 		defaultSpawnWeightList = getSpawnWeightStringSet(extract(COMMON.defaultSpawnWeightList.get()));
-		
-		if (debugLevel > 0) {
-			System.out.println("SpawnBalanceUtility Debug: " + debugLevel);
-		}
 		
 		BiomeCreatureManager.biomeCreatureInit();
 		StructureCreatureManager.structureCreatureInit();

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import com.mactso.spawnbalanceutility.Main;
 import com.mactso.spawnbalanceutility.util.Utility;
 
 public class StructureCreatureManager {
@@ -77,12 +78,12 @@ public class StructureCreatureManager {
 					}
 					
 				} catch (Exception e) {
-					System.out.println("SpawnBalanceUtility Error reading field "+errorField+" on "+linecount+"th line of StructureMobWeight.csv.");
+					Utility.debugMsg(0, Main.MODID + " Error reading field "+errorField+" on "+linecount+"th line of StructureMobWeight.csv.");
 				}
 			}
 			input.close();
 		} catch (Exception e) {
-			System.out.println("StructMobWeight.csv not found in subdirectory SpawnBalanceUtility");
+			Utility.debugMsg(0, "Warning StructMobWeight.csv not found in subdirectory SpawnBalanceUtility");
 
 		}
 		

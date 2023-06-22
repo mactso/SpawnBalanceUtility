@@ -15,6 +15,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
+import com.mactso.spawnbalanceutility.Main;
 import com.mactso.spawnbalanceutility.config.MyConfig;
 import com.mactso.spawnbalanceutility.manager.StructureCreatureManager;
 import com.mactso.spawnbalanceutility.manager.StructureCreatureManager.StructureCreatureItem;
@@ -85,10 +86,9 @@ public class SpawnStructureData {
 			theirSpawnersList.clear();
 
 			for (SpawnerData s : spob.getSpawns()) {
-				int weight = Math.max(MyConfig.getMinSpawnWeight(), s.getWeight().asInt());
-				weight = Math.min(MyConfig.getMaxSpawnWeight(), weight);
-
-				SpawnerData newSpawner = new SpawnerData(s.type, Weight.of(weight), s.minCount,
+				int newSpawnWeight = Math.max(MyConfig.getMinSpawnWeight(), s.getWeight().asInt());
+				if (newSpawnWeight > 0) newSpawnWeight = Math.min(MyConfig.getMaxSpawnWeight(), newSpawnWeight);
+				SpawnerData newSpawner = new SpawnerData(s.type, Weight.of(newSpawnWeight), s.minCount,
 						s.maxCount);
 				newSpawnersList.add(newSpawner);
 
@@ -169,9 +169,9 @@ public class SpawnStructureData {
 		List<SpawnerData> theirSpawnersList = new ArrayList<>();
 
 		if (structureMobList != null) {
-			for (MobCategory ec : MobCategory.values()) {
+			for (MobCategory v : MobCategory.values()) {
 
-				vCl = ec.getSerializedName();
+				vCl = v.getSerializedName();
 				newSpawnersList.clear();
 				theirSpawnersList.clear();
 
@@ -183,6 +183,19 @@ public class SpawnStructureData {
 						Optional<EntityType<?>> opt = BuiltInRegistries.ENTITY_TYPE
 								.getOptional(new ResourceLocation(sci.getModAndMob()));
 						if (opt.isPresent()) {
+							if (opt.get().getCategory() == MobCategory.MISC) {
+								Utility.debugMsg(0, Main.MODID + " : " + sci.getModAndMob()
+										+ " is MISC, minecraft is hard coded to change it to minecraft:pig in spawning data.");
+							} else if (opt.get().getCategory() != v) {
+								if (sci.getModAndMob().equals("minecraft:ocelot")) {
+
+								} else {
+									Utility.debugMsg(0,
+											Main.MODID + " : " + sci.getModAndMob() + " Error, mob type "
+													+ v + " different than defined for the type of mob "
+													+ opt.get().getCategory());
+								}
+							}
 							SpawnerData newSpawner = new SpawnerData(opt.get(), Weight.of(sci.getSpawnWeight()),
 									sci.getMinCount(), sci.getMaxCount());
 							newSpawnersList.add(newSpawner);
@@ -195,13 +208,13 @@ public class SpawnStructureData {
 				}
 
 				@Nullable
-				StructureSpawnOverrideBuilder spob = builder.getStructureSettings().getSpawnOverrides(ec);
+				StructureSpawnOverrideBuilder spob = builder.getStructureSettings().getSpawnOverrides(v);
 				if (spob != null) {
-					builder.getStructureSettings().removeSpawnOverrides(ec);
+					builder.getStructureSettings().removeSpawnOverrides(v);
 				}
 				
 				if (!newSpawnersList.isEmpty()) {
-					StructureSpawnOverrideBuilder so = builder.getStructureSettings().getOrAddSpawnOverrides(ec);
+					StructureSpawnOverrideBuilder so = builder.getStructureSettings().getOrAddSpawnOverrides(v);
 					for (SpawnerData s : newSpawnersList) {
 						so.addSpawn(s);
 					}

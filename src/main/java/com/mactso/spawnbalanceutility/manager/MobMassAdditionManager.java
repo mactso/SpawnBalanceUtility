@@ -11,6 +11,7 @@ import java.util.StringTokenizer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.mactso.spawnbalanceutility.Main;
 import com.mactso.spawnbalanceutility.config.MyConfig;
 import com.mactso.spawnbalanceutility.util.Utility;
 
@@ -105,7 +106,7 @@ public class MobMassAdditionManager {
 						}					
 						String key = modAndMob;
 						if (!(validClassification(classification))) {
-							System.out.println("SpawnBalanceUtility invalid classification "+classification+" on "+linecount+"th line of MassAdditionMobs.csv.");
+							Utility.debugMsg(0, Main.MODID + " Invalid classification "+classification+" on "+linecount+"th line of MassAdditionMobs.csv.");
 						} else if (spawnWeight > 0){
 							MassAdditionMobItem bci = new MassAdditionMobItem(lineNumber, category, classification, modAndMob, spawnWeight, minCount, maxCount);
 							massAdditionMobsHashtable.put(key, bci);  // uses last one in file if dupes
