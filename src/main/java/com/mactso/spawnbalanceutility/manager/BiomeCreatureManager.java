@@ -69,7 +69,7 @@ public class BiomeCreatureManager {
 					}		
 				
 					String key = modAndBiome;
-					if (spawnWeight > 0){
+					if (spawnWeight > 0){      // TODO : Change this to >= 0 next time to preserver 0 entry spawn weights.
 						BiomeCreatureItem bci = new BiomeCreatureItem(lineNumber, category, modAndBiome, classification, modAndMob, spawnWeight, minCount, maxCount);
 						List<BiomeCreatureItem> p = biomeCreaturesMap.get(key);
 						if (p == null) {

@@ -210,8 +210,11 @@ public class SpawnBiomeData {
 				List<SpawnerData> newFixedList = new ArrayList<>();
 				for (SpawnerData s : originalSpawnerList.unwrap()) {
 
-					int newSpawnWeight = Math.max(MyConfig.getMinSpawnWeight(), s.getWeight().asInt());
-					if (newSpawnWeight > 0) newSpawnWeight = Math.min(MyConfig.getMaxSpawnWeight(), newSpawnWeight);
+					int newSpawnWeight = s.getWeight().asInt();
+					if (newSpawnWeight > 0) {
+						newSpawnWeight = Math.max(MyConfig.getMinSpawnWeight(), newSpawnWeight);
+						newSpawnWeight = Math.min(MyConfig.getMaxSpawnWeight(), newSpawnWeight);	
+					}
 
 					Utility.debugMsg(2, Main.MODID + ":" + s.type.getDescriptionId() + " minspawn change from "
 								+ s.getWeight().asInt() + " to " + newSpawnWeight);
@@ -219,8 +222,10 @@ public class SpawnBiomeData {
 					String key = EntityType.getKey(s.type).toString();
 					int dSW = MyConfig.getDefaultSpawnWeight(key);
 					if (dSW != MyConfig.NO_DEFAULT_SPAWN_WEIGHT_FOUND) {
-						if (newSpawnWeight != 0)
-							newSpawnWeight = dSW;
+						if (newSpawnWeight == 0) {
+							LOGGER.warn("WARN Setting " + key + " to non-zero spawnweight value may cause runaway spawning.");
+						}
+						newSpawnWeight = dSW;
 					}
 
 					SpawnerData newS = new SpawnerData(s.type, Weight.of(newSpawnWeight), s.minCount, s.maxCount);
