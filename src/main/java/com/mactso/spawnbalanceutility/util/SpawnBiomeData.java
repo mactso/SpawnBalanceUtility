@@ -112,9 +112,9 @@ public class SpawnBiomeData {
 
 			for (MobCategory v : MobCategory.values()) {
 				List<SpawnerData> newFixedList = new ArrayList<>();
-				vCl = v.getSerializedName();
+				vCl = v.toString();
 				for (BiomeCreatureItem biomeCreatureItem : modBiomeMobSpawners) {
-					if (biomeCreatureItem.getClassification().toLowerCase().equals(vCl)) {
+					if (biomeCreatureItem.getClassification().equalsIgnoreCase(vCl)) {
 
 						@SuppressWarnings("deprecation")
 						Optional<EntityType<?>> opt = BuiltInRegistries.ENTITY_TYPE

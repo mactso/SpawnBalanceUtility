@@ -1,8 +1,12 @@
 package com.mactso.spawnbalanceutility.manager;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -33,8 +37,16 @@ public class BiomeCreatureManager {
 		if (biomeCreaturesMap.size() > 0) {
 			return;
 		}
-		try (InputStreamReader input = new InputStreamReader(
-				new FileInputStream("config/spawnbalanceutility/BiomeMobWeight.csv"))) {
+
+		
+		// this code only has an effect on linux because case doesn't matter on windows)
+		File f = new File("config/spawnbalanceutility/BiomeMobWeight.csv");
+		if (!(f.exists())) {
+			 f = new File("config/spawnbalanceutility/BiomeMobWeight.CSV");
+		}
+		
+		try (InputStreamReader input = new InputStreamReader( new FileInputStream(f))) 
+		{			
 			BufferedReader br = new BufferedReader(input);
 			while ((line = br.readLine()) != null) {
 				StringTokenizer st = new StringTokenizer(line, ",");
@@ -61,8 +73,8 @@ public class BiomeCreatureManager {
 					if (minCount < 1) {
 						minCount = 1;
 					}
-					if (maxCount > 12) {
-						maxCount = 12;
+					if (maxCount > 32) {
+						maxCount = 32;
 					}
 					if (minCount > maxCount) {
 						minCount = maxCount;
@@ -91,7 +103,7 @@ public class BiomeCreatureManager {
 			}
 			input.close();
 		} catch (Exception e) {
-			LOGGER.warn("config/spawnbalanceutility/BiomeMobWeight.csv not found.");
+			LOGGER.warn("BiomeMobWeight.csv not found in config/spawnbalanceutility/ (Remember you rename BiomeMobWeight.txt to create it). ");
 			e.printStackTrace();
 		}
 		
