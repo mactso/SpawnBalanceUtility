@@ -116,7 +116,9 @@ public class Utility {
 			return Utility.EXTREME_HILLS;
 		if (testBiome.is(BiomeTags.IS_NETHER))
 			return Utility.NETHER;
-
+		if (testBiome.is(BiomeTags.IS_END))
+			return Utility.THEEND;
+		
 		return NONE;
 
 	}

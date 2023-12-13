@@ -92,7 +92,6 @@ public class SpawnBiomeData {
 
 		for (Biome b : biomeRegistry) {
 			String bn = biomeRegistry.getKey(b).toString();
-
 			Optional<Holder.Reference<Biome>> oBH = biomeRegistry.getHolder(biomeRegistry.getId(b));
 			if (!oBH.isPresent()) {
 				continue;
@@ -176,6 +175,7 @@ public class SpawnBiomeData {
 		for (Biome b : biomeRegistry) {
 
 			String bn = biomeRegistry.getKey(b).toString();
+			LOGGER.warn("SBU Biomes: " + bn);
 			Optional<Holder.Reference<Biome>> oBH = biomeRegistry.getHolder(biomeRegistry.getId(b));
 			if (!oBH.isPresent()) {
 				continue;
