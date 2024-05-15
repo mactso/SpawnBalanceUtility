@@ -46,6 +46,10 @@ public class SpawnStructureData {
 	static Set<String> structuresProcessed = new HashSet<>();
 	static int reportlinenumber = 0;
 
+	static {
+		Summary.clearStructure();
+	}
+
 	public static void initReports() {
 		File fd = new File("config/spawnbalanceutility");
 		if (!fd.exists())
@@ -75,6 +79,7 @@ public class SpawnStructureData {
 
 		List<SpawnerData> newSpawnersList = new ArrayList<>();
 		List<SpawnerData> theirSpawnersList = new ArrayList<>();
+		int fixCount = 0;
 
 		for (MobCategory ec : MobCategory.values()) {
 			@Nullable
@@ -86,8 +91,11 @@ public class SpawnStructureData {
 			theirSpawnersList.clear();
 
 			for (SpawnerData s : spob.getSpawns()) {
-				int newSpawnWeight = Math.max(MyConfig.getMinSpawnWeight(), s.getWeight().asInt());
+				int oldSpawnWeight = s.getWeight().asInt();
+				int newSpawnWeight = Math.max(MyConfig.getMinSpawnWeight(), oldSpawnWeight);
 				if (newSpawnWeight > 0) newSpawnWeight = Math.min(MyConfig.getMaxSpawnWeight(), newSpawnWeight);
+				if (newSpawnWeight != oldSpawnWeight)
+					fixCount++;
 				SpawnerData newSpawner = new SpawnerData(s.type, Weight.of(newSpawnWeight), s.minCount,
 						s.maxCount);
 				newSpawnersList.add(newSpawner);
@@ -102,6 +110,7 @@ public class SpawnStructureData {
 			}
 
 		}
+		Summary.setStructureFix(fixCount);
 
 	}
 
@@ -167,6 +176,7 @@ public class SpawnStructureData {
 
 		List<SpawnerData> newSpawnersList = new ArrayList<>();
 		List<SpawnerData> theirSpawnersList = new ArrayList<>();
+		int used = 0;
 
 		if (structureMobList != null) {
 			for (MobCategory v : MobCategory.values()) {
@@ -218,12 +228,13 @@ public class SpawnStructureData {
 					for (SpawnerData s : newSpawnersList) {
 						so.addSpawn(s);
 					}
+					used += newSpawnersList.size();
 				}
 
 			}
 
 		}
-
+		Summary.setStructureUsed(used);
 	}
 
 }

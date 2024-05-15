@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 import com.mactso.spawnbalanceutility.Main;
+import com.mactso.spawnbalanceutility.util.Summary;
 import com.mactso.spawnbalanceutility.util.Utility;
 
 public class StructureCreatureManager {
@@ -24,6 +25,7 @@ public class StructureCreatureManager {
 		int minCount = 0;
 		int maxCount = 0;
 		int linecount = 0;
+		int addcount = 0;
 		String errorField = "first";
 		String line;
 		
@@ -75,6 +77,7 @@ public class StructureCreatureManager {
 						// TODO maybe check for duplicates here later
 						// for now okay as long as spawn weight > 0.
 						structureMobList.add(bci);
+						addcount++;
 					}
 					
 				} catch (Exception e) {
@@ -86,7 +89,7 @@ public class StructureCreatureManager {
 			Utility.debugMsg(0, "Warning StructMobWeight.csv not found in subdirectory SpawnBalanceUtility");
 
 		}
-		
+		Summary.setStructureReadInfo(linecount, linecount - addcount);
 	}
 	
 	

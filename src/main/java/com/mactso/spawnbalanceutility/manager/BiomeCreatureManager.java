@@ -18,6 +18,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mactso.spawnbalanceutility.config.MyConfig;
+import com.mactso.spawnbalanceutility.util.Summary;
 
 public class BiomeCreatureManager {
 
@@ -31,6 +32,7 @@ public class BiomeCreatureManager {
 		int minCount = 0;
 		int maxCount = 0;
 		int linecount = 0;
+		int addcount = 0;
 		String errorField = "first";
 		String line;
 		
@@ -91,6 +93,7 @@ public class BiomeCreatureManager {
 						// TODO maybe check for duplicates here later
 						// for now okay as long as spawn weight > 0.
 						p.add(bci);
+						addcount++;
 					}
 					
 				} catch (Exception e) {
@@ -106,7 +109,7 @@ public class BiomeCreatureManager {
 			LOGGER.warn("BiomeMobWeight.csv not found in config/spawnbalanceutility/ (Remember you rename BiomeMobWeight.txt to create it). ");
 			e.printStackTrace();
 		}
-		
+		Summary.setBiomeReadInfo(linecount, linecount - addcount);
 	}
 	
 	

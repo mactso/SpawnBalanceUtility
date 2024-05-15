@@ -7,6 +7,7 @@ import com.mactso.spawnbalanceutility.util.AllMobEntitiesReport;
 import com.mactso.spawnbalanceutility.util.MyStructureModifier;
 import com.mactso.spawnbalanceutility.util.SpawnBiomeData;
 import com.mactso.spawnbalanceutility.util.SpawnStructureData;
+import com.mactso.spawnbalanceutility.util.Summary;
 import com.mactso.spawnbalanceutility.util.Utility;
 
 import net.minecraft.core.Registry;
@@ -65,6 +66,7 @@ public class Main {
 	public static class ForgeEvents {
 		@SubscribeEvent(priority = EventPriority.LOWEST)
 		public static void onServerAboutToStart(ServerAboutToStartEvent event) {
+			Summary.clear();
 			if (MyConfig.isBalanceBiomeSpawnValues()) {
 				SpawnBiomeData.balanceBiomeSpawnValues(event.getServer());
 				Utility.debugMsg(1, "SpawnBalanceUtility: Balancing Biomes with BiomeMobWeight.CSV Spawn weight Values. ");
@@ -78,6 +80,7 @@ public class Main {
 				}
 
 			}
+			Summary.report();
 
 //	        	SpawnData.initReports();
 		}

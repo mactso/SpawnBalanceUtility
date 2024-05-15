@@ -88,6 +88,7 @@ public class SpawnBiomeData {
 			return;
 		}
 
+		int usedTotal = 0;
 		String vCl = "";
 
 		for (Biome b : biomeRegistry) {
@@ -108,6 +109,7 @@ public class SpawnBiomeData {
 			MobSpawnSettings msi = b.getMobSettings();
 
 			Map<MobCategory, WeightedRandomList<SpawnerData>> newMap = new HashMap<>();
+			int used = 0;
 
 			for (MobCategory v : MobCategory.values()) {
 				List<SpawnerData> newFixedList = new ArrayList<>();
@@ -144,14 +146,19 @@ public class SpawnBiomeData {
 					}
 				}
 				newMap.put(v, WeightedRandomList.create(newFixedList));
+				used += newFixedList.size();
 			}
 			try {
+				@SuppressWarnings("unchecked")
+				Map<MobCategory, WeightedRandomList<SpawnerData>> oldMap = (Map<MobCategory, WeightedRandomList<SpawnerData>>) field.get(msi);
 				field.set(msi, newMap);
+				usedTotal += used;
+				Summary.biomeUpdate(oldMap, newMap);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
-
+		Summary.setBiomeUsed(usedTotal);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -171,6 +178,11 @@ public class SpawnBiomeData {
 			LOGGER.error("XXX Unexpected Reflection Failure lateBalanceBiomeSpawnValues");
 			return;
 		}
+
+		int fixCount = 0;
+		int netherCount = 0;
+		int biomeTotal = 0;
+		Set<EntityType<?>> usedTotalSet = new HashSet<>();
 
 		for (Biome b : biomeRegistry) {
 
@@ -195,6 +207,7 @@ public class SpawnBiomeData {
 //			boolean classificationMonster = false;
 			boolean zombifiedPiglinSpawner = false;
 			boolean ghastSpawner = false;
+			List<EntityType<?>> usedList = new ArrayList<>();
 
 			// given- we have the biome name- the category name.
 
@@ -210,7 +223,8 @@ public class SpawnBiomeData {
 				List<SpawnerData> newFixedList = new ArrayList<>();
 				for (SpawnerData s : originalSpawnerList.unwrap()) {
 
-					int newSpawnWeight = s.getWeight().asInt();
+					int oldSpawnWeight = s.getWeight().asInt();
+					int newSpawnWeight = oldSpawnWeight;
 					if (newSpawnWeight > 0) {
 						newSpawnWeight = Math.max(MyConfig.getMinSpawnWeight(), newSpawnWeight);
 						newSpawnWeight = Math.min(MyConfig.getMaxSpawnWeight(), newSpawnWeight);	
@@ -227,6 +241,9 @@ public class SpawnBiomeData {
 						}
 						newSpawnWeight = dSW;
 					}
+
+					if (newSpawnWeight != oldSpawnWeight)
+						fixCount++;
 
 					SpawnerData newS = new SpawnerData(s.type, Weight.of(newSpawnWeight), s.minCount, s.maxCount);
 					newFixedList.add(newS);
@@ -258,6 +275,7 @@ public class SpawnBiomeData {
 							SpawnerData newS = new SpawnerData(et, Weight.of(ma.getSpawnWeight()), ma.getMinCount(),
 									ma.getMaxCount());
 							newFixedList.add(newS);
+							usedList.add(et);
 						}
 					}
 
@@ -269,12 +287,14 @@ public class SpawnBiomeData {
 							SpawnerData newS = new SpawnerData(EntityType.ZOMBIFIED_PIGLIN,
 									Weight.of(MyConfig.getMinSpawnWeight()), 1, 4);
 							newFixedList.add(newS);
+							netherCount++;
 						}
 
 						if ((ghastSpawner == false) && (MyConfig.isFixEmptyNether())) {
 							SpawnerData newS = new SpawnerData(EntityType.GHAST,
 									Weight.of((int) (MyConfig.getMinSpawnWeight() * 0.75f)), 4, 4);
 							newFixedList.add(newS);
+							netherCount++;
 						}
 					}
 				}
@@ -284,12 +304,15 @@ public class SpawnBiomeData {
 
 			try {
 				field.set(msi, newMap);
+				usedTotalSet.addAll(usedList);
+				biomeTotal += usedList.size();
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-
+		Summary.setMassAddUsed(usedTotalSet.size(), biomeTotal);
+		Summary.setBiomeFix(fixCount, netherCount);
 	}
 
 	private static void generateMassAdditionMobsStubReport() {

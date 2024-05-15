@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.mactso.spawnbalanceutility.Main;
 import com.mactso.spawnbalanceutility.config.MyConfig;
+import com.mactso.spawnbalanceutility.util.Summary;
 import com.mactso.spawnbalanceutility.util.Utility;
 
 import net.minecraft.world.entity.MobCategory;
@@ -62,6 +63,7 @@ public class MobMassAdditionManager {
 		int minCount = 0;
 		int maxCount = 0;
 		int linecount = 0;
+		int commentcount = 0;
 		String errorField = "first";
 		String line;
 		
@@ -113,6 +115,8 @@ public class MobMassAdditionManager {
 						}
 						
 					}
+					else
+						commentcount++;
 					
 				} catch (Exception e) {
 					if (!(line.isEmpty())) {
@@ -127,7 +131,8 @@ public class MobMassAdditionManager {
 			LOGGER.info("SpawnBalanceUtility: Mass Addition Not Configured.  File config/spawnbalanceutility/MassAdditionMobs.csv not found.");
 			// e.printStackTrace();
 		}
-		
+		linecount -= commentcount;
+		Summary.setMassAddReadInfo(linecount, linecount - massAdditionMobsHashtable.size());
 
 	}
 
