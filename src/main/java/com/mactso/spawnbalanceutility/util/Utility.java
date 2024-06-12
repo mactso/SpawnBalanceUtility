@@ -23,6 +23,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -33,6 +34,7 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Blocks;
@@ -251,23 +253,23 @@ public class Utility {
 		return;
 	}
 
-	public static boolean populateEntityType(EntityType<?> et, ServerLevel level, BlockPos savePos, int range,
-			int modifier) {
+	public static boolean populateEntityType(EntityType<?> et, ServerLevel level, BlockPos savePos, int maximum,
+			int minimum) {
 		boolean isBaby = false;
-		return populateEntityType(et, level, savePos, range, modifier, isBaby);
+		return populateEntityType(et, level, savePos, maximum, minimum, isBaby);
 	}
 
-	public static boolean populateEntityType(EntityType<?> et, ServerLevel level, BlockPos savePos, int range,
-			int modifier, boolean isBaby) {
+	public static boolean populateEntityType(EntityType<?> et, ServerLevel level, BlockPos savePos, int maximum,
+			int minimum, boolean isBaby) {
 		boolean persistant = false;
-		return populateEntityType(et, level, savePos, range, modifier, persistant, isBaby);
+		return populateEntityType(et, level, savePos, maximum, minimum, persistant, isBaby);
 	}
 
-	public static boolean populateEntityType(EntityType<?> et, ServerLevel level, BlockPos savePos, int range,
-			int modifier, boolean persistant, boolean isBaby) {
+	public static boolean populateEntityType(EntityType<?> et, ServerLevel level, BlockPos savePos, int maximum,
+			int minimum, boolean persistant, boolean isBaby) {
 		int numZP;
 		Mob e;
-		numZP = level.random.nextInt(range) - modifier;
+		numZP = level.random.nextInt(maximum) - minimum;
 		if (numZP < 0)
 			return false;
 		for (int i = 0; i <= numZP; i++) {
@@ -282,11 +284,23 @@ public class Utility {
 
 	public static boolean populateXEntityType(EntityType<?> et, ServerLevel level, BlockPos savePos, int X,
 			boolean isBaby) {
-		Mob e;
 
+		if (level.isDay() && level.getBrightness(LightLayer.SKY, savePos) > 0) {
+			if (et == EntityType.ZOMBIE) return false;
+			if (et == EntityType.ZOMBIE_VILLAGER) return false;
+			if (et == EntityType.SKELETON) return false;
+			if (et == EntityType.STRAY) return false;
+			if (et == EntityType.PHANTOM) return false;
+		}
+		
+		Entity e;		
 		for (int i = 0; i < X; i++) {
-			e = (Mob) et.spawn(level, savePos.north(2).west(2), MobSpawnType.NATURAL);
-			e.setBaby(isBaby);
+			System.out.println("populate " +(i+1) +" of "+ X + " " + et.toShortString() +"at" + savePos);
+			debugMsg(2, "populate " + (i+1) +" of "+ X + " " + et.toShortString());
+			e = et.spawn(level, savePos, MobSpawnType.NATURAL);
+			if (e instanceof Mob em) {
+				em.setBaby(isBaby);
+			}
 		}
 		return true;
 	}

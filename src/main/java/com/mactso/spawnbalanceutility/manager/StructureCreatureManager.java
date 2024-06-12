@@ -36,6 +36,9 @@ public class StructureCreatureManager {
 				new FileInputStream("config/spawnbalanceutility/StructMobWeight.csv"))) {
 			BufferedReader br = new BufferedReader(input);
 			while ((line = br.readLine()) != null) {
+				if (line.charAt(0)=='*') {
+					continue;
+				}
 				StringTokenizer st = new StringTokenizer(line, ",");
 				linecount++;
 				try {

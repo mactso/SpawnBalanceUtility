@@ -4,9 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -51,6 +48,10 @@ public class BiomeCreatureManager {
 		{			
 			BufferedReader br = new BufferedReader(input);
 			while ((line = br.readLine()) != null) {
+				if (line.charAt(0)=='*') {
+					continue;
+				}
+
 				StringTokenizer st = new StringTokenizer(line, ",");
 				linecount++;
 				try {
@@ -106,7 +107,7 @@ public class BiomeCreatureManager {
 			}
 			input.close();
 		} catch (Exception e) {
-			LOGGER.warn("BiomeMobWeight.csv not found in config/spawnbalanceutility/ (Remember you rename BiomeMobWeight.txt to create it). ");
+			LOGGER.warn("BiomeMobWeight.csv not found in config/spawnbalanceutility/ (Remember you rename BiomeMobWeight.rpt to create it). ");
 			e.printStackTrace();
 		}
 		Summary.setBiomeReadInfo(linecount, linecount - addcount);

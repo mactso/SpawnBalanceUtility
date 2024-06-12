@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 import com.mactso.spawnbalanceutility.Main;
 import com.mactso.spawnbalanceutility.manager.BiomeCreatureManager;
 import com.mactso.spawnbalanceutility.manager.MobMassAdditionManager;
+import com.mactso.spawnbalanceutility.manager.PsuedoMobManager;
 import com.mactso.spawnbalanceutility.manager.StructureCreatureManager;
 import com.mactso.spawnbalanceutility.util.Utility;
 
@@ -150,6 +151,8 @@ public class MyConfig {
 		maxSpawnWeight = COMMON.maxSpawnWeight.get();
 		defaultSpawnWeightList = getSpawnWeightStringSet(extract(COMMON.defaultSpawnWeightList.get()));
 		
+
+		PsuedoMobManager.psuedoMobInit();
 		BiomeCreatureManager.biomeCreatureInit();
 		StructureCreatureManager.structureCreatureInit();
 		MobMassAdditionManager.massAdditionMobsInit();

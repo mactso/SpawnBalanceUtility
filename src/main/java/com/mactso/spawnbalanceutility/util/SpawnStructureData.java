@@ -54,7 +54,7 @@ public class SpawnStructureData {
 		File fd = new File("config/spawnbalanceutility");
 		if (!fd.exists())
 			fd.mkdir();
-		File fs = new File("config/spawnbalanceutility/StructMobWeight.txt");
+		File fs = new File("config/spawnbalanceutility/StructMobWeight.rpt");
 		if (fs.exists())
 			fs.delete();
 	}
@@ -118,7 +118,7 @@ public class SpawnStructureData {
 
 		PrintStream p = null;
 		try {
-			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/StructMobWeight.txt", false));
+			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/StructMobWeight.rpt", false));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -126,6 +126,15 @@ public class SpawnStructureData {
 		if (p == null) {
 			p = System.out;
 		}
+
+		p.println("* This is the StructMobWeight report file that is output every time the server starts.");
+		p.println("* ");
+		p.println("* Spawn Balance Utility (SBU) will use this file ONLY if it is renamed to StructMobWeight.csv.");
+		p.println("* Lines starting with '*' are comments and ignored");
+		p.println("* It allows you to add and remove mobs and adjust their spawnweights for Structures");
+		p.println("* like shipwrecks, nether fortresses, water monuments, etc.");
+		p.println("* ");
+		
 		int structlinenumber = 0;
 		MinecraftServer server = event.getServer();
 		RegistryAccess dynreg = server.registryAccess();
@@ -133,6 +142,7 @@ public class SpawnStructureData {
 
 		for (Structure struct : structRegistry) {
 			String sn = structRegistry.getKey(struct).toString();
+
 			p.println(++structlinenumber + ", " + sn + ", HEADING, header:ignore, 0, 0, 0");
 			Map<MobCategory, StructureSpawnOverride> msi = struct.getModifiedStructureSettings().spawnOverrides();
 			for (MobCategory mc : MobCategory.values()) {

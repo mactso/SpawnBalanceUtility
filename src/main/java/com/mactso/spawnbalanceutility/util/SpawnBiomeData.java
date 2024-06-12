@@ -51,7 +51,7 @@ public class SpawnBiomeData {
 
 	static {
 		initReports();
-//		try {
+//		try {dp
 //			String name = ASMAPI.mapField("f_47442_");
 //			fieldBiomeCategory = Biome.class.getDeclaredField(name);
 //			fieldBiomeCategory.setAccessible(true);
@@ -64,12 +64,17 @@ public class SpawnBiomeData {
 		File fd = new File("config/spawnbalanceutility");
 		if (!fd.exists())
 			fd.mkdir();
-		File fb = new File("config/spawnbalanceutility/BiomeMobWeight.txt");
+		File fb = new File("config/spawnbalanceutility/BiomeMobWeight.rpt");
 		if (fb.exists())
 			fb.delete();
-		File fma = new File("config/spawnbalanceutility/MassAdditionMobs.txt");
+		File fma = new File("config/spawnbalanceutility/MassAdditionMobs.rpt");
 		if (!(fma.exists()))
 			generateMassAdditionMobsStubReport();
+
+		File fpm = new File("config/spawnbalanceutility/PsuedoMobs.rpt");
+		if (!(fpm.exists()))
+			generatePsuedoMobStubReport();
+
 	}
 
 	public static void balanceBiomeSpawnValues(MinecraftServer server) {
@@ -307,7 +312,7 @@ public class SpawnBiomeData {
 				usedTotalSet.addAll(usedList);
 				biomeTotal += usedList.size();
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
+				// this catch block was Auto-generated  
 				e.printStackTrace();
 			}
 		}
@@ -319,7 +324,41 @@ public class SpawnBiomeData {
 
 		PrintStream p = null;
 		try {
-			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/MassAdditionMobs.txt", true));
+			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/MassAdditionMobs.rpt", true));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		if (p == null) {
+			p = System.out;
+		}
+
+		p.println("* This is an example Mass Addition File that lets you add mobs to every biome.");
+		p.println("* Lines that start with a '*' are comments and are not used.");
+		p.println("* If you rename this file to MassAdditionMobs.csv, Spawn Balance Utility will use it.");
+		p.println("*");
+		p.println("* Parameter explainations and values.");
+		p.println("* Parm Dimension  : A, O, N, E for All, Overworld, Nether, The End");
+		p.println("* Parm Class      : MONSTER, CREATURE, AMBIENT, UNDERWATER, etc.");
+		p.println("* Parm Resource   : modname:mobname");
+		p.println("* Parm Weight     : a number 1 or higher.  1 is superrare, 5 is rare, 20 is uncommon, 80 is common.");
+		p.println("* Parm MinGroup   : a number 1 and less than MaxGroup");
+		p.println("* Parm MaxGroup   : a number higher than MinGroup and usually 5 or less.");
+		p.println("* Format is. Line, Dim,   Class, mod:mob,           spawnWeight, Mingroup, MaxGroup");
+		p.println("*");
+		p.println("* 1,   A, MONSTER, minecraft:phantom, 10           ,1         ,4");
+		p.println("* will add phantoms too all biomes with a spawnweight of 10 and 1-4 group size.");
+		p.println("*");
+		if (p != System.out) {
+			p.close();
+		}
+	}
+
+	private static void generatePsuedoMobStubReport() {
+
+		PrintStream p = null;
+		try {
+			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/PsuedoMobs.rpt", true));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -329,19 +368,20 @@ public class SpawnBiomeData {
 		}
 
 		p.println(
-				"* Example mob mass addition file.  Add mobs with the pattern below and rename file to MassAdditionMobs.csv");
-		p.println("* Line, Dimension , Class**, Namespace:Mob, Weight, Mingroup , Maxgroup");
+				"* Example PsuedoMob file.  Add mobs with the pattern below and rename file to MassAdditionMobs.csv");
+		p.println("* Mobs in this file will generate in any specified biome despite their own spawning rules.");
+		p.println("* For now, Psuedo Mobs of one type, won't respawn until the prior one dies or despawns.");
+		p.println("* SBU will read this file ONLY if it is renamed PsuedoMobs.csv.");
 		p.println("*");
-		p.println("* Example... 1, A, MONSTER, minecraft:phantom, 10, 1, 4");
+		p.println("* NOTICE: This file has a unique format differs from BiomeMobWeight file");
+		p.println("* Line starting with '*' are comments and ignored. ");
 		p.println("*");
-		p.println("* Parm Dimension  : A, O, N, E for All, Overworld, Nether, The End");
-		p.println("* Parm Class      : MONSTER, CREATURE, AMBIENT, UNDERWATER, etc.");
-		p.println("* Parm Resource   : modname:mobname");
-		p.println(
-				"* Parm Weight     : a number 1 or higher.  1 is superrare, 5 is rare, 20 is uncommon, 80 is common.");
-		p.println("* Parm MinGroup   : a number 1 and less than MaxGroup");
-		p.println("* Parm MaxGroup   : a number higher than MinGroup and usually 5 or less.");
-		p.println("*");
+		p.println("* Line, biome, mod:mob, psuedoWeight, mingroup , maxgroup");
+		p.println("* 1, minecraft:plains, minecraft:husk, 80, 4, 4");
+		p.println("* 2, minecraft:plains, minecraft:blaze, 80, 1, 1");
+		p.println("* 4, minecraft:desert, minecraft:iron_golem, 80, 1, 1");
+		p.println("* 5, minecraft:snowyplains, minecraft:snow_golem, 80, 1, 1");
+
 		if (p != System.out) {
 			p.close();
 		}
@@ -351,7 +391,7 @@ public class SpawnBiomeData {
 
 		PrintStream p = null;
 		try {
-			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/BiomeMobWeight.txt", false));
+			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/BiomeMobWeight.rpt", false));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -359,6 +399,14 @@ public class SpawnBiomeData {
 		if (p == null) {
 			p = System.out;
 		}
+		
+		p.println("* This is the BiomeMobWeight report file that is output every time the server starts.");
+		p.println("* ");
+		p.println("* Spawn Balance Utility (SBU) will use this file ONLY if it is renamed to BiomeMobWeight.csv.");
+		p.println("* Lines starting with '*' are comments and ignored");
+		p.println("* When this file is read, SBU writes summary information to the log file.");
+		p.println("* ");
+
 		int biomelineNumber = 0;
 		MinecraftServer server = event.getServer();
 		RegistryAccess dynreg = server.registryAccess();
