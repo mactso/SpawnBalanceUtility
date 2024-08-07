@@ -1,4 +1,4 @@
-package com.mactso.spawnbalanceutility.util;
+package com.mactso.spawnbalanceutility.manager;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -9,8 +9,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
-
-import net.minecraft.util.ResourceLocation;
 
 public class StructureCreatureManager {
 
@@ -33,6 +31,11 @@ public class StructureCreatureManager {
 				new FileInputStream("config/spawnbalanceutility/StructMobWeight.csv"))) {
 			BufferedReader br = new BufferedReader(input);
 			while ((line = br.readLine()) != null) {
+				
+				if (line.charAt(0)=='*') {
+					continue;
+				}
+				
 				StringTokenizer st = new StringTokenizer(line, ",");
 				linecount++;
 				try {
@@ -41,12 +44,10 @@ public class StructureCreatureManager {
 					lastgoodline = lineNumber;
 					errorField = "modAndStructure";
 					String modAndStructure = st.nextToken().trim();
-					ResourceLocation r = new ResourceLocation(modAndStructure);
 					errorField = "classification";
 					String classification = st.nextToken().trim();
 					errorField = "modAndMob";
 					String modAndMob = st.nextToken().trim();
-					r = new ResourceLocation(modAndMob);					
 					errorField = "spawnWeight";
 					spawnWeight = Integer.parseInt(st.nextToken().trim());
 					errorField = "minCount";

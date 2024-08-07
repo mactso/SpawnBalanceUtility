@@ -13,10 +13,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import com.mactso.spawnbalanceutility.Main;
 import com.mactso.spawnbalanceutility.config.MyConfig;
-import com.mactso.spawnbalanceutility.util.BiomeCreatureManager.BiomeCreatureItem;
-import com.mactso.spawnbalanceutility.util.MobMassAdditionManager.MassAdditionMobItem;
-import com.mactso.spawnbalanceutility.util.StructureCreatureManager.StructureCreatureItem;
+import com.mactso.spawnbalanceutility.manager.BiomeCreatureManager;
+import com.mactso.spawnbalanceutility.manager.MobMassAdditionManager;
+import com.mactso.spawnbalanceutility.manager.StructureCreatureManager;
+import com.mactso.spawnbalanceutility.manager.BiomeCreatureManager.BiomeCreatureItem;
+import com.mactso.spawnbalanceutility.manager.MobMassAdditionManager.MassAdditionMobItem;
+import com.mactso.spawnbalanceutility.manager.StructureCreatureManager.StructureCreatureItem;
 
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
@@ -106,24 +110,24 @@ public class SpawnData {
 				List<Spawners> newFixedList = new ArrayList<>();
 				vCl = v.getSerializedName ();
 				for (BiomeCreatureItem biomeCreatureItem : modBiomeMobSpawners) {
-					if (biomeCreatureItem.classification.toLowerCase().equals(vCl)) {
+					if (biomeCreatureItem.getClassification().toLowerCase().equals(vCl)) {
 						@SuppressWarnings("deprecation")
 						Optional<EntityType<?>> opt = Registry.ENTITY_TYPE
-								.getOptional(new ResourceLocation(biomeCreatureItem.modAndMob));
+								.getOptional(new ResourceLocation(biomeCreatureItem.getModAndMob()));
 						if (opt.isPresent()) {
-							Spawners newSpawner = new Spawners(opt.get(), biomeCreatureItem.spawnWeight,
-									biomeCreatureItem.minCount, biomeCreatureItem.maxCount);
+							Spawners newSpawner = new Spawners(opt.get(), biomeCreatureItem.getSpawnWeight(),
+									biomeCreatureItem.getMinCount(), biomeCreatureItem.getMaxCount());
 							newFixedList.add(newSpawner);
 							if (MyConfig.getDebugLevel() > 0) {
 								System.out.println("Biome :" + bn + " + r:" + reportlinenumber
 										+ " SpawnBalanceUtility XXZZY: p.size() =" + modBiomeMobSpawners.size()
-										+ " Mob " + biomeCreatureItem.modAndMob + " Added to "
+										+ " Mob " + biomeCreatureItem.getModAndMob() + " Added to "
 										+ b.getBiomeCategory().getName());
 							}
 
 						} else {
 							System.out.println(reportlinenumber + "SpawnBalanceUtility ERROR: Mob "
-									+ biomeCreatureItem.modAndMob + " not in Entity Type Registry");
+									+ biomeCreatureItem.getModAndMob() + " not in Entity Type Registry");
 						}
 					}
 				}
@@ -183,17 +187,16 @@ public class SpawnData {
 				List<Spawners> newFixedList = new ArrayList<>();
 				for (Spawners s : originalSpawnerList) {
 
-//					ResourceLocation modMob = s.type.getRegistryName();
-//					String key = modMob.toString();
-					int newSpawnWeight = s.weight;
-					if (newSpawnWeight > MyConfig.getMaxSpawnWeight()) {
-						newSpawnWeight = MyConfig.getMaxSpawnWeight();
+					int oldSpawnWeight = s.weight;
+					int newSpawnWeight = oldSpawnWeight;
+					if (newSpawnWeight > 0) {
+						newSpawnWeight = Math.max(MyConfig.getMinSpawnWeight(), newSpawnWeight);
+						newSpawnWeight = Math.min(MyConfig.getMaxSpawnWeight(), newSpawnWeight);	
 					}
-					if (newSpawnWeight < MyConfig.getMinSpawnWeight()) {
-						newSpawnWeight = MyConfig.getMinSpawnWeight();
-						System.out.println(s.type.getRegistryName() + " minspawn change from " + s.weight + " to "
-								+ newSpawnWeight);
-					}
+
+					Utility.debugMsg(2, Main.MODID + ":" + s.type.getDescriptionId() + " minspawn change from "
+								+ s.weight + " to " + newSpawnWeight);
+
 					String key = s.type.getRegistryName().toString();
 					int dSW = MyConfig.getDefaultSpawnWeight(key);
 					if (dSW != MyConfig.NO_DEFAULT_SPAWN_WEIGHT_FOUND) {
@@ -226,7 +229,7 @@ public class SpawnData {
 							}
 						}
 						if (mobFound == false) {
-							Spawners newS = new Spawners(et, ma.spawnWeight, ma.minCount, ma.maxCount);
+							Spawners newS = new Spawners(et, ma.getSpawnWeight(), ma.getMinCount(), ma.getMaxCount());
 							newFixedList.add(newS);
 						}
 					}
@@ -313,22 +316,22 @@ public class SpawnData {
 				for (int i = 0; i < p.size(); i++) {
 					StructureCreatureItem sci = p.get(i);
 //					bCl = sci.classification;
-					if (sci.classification.toLowerCase().equals(vCl)) {
+					if (sci.getClassification().toLowerCase().equals(vCl)) {
 						@SuppressWarnings("deprecation")
 						Optional<EntityType<?>> opt = Registry.ENTITY_TYPE
-								.getOptional(new ResourceLocation(sci.modAndMob));
+								.getOptional(new ResourceLocation(sci.getModAndMob()));
 						if (opt.isPresent()) {
-							Spawners newSpawner = new Spawners(opt.get(), sci.spawnWeight, sci.minCount, sci.maxCount);
+							Spawners newSpawner = new Spawners(opt.get(), sci.getSpawnWeight(), sci.getMinCount(), sci.getMaxCount());
 							newSpawnersList.add(newSpawner);
 
 							if (MyConfig.getDebugLevel() > 0) {
 								System.out.println("Structure :" + key + " + rl#:" + structureLineNumber
-										+ " SpawnBalanceUtility XXZZY: p.size() =" + p.size() + " Mob " + sci.modAndMob
+										+ " SpawnBalanceUtility XXZZY: p.size() =" + p.size() + " Mob " + sci.getModAndMob()
 										+ " Added to " + key + ".");
 							}
 
 						} else {
-							System.out.println(reportlinenumber + "SpawnBalanceUtility ERROR: Mob " + sci.modAndMob
+							System.out.println(reportlinenumber + "SpawnBalanceUtility ERROR: Mob " + sci.getModAndMob()
 									+ " not in Entity Type Registry");
 						}
 					}
@@ -355,17 +358,17 @@ public class SpawnData {
 			newSpawnersList.clear();
 			theirSpawnersList.clear();
 			for (Spawners s : event.getEntitySpawns(ec)) {
-				int newSpawnWeight = s.weight;
-				if (newSpawnWeight < MyConfig.getMinSpawnWeight()) {
-					if ((newSpawnWeight > 1) && (newSpawnWeight * 10 < MyConfig.getMaxSpawnWeight())) {
-						newSpawnWeight = newSpawnWeight * 10;
-					} else {
-						newSpawnWeight = MyConfig.getMinSpawnWeight();
-					}
+				int oldSpawnWeight = s.weight;
+				int newSpawnWeight = oldSpawnWeight;
+				
+				if (newSpawnWeight > 0) {
+					newSpawnWeight = Math.max(MyConfig.getMinSpawnWeight(), newSpawnWeight);
+					newSpawnWeight = Math.min(MyConfig.getMaxSpawnWeight(), newSpawnWeight);	
 				}
-				if (newSpawnWeight > MyConfig.getMaxSpawnWeight()) {
-					newSpawnWeight = MyConfig.getMaxSpawnWeight();
-				}
+				
+				Utility.debugMsg(2, Main.MODID + ":" + s.type.getDescriptionId() + " minspawn change from "
+						+ s.weight + " to " + newSpawnWeight);
+
 				Spawners newS = new Spawners(s.type, newSpawnWeight, s.minCount, s.maxCount);
 				theirSpawnersList.add(s);
 				newSpawnersList.add(newS);
@@ -440,14 +443,24 @@ public class SpawnData {
 			p = System.out;
 		}
 
-		p.println(
-				"Example mob mass addition file.  Add mobs with the pattern below and rename file to MassAdditionMobs.csv");
-		p.println("Line, Category*, Class**, Namespace:Mob, Weight, Mingroup , Maxgroup");
-		p.println("");
-		p.println("1, A, MONSTER, minecraft:phantom, 10, 1, 4");
-		p.println("");
-		p.println("* A, O, N, E for All, Overworld, Nether, The End");
-		p.println("** MONSTER,CREATURE,AMBIENT");
+		p.println("* This is an example Mass Addition File that lets you add mobs to every biome.");
+		p.println("* Lines that start with a '*' are comments and are ignored.  You may delete them.");
+		p.println("* If you rename this file to MassAdditionMobs.csv, Spawn Balance Utility will use it.");
+		p.println("*");
+		p.println("* Parameter explainations and values.");
+		p.println("* Parm Line#      : Used by user to resort file.  Not used by SBU or Minecraft.  Can be duplicate values");
+		p.println("* Parm Dimension  : A, O, N, E for All, Overworld, Nether, The End");
+		p.println("* Parm Class      : MONSTER, CREATURE, AMBIENT, UNDERWATER, etc.");
+		p.println("* Parm Resource   : modname:mobname");
+		p.println("* Parm Weight     : a number 1 or higher.  1 is superrare, 5 is rare, 20 is uncommon, 80 is common.");
+		p.println("* Parm MinGroup   : a number 1 and less than MaxGroup");
+		p.println("* Parm MaxGroup   : a number higher than MinGroup and usually 5 or less.");
+		p.println("* Format is. Line#, Dimension,   Class, mod:mob,           spawnWeight, Mingroup, MaxGroup");
+		p.println("*");
+		p.println("* 1,   A, MONSTER, minecraft:phantom, 10           ,1         ,4");
+		p.println("* will add phantoms too all biomes with a spawnweight of 10 and 1-4 group size.");
+		p.println("*");
+		
 		if (p != System.out) {
 			p.close();
 		}
@@ -465,6 +478,15 @@ public class SpawnData {
 		if (p == null) {
 			p = System.out;
 		}
+		
+		p.println("* This is the BiomeMobWeight report file that is output every time the server starts.");
+		p.println("* ");
+		p.println("* Spawn Balance Utility (SBU) will use this file ONLY if it is renamed to BiomeMobWeight.csv.");
+		p.println("* Lines starting with '*' are comments and ignored");
+		p.println("* ");
+		p.println("* Line Format");
+		p.println("* Line Number, Biome Category, Mod:Biome, EntityType, Mod:Entity, Spawnweight, Min Group Size, Max Group Size.");
+		p.println("* ");
 
 		MinecraftServer server = event.getServer();
 		DynamicRegistries dynreg = server.registryAccess();

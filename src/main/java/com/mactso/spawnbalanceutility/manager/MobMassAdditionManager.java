@@ -1,4 +1,4 @@
-package com.mactso.spawnbalanceutility.util;
+package com.mactso.spawnbalanceutility.manager;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -11,7 +11,6 @@ import java.util.StringTokenizer;
 import com.mactso.spawnbalanceutility.config.MyConfig;
 
 import net.minecraft.entity.EntityClassification;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.biome.Biome.Category;
 
 public class MobMassAdditionManager {
@@ -79,7 +78,6 @@ public class MobMassAdditionManager {
 					String classification = st.nextToken().trim();
 					errorField = "modAndMob";
 					String modAndMob = st.nextToken().trim();
-					ResourceLocation r = new ResourceLocation(modAndMob);					
 					errorField = "spawnWeight";
 					spawnWeight = Integer.parseInt(st.nextToken().trim());
 					errorField = "minCount";

@@ -1,4 +1,4 @@
-package com.mactso.spawnbalanceutility.util;
+package com.mactso.spawnbalanceutility.manager;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,8 +12,6 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 import com.mactso.spawnbalanceutility.config.MyConfig;
-
-import net.minecraft.util.ResourceLocation;
 
 public class BiomeCreatureManager {
 
@@ -44,6 +42,11 @@ public class BiomeCreatureManager {
 		{			
 			BufferedReader br = new BufferedReader(input);
 			while ((line = br.readLine()) != null) {
+				
+				if (line.charAt(0)=='*') {
+					continue;
+				}
+				
 				StringTokenizer st = new StringTokenizer(line, ",");
 				linecount++;
 				try {
@@ -54,12 +57,10 @@ public class BiomeCreatureManager {
 					String category = st.nextToken().trim();
 					errorField = "modAndBiome";
 					String modAndBiome = st.nextToken().trim();
-					ResourceLocation r = new ResourceLocation(modAndBiome);
 					errorField = "classification";
 					String classification = st.nextToken().trim();
 					errorField = "modAndMob";
 					String modAndMob = st.nextToken().trim();
-					r = new ResourceLocation(modAndMob);					
 					errorField = "spawnWeight";
 					spawnWeight = Integer.parseInt(st.nextToken().trim());
 					errorField = "minCount";

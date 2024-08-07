@@ -33,10 +33,17 @@ public class AllMobEntitiesReport {
 		if (p == null) {
 			p = System.out;
 		}
+		
+		p.println ("* This file is a dictionary of all mob identifiers (modname:mobname) to help you.");
+		p.println ("* The MISC mobs can only be spawned as Psuedo Mobs.  They do not spawn normally.");
+		p.println ("* Some MISC things like Item Frames won't spawn propery.");
+		p.println ("* ");
 
 		for (EntityType<?> a : Registry.ENTITY_TYPE) {
 			if (isValidClassification(a)) {
-				p.println(a.getRegistryName().toString() + ", " + a.getCategory());
+				if (a.canSummon()) {
+					p.println(EntityType.getKey(a).toString() + ", " + a.getCategory());
+				}
 			}
 		}
 		
