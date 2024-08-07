@@ -5,6 +5,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import com.mactso.spawnbalanceutility.config.MyConfig;
 import com.mactso.spawnbalanceutility.util.AllMobEntitiesReport;
 import com.mactso.spawnbalanceutility.util.SpawnData;
+import com.mactso.spawnbalanceutility.util.Utility;
 
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -86,6 +87,7 @@ public class Main {
 	    		if (MyConfig.isGenerateReport()) {
 		        	SpawnData.generateBiomeReport(event);
 	    		}
+	    		Utility.registerMissingSpawnPlacements();
 	        }
 
 	        @SubscribeEvent

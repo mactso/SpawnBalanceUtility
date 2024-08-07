@@ -1,6 +1,7 @@
 package com.mactso.spawnbalanceutility.util;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -31,8 +32,16 @@ public class BiomeCreatureManager {
 		if (biomeCreaturesMap.size() > 0) {
 			return;
 		}
-		try (InputStreamReader input = new InputStreamReader(
-				new FileInputStream("config/spawnbalanceutility/BiomeMobWeight.csv"))) {
+
+		
+		// this code only has an effect on linux because case doesn't matter on windows)
+		File f = new File("config/spawnbalanceutility/BiomeMobWeight.csv");
+		if (!(f.exists())) {
+			 f = new File("config/spawnbalanceutility/BiomeMobWeight.CSV");
+		}
+		
+		try (InputStreamReader input = new InputStreamReader( new FileInputStream(f))) 
+		{			
 			BufferedReader br = new BufferedReader(input);
 			while ((line = br.readLine()) != null) {
 				StringTokenizer st = new StringTokenizer(line, ",");
@@ -61,14 +70,15 @@ public class BiomeCreatureManager {
 					if (minCount < 1) {
 						minCount = 1;
 					}
-					if (maxCount > 12) {
-						maxCount = 12;
+					if (maxCount > 32) {
+						maxCount = 32;
 					}
 					if (minCount > maxCount) {
 						minCount = maxCount;
 					}					
+				
 					String key = modAndBiome;
-					if (spawnWeight > 0){
+					if (spawnWeight >= 0){
 						BiomeCreatureItem bci = new BiomeCreatureItem(lineNumber, category, modAndBiome, classification, modAndMob, spawnWeight, minCount, maxCount);
 						List<BiomeCreatureItem> p = biomeCreaturesMap.get(key);
 						if (p == null) {

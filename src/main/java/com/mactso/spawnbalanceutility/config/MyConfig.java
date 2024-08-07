@@ -10,6 +10,7 @@ import com.mactso.spawnbalanceutility.Main;
 import com.mactso.spawnbalanceutility.util.BiomeCreatureManager;
 import com.mactso.spawnbalanceutility.util.MobMassAdditionManager;
 import com.mactso.spawnbalanceutility.util.StructureCreatureManager;
+import com.mactso.spawnbalanceutility.util.Utility;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
@@ -31,7 +32,6 @@ public class MyConfig {
 	public static final ForgeConfigSpec COMMON_SPEC;
 	public static final int NO_DEFAULT_SPAWN_WEIGHT_FOUND = -999;
 	
-
 	static {
 		final Pair<Common, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(Common::new);
 		COMMON_SPEC = specPair.getRight();
@@ -54,7 +54,6 @@ public class MyConfig {
 		return suppressMinecraftMobReporting;
 	}	
 	
-	
 	public static boolean isFixEmptyNether() {
 		return fixEmptyNether;
 	}
@@ -63,7 +62,6 @@ public class MyConfig {
 		return balanceBiomeSpawnValues;
 	}
 
-	
 	public static boolean isFixSpawnValues() {
 		return fixSpawnValues;
 	}
@@ -80,20 +78,23 @@ public class MyConfig {
 		return maxSpawnWeight;
 	}
 	
-	public static boolean isIncludedMod (String modName) {
-		if (includedReportModsSet.contains("*")) return true;
-		if (includedReportModsSet.isEmpty()) return true;
+	public static boolean isIncludedMod(String modName) {
+		if (includedReportModsSet.contains("*"))
+			return true;
+		if (includedReportModsSet.isEmpty())
+			return true;
 		return includedReportModsSet.contains(modName);
 	}
 
-	public static int getDefaultSpawnWeight (String key) {
-		if (defaultSpawnWeightList.isEmpty()) return -999;
-		String[]arrayItem = defaultSpawnWeightList.toArray(new String[0]);
-		MyConfig.debugMsg(1, "Considering Default Spawn Weight 'key' : " + key);
-		for (int i = 0; i<defaultSpawnWeightList.size();i++) {
+	public static int getDefaultSpawnWeight(String key) {
+		if (defaultSpawnWeightList.isEmpty())
+			return -999;
+		String[] arrayItem = defaultSpawnWeightList.toArray(new String[0]);
+		Utility.debugMsg(1, "Considering Default Spawn Weight 'key' : " + key);
+		for (int i = 0; i < defaultSpawnWeightList.size(); i++) {
 			String s = arrayItem[i];
 			String[] ret = s.split(",");
-			MyConfig.debugMsg(0, "ret ='" + ret[0] + "', default spawn weight: " + ret[1]);
+			Utility.debugMsg(1, "ret ='" + ret[0] + "', default spawn weight: " + ret[1]);
 			if (ret[0].equals(key)) {
 				int dSW = Integer.parseInt(ret[1]);  
 				return dSW;
@@ -102,6 +103,10 @@ public class MyConfig {
 		return NO_DEFAULT_SPAWN_WEIGHT_FOUND;
 	}
 	
+	public static HashSet<String> getFixSpawnPlacementMobsSet() {
+		return fixSpawnPlacementMobsSet;
+	}
+
 	public static int debugLevel;
 	private static boolean generateReport;
 	private static boolean suppressMinecraftMobReporting;
@@ -113,7 +118,7 @@ public class MyConfig {
 	public static int maxSpawnWeight;
 	public static HashSet<String> includedReportModsSet;
 	public static HashSet<String> defaultSpawnWeightList;
-
+	public static HashSet<String> fixSpawnPlacementMobsSet;
 	
 	@SubscribeEvent
 	public static void onModConfigEvent(final ModConfig.ModConfigEvent configEvent) {
@@ -140,7 +145,8 @@ public class MyConfig {
 		balanceBiomeSpawnValues = COMMON.balanceBiomeSpawnValues.get();
 		fixSpawnValues = COMMON.fixSpawnValues.get();
 		balanceStructureSpawnValues = COMMON.balanceStructureSpawnValues.get();
-		includedReportModsSet = getModStringSet (extract(COMMON.includedReportModsSet.get()));
+		includedReportModsSet = getModStringSet(extract(COMMON.includedReportModsSet.get()));
+		fixSpawnPlacementMobsSet = getFixSpawnPlacementMobs(extract(COMMON.fixSpawnPlacementMobs.get()));
 
 		minSpawnWeight = COMMON.minSpawnWeight.get();
 		maxSpawnWeight = COMMON.maxSpawnWeight.get();
@@ -160,7 +166,18 @@ public class MyConfig {
 		return ret;
 	}
 	
-	public static HashSet<String> getModStringSet (String[] values) {
+	private static HashSet<String> getFixSpawnPlacementMobs(String[] values) {
+		HashSet<String> set = new HashSet<>();
+		for (String s : values) {
+			String s2 = s.trim().toLowerCase();
+			if (!s2.isEmpty()) {
+				set.add(s2);
+			}
+		}
+		return set;
+	}
+
+	public static HashSet<String> getModStringSet(String[] values) {
 		HashSet<String> set = new HashSet<>();
 		ModList modlist = ModList.get();
 		for (String s : values) {
@@ -169,14 +186,15 @@ public class MyConfig {
 				if (modlist.isLoaded(s2)) {
 					set.add(s2);
 				} else {
-					LOGGER.warn("spawnbalanceutility includedReportModsSet entry : " +s2 + " is not a valid current loaded forge mod.");
+					LOGGER.warn("spawnbalanceutility includedReportModsSet entry : " + s2
+							+ " is not a valid current loaded forge mod.");
 				} 
 			}
 		}
 		return set;
 	}
 
-	public static HashSet<String> getSpawnWeightStringSet (String[] values) {
+	public static HashSet<String> getSpawnWeightStringSet(String[] values) {
 		HashSet<String> set = new HashSet<>();
 		for (String s : values) {
 			String s2 = s.trim().toLowerCase();
@@ -189,8 +207,6 @@ public class MyConfig {
 	
 	public static class Common {
 
-
-		
 		public final IntValue debugLevel;
 		public final BooleanValue generateReport;
 		public final BooleanValue suppressMinecraftMobReporting;
@@ -202,7 +218,7 @@ public class MyConfig {
 		public final IntValue minSpawnWeight;
 		public final IntValue maxSpawnWeight;
 		public final ConfigValue<String> defaultSpawnWeightList;
-	
+		public final ConfigValue<String> fixSpawnPlacementMobs;
 		
 		public Common(ForgeConfigSpec.Builder builder) {
 			builder.push("Spawn Biome Utility Control Values");
@@ -210,16 +226,14 @@ public class MyConfig {
 			debugLevel = builder.comment("Debug Level: 0 = Off, 1 = Log, 2 = Chat+Log")
 					.translation(Main.MODID + ".config." + "debugLevel").defineInRange("debugLevel", () -> 0, 0, 2);
 			
-			generateReport = builder.comment("generateReport")
-					.translation(Main.MODID + ".config." + "generateReport")
+			generateReport = builder.comment("generateReport").translation(Main.MODID + ".config." + "generateReport")
 					.define("generateReport", true);
 
 			suppressMinecraftMobReporting = builder.comment("suppressMinecraftMobReporting")
 					.translation(Main.MODID + ".config." + "suppressMinecraftMobReporting")
 					.define("suppressMinecraftMobReporting", false);
 
-			fixEmptyNether = builder.comment("fixEmptyNether")
-					.translation(Main.MODID + ".config." + "fixEmptyNether")
+			fixEmptyNether = builder.comment("fixEmptyNether").translation(Main.MODID + ".config." + "fixEmptyNether")
 					.define("fixEmptyNether", true);
 
 			balanceBiomeSpawnValues = builder.comment("Use the BiomeMobWeight.CSV file to balance Biome spawn values")
@@ -227,10 +241,10 @@ public class MyConfig {
 					.define("balanceBiomeSpawnValues", true);
 
 			fixSpawnValues = builder.comment("Fix min, max values and add nether creatures")
-					.translation(Main.MODID + ".config." + "fixSpawnValues")
-					.define("fixSpawnValues", true);
+					.translation(Main.MODID + ".config." + "fixSpawnValues").define("fixSpawnValues", true);
 
-			balanceStructureSpawnValues = builder.comment("Use the StructMobWeight.CSV file to balance structure spawn values")
+			balanceStructureSpawnValues = builder
+					.comment("Use the StructMobWeight.CSV file to balance structure spawn values")
 					.translation(Main.MODID + ".config." + "balanceStructureSpawnValues")
 					.define("balanceStructureSpawnValues", true);
 			
@@ -239,13 +253,22 @@ public class MyConfig {
 					.define("includedReportModsSet", "exampleModName;");
 
 			builder.pop();
+			builder.push("Spawn Placement Fixes");
+
+			fixSpawnPlacementMobs = builder.comment("Add mobs spawning in the air and falling to this list .")
+					.translation(Main.MODID + ".config" + "fixSpawnPlacementMobs").define("defaultSpawnWeightList",
+							"minecraft:piglin_brute;goblinanddungeon:gob;goblinanddungeon:hobgob;goblinanddungeon:gobbo;goblinanddungeon:garch;goblinanddungeon:goom;goblinanddungeon:ogre;goblinanddungeon:gobber;iceandfire:dread_lich;iceandfire:dread_beast;iceandfire:dread_horse;iceandfire:dread_knight;iceandfire:dread_ghoul;iceandfire:dread_scuttler");
+
+			builder.pop();
 
 			builder.push("Spawn Weight Values");
 			minSpawnWeight = builder.comment("minimum Spawn Weight")
-					.translation(Main.MODID + ".config." + "minSpawnWeight").defineInRange("minSpawnWeight", () -> 10, 1, 1000);
+					.translation(Main.MODID + ".config." + "minSpawnWeight")
+					.defineInRange("minSpawnWeight", () -> 10, 1, 1000);
 
 			maxSpawnWeight = builder.comment("maximum Spawn Weight")
-					.translation(Main.MODID + ".config." + "maxSpawnWeight").defineInRange("maxSpawnWeight", () -> 80, 1, 1000);
+					.translation(Main.MODID + ".config." + "maxSpawnWeight")
+					.defineInRange("maxSpawnWeight", () -> 80, 1, 1000);
 
 			defaultSpawnWeightList = builder.comment("list of Mod:MobName,DefaultSpawnweight;")
 					.translation(Main.MODID + ".config" + "defaultSpawnWeightList")
@@ -256,15 +279,15 @@ public class MyConfig {
 		}
 	}
 
-	public static void debugMsg (int level, String dMsg) {
-		if (getDebugLevel() > level-1) {
-			System.out.println("L"+level + ":" + dMsg);
+	public static void debugMsg(int level, String dMsg) {
+		if (getDebugLevel() > level - 1) {
+			System.out.println("L" + level + ":" + dMsg);
 		}
 	}
 
-	public static void debugMsg (int level, BlockPos pos, String dMsg) {
-		if (getDebugLevel() > level-1) {
-			System.out.println("L"+level+" ("+pos.getX()+","+pos.getY()+","+pos.getZ()+"): " + dMsg);
+	public static void debugMsg(int level, BlockPos pos, String dMsg) {
+		if (getDebugLevel() > level - 1) {
+			System.out.println("L" + level + " (" + pos.getX() + "," + pos.getY() + "," + pos.getZ() + "): " + dMsg);
 		}
 	}
 	
