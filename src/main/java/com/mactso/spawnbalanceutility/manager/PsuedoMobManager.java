@@ -46,7 +46,7 @@ public class PsuedoMobManager {
 	private static int maxBuildHeight = 256;
 
 	private static boolean firstTime = true;
-
+	
 	public static void psuedoMobInit() {
 		int spawnWeight = 0;
 		int minCount = 0;
@@ -143,6 +143,10 @@ public class PsuedoMobManager {
 	public static boolean checkSpawnPsuedoMob(ServerPlayer sp) {
 		Utility.debugMsg(1, "PsuedoMob Spawn Attempt for " + sp.getDisplayName().getString());
 
+		if (PsuedoMobsMap.size() == 0) {
+			return false;
+		}
+		
 		BlockPos pos = sp.blockPosition();
 		ServerLevel sLevel = sp.serverLevel();
 		RandomSource rand = sLevel.getRandom();
@@ -291,7 +295,9 @@ public class PsuedoMobManager {
 		mSpawnPos.setY(spY);
 
 		// isSolid() might be changing to "isSolidRender"
+		int testcount = 0;
 		while (!sp.serverLevel().getBlockState(mSpawnPos.below()).isSolid()) {
+			testcount ++;
 			mSpawnPos.setY(mSpawnPos.getY() - 1);
 			if (mSpawnPos.getY() < minBuildHeight + 5) {
 				return null;
