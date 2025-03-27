@@ -144,7 +144,7 @@ public class SpawnBiomeData {
 				for (BiomeCreatureItem biomeCreatureItem : modBiomeMobSpawners) {
 					if (biomeCreatureItem.getClassification().toLowerCase().equals(vCl)) {
 						
-						Optional<EntityType<?>> opt = Registries.ENTITY_TYPE.getOrEmpty(new Identifier(biomeCreatureItem.getModAndMob()));
+						Optional<EntityType<?>> opt = Registries.ENTITY_TYPE.getOrEmpty(Identifier.of(biomeCreatureItem.getModAndMob()));
 	
 						if (opt.isPresent()) {
 							SpawnEntry newSpawner = new SpawnEntry(opt.get(),

@@ -19,7 +19,8 @@ public class Main implements ModInitializer, ServerStarted {
 
 			MyConfig.registerConfigs();
 			// zzz to go last.
-			ServerLifecycleEvents.SERVER_STARTED.register(new Identifier("zzzzzzzz:zzzzzzzz"),this);
+
+			ServerLifecycleEvents.SERVER_STARTED.register(Identifier.of("zzzzzzzz","zzzzzzzz"),this);
 
 		}
 

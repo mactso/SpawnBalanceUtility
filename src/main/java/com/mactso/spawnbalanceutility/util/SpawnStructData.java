@@ -126,7 +126,7 @@ public class SpawnStructData {
 
 						if (sci.getClassification().toLowerCase().equals(vCl)) {
 							Optional<EntityType<?>> opt = Registries.ENTITY_TYPE
-									.getOrEmpty(new Identifier(sci.getModAndMob()));
+									.getOrEmpty(Identifier.of(sci.getModAndMob()));
 							if (opt.isPresent()) {
 								SpawnEntry newS = new SpawnEntry(opt.get(), Weight.of(sci.getSpawnWeight()),
 										sci.getMinCount(), sci.getMaxCount());
