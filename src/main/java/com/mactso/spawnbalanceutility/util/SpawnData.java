@@ -55,13 +55,13 @@
 //		File fd = new File("config/spawnbalanceutility");
 //		if (!fd.exists())
 //			fd.mkdir();
-//		File fb = new File("config/spawnbalanceutility/BiomeMobWeight.txt");
+//		File fb = new File("config/spawnbalanceutility/BiomeMobWeight.rpt");
 //		if (fb.exists())
 //			fb.delete();
-//		File fs = new File("config/spawnbalanceutility/StructMobWeight.txt");
+//		File fs = new File("config/spawnbalanceutility/StructMobWeight.rpt");
 //		if (fs.exists())
 //			fs.delete();
-//		File fma = new File("config/spawnbalanceutility/MassAdditionMobs.txt");
+//		File fma = new File("config/spawnbalanceutility/MassAdditionMobs.rpt");
 //		if (!(fma.exists()))
 //			generateMassAdditionMobsStubReport();
 //	}
@@ -70,7 +70,7 @@
 //
 //		PrintStream p = null;
 //		try {
-//			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/MassAdditionMobs.txt", true));
+//			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/MassAdditionMobs.rpt", true));
 //		} catch (IOException e) {
 //			e.printStackTrace();
 //		}
@@ -187,7 +187,7 @@
 //
 //		PrintStream p = null;
 //		try {
-//			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/BiomeMobWeight.txt", true));
+//			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/BiomeMobWeight.rpt", true));
 //		} catch (IOException e) {
 //			e.printStackTrace();
 //		}

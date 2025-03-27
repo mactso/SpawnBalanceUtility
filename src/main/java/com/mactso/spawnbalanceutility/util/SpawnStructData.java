@@ -17,7 +17,7 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mactso.spawnbalanceutility.config.MyConfig;
+import com.mactso.spawnbalanceutility.config.MyConfigs;
 import com.mactso.spawnbalanceutility.manager.StructureCreatureManager;
 import com.mactso.spawnbalanceutility.manager.StructureCreatureManager.StructureCreatureItem;
 
@@ -81,7 +81,7 @@ public class SpawnStructData {
 		File fd = new File("config/spawnbalanceutility");
 		if (!fd.exists())
 			fd.mkdir();
-		File fs = new File("config/spawnbalanceutility/StructMobWeight.txt");
+		File fs = new File("config/spawnbalanceutility/StructMobWeight.rpt");
 		if (fs.exists())
 			fs.delete();
 	}
@@ -92,13 +92,13 @@ public class SpawnStructData {
 		Registry<Structure> csfreg = dynreg.get(RegistryKeys.STRUCTURE);
 		initReports();
 
-		if (MyConfig.isBalanceStructureSpawnValues()) {
+		if (MyConfigs.isBalanceStructureSpawnValues()) {
 			balanceStructureSpawnValues(csfreg);
 		}
-		if (MyConfig.isFixSpawnValues()) {
+		if (MyConfigs.isFixSpawnValues()) {
 			fixStructureSpawnValues(csfreg);
 		}
-		if (MyConfig.isGenerateReport()) {
+		if (MyConfigs.isGenerateReport()) {
 			generateStructureSpawnValuesReport(csfreg);
 		}
 	}
@@ -146,7 +146,7 @@ public class SpawnStructData {
 						fieldStructConfig.set(workStruct,
 								new Config(cfg.biomes(), newMap, cfg.step(), cfg.terrainAdaptation()));
 					} catch (Exception e) {
-						if (MyConfig.getDebugLevel() > 0) {
+						if (MyConfigs.getDebugLevel() > 0) {
 							e.printStackTrace();
 						} else {
 							LOGGER.error("Failed to balance " + csfIdentifier
@@ -182,15 +182,15 @@ public class SpawnStructData {
 				newSpawnersList.clear();
 				for (SpawnEntry s : oldwrl.getEntries()) {
 					int newSpawnWeight = s.getWeight().getValue();
-					if (newSpawnWeight < MyConfig.getMinSpawnWeight()) {
-						if ((newSpawnWeight > 1) && (newSpawnWeight * 10 < MyConfig.getMaxSpawnWeight())) {
+					if (newSpawnWeight < MyConfigs.getMinSpawnWeight()) {
+						if ((newSpawnWeight > 1) && (newSpawnWeight * 10 < MyConfigs.getMaxSpawnWeight())) {
 							newSpawnWeight = newSpawnWeight * 10;
 						} else {
-							newSpawnWeight = MyConfig.getMinSpawnWeight();
+							newSpawnWeight = MyConfigs.getMinSpawnWeight();
 						}
 					}
-					if (newSpawnWeight > MyConfig.getMaxSpawnWeight()) {
-						newSpawnWeight = MyConfig.getMaxSpawnWeight();
+					if (newSpawnWeight > MyConfigs.getMaxSpawnWeight()) {
+						newSpawnWeight = MyConfigs.getMaxSpawnWeight();
 					}
 					SpawnEntry newS = new SpawnEntry(s.type, Weight.of(newSpawnWeight), s.minGroupSize, s.maxGroupSize);
 					newSpawnersList.add(newS);
@@ -213,7 +213,7 @@ public class SpawnStructData {
 
 		PrintStream p = null;
 		try {
-			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/StructMobWeight.txt", false));
+			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/StructMobWeight.rpt", false));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -221,6 +221,13 @@ public class SpawnStructData {
 		if (p == null) {
 			p = System.out;
 		}
+		p.println("* This is the StructMobWeight report file that is output every time the server starts.");
+		p.println("* ");
+		p.println("* Spawn Balance Utility (SBU) will use this file ONLY if it is renamed to StructMobWeight.csv.");
+		p.println("* Lines starting with '*' are comments and ignored");
+		p.println("* It allows you to add and remove mobs and adjust their spawnweights for Structures");
+		p.println("* like shipwrecks, nether fortresses, water monuments, etc.");
+		p.println("* ");
 
 		for (Entry<RegistryKey<Structure>, Structure> csf : csfreg.getEntrySet()) {
 			RegistryKey<Structure> csfKey = csf.getKey();
@@ -230,7 +237,7 @@ public class SpawnStructData {
 			try {
 				cfg = (Config) fieldStructConfig.get(workStruct);
 			} catch (Exception e) {
-				if (MyConfig.getDebugLevel() > 0) {
+				if (MyConfigs.getDebugLevel() > 0) {
 					e.printStackTrace();
 				} else {
 					LOGGER.error("Failed to load " + csfIdentifier
@@ -251,7 +258,7 @@ public class SpawnStructData {
 				for (SpawnEntry s : mobs.spawns().getEntries()) {
 					@SuppressWarnings("deprecation")
 					String modName = s.type.getRegistryEntry().getKey().get().getValue().getNamespace();
-					if (MyConfig.isSuppressMinecraftMobReporting()) {
+					if (MyConfigs.isSuppressMinecraftMobReporting()) {
 						if (modName.equals("minecraft")) {
 							continue;
 						}

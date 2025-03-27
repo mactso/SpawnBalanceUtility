@@ -1,6 +1,6 @@
 package com.mactso.spawnbalanceutility;
 
-import com.mactso.spawnbalanceutility.config.MyConfig;
+import com.mactso.spawnbalanceutility.config.MyConfigs;
 import com.mactso.spawnbalanceutility.util.SpawnBiomeData;
 import com.mactso.spawnbalanceutility.util.SpawnStructData;
 
@@ -17,7 +17,7 @@ public class Main implements ModInitializer, ServerStarted {
 		@Override
 		public void onInitialize() {
 
-			MyConfig.registerConfigs();
+			MyConfigs.registerConfigs();
 			// zzz to go last.
 
 			ServerLifecycleEvents.SERVER_STARTED.register(Identifier.of("zzzzzzzz","zzzzzzzz"),this);

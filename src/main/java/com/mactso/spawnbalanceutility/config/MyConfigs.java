@@ -11,7 +11,8 @@ import com.mactso.spawnbalanceutility.manager.MobMassAdditionManager;
 import com.mactso.spawnbalanceutility.manager.StructureCreatureManager;
 import com.mojang.datafixers.util.Pair;
 
-public class MyConfig {
+public class MyConfigs {
+	
 
 	private static final Logger LOGGER = LogManager.getLogger();
 	public static final int NO_DEFAULT_SPAWN_WEIGHT_FOUND = -999;
@@ -34,7 +35,7 @@ public class MyConfig {
 	}
 
 	public static void setDebugLevel(int debugLevel) {
-		MyConfig.debugLevel = debugLevel;
+		MyConfigs.debugLevel = debugLevel;
 	}
 
 	public static boolean isGenerateReport() {
@@ -111,9 +112,9 @@ public class MyConfig {
 		configs.addKeyValuePair(new Pair<>("key.generateReport", "true"), "String");
 		configs.addKeyValuePair(new Pair<>("key.suppressMinecraftMobReporting", "false"), "String");
 		configs.addKeyValuePair(new Pair<>("key.fixEmptyNether", "true"), "String");
-		configs.addKeyValuePair(new Pair<>("key.balanceBiomeSpawnValues", "false"), "String");
+		configs.addKeyValuePair(new Pair<>("key.balanceBiomeSpawnValues", "true"), "String");
 		configs.addKeyValuePair(new Pair<>("key.fixSpawnValues", "true"), "String");
-		configs.addKeyValuePair(new Pair<>("key.balanceStructureSpawnValues", "false"), "String");
+		configs.addKeyValuePair(new Pair<>("key.balanceStructureSpawnValues", "true"), "String");
 
 		configs.addKeyValuePair(new Pair<>("key.includedReportModsSet", defaultIncludedReportModsSet), "String");
 		configs.addKeyValuePair(new Pair<>("key.minSpawnWeight", 5), "int");

@@ -9,9 +9,6 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
 import net.minecraft.registry.Registries;
 
-
-//import net.minecraft.core.Registry;
-
 public class AllMobEntitiesReport {
 	
 	public static void initReports () {
@@ -23,7 +20,6 @@ public class AllMobEntitiesReport {
 			fb.delete();
 	}
 	
-
 	@SuppressWarnings("deprecation")
 	public static void doReport() {
 		
@@ -37,6 +33,11 @@ public class AllMobEntitiesReport {
 		if (p == null) {
 			p = System.out;
 		}
+		
+		p.println ("* This file is a dictionary of all mob identifiers (modname:mobname) to help you.");
+		p.println ("* The MISC mobs can only be spawned as Psuedo Mobs.  They do not spawn normally.");
+		p.println ("* Some MISC things like Item Frames won't spawn propery.");
+		p.println ("* ");
 
 		for (EntityType<?> a : Registries.ENTITY_TYPE) {
 			if (isValidClassification(a)) {

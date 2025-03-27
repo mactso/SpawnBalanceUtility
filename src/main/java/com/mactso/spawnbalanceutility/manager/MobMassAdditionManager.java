@@ -11,7 +11,7 @@ import java.util.StringTokenizer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mactso.spawnbalanceutility.config.MyConfig;
+import com.mactso.spawnbalanceutility.config.MyConfigs;
 import com.mactso.spawnbalanceutility.utility.Utility;
 
 import net.minecraft.entity.SpawnGroup;
@@ -157,7 +157,7 @@ public class MobMassAdditionManager {
 			} catch (Exception e) {
 				if (!(line.isEmpty())) {
 					LOGGER.error("SpawnBalanceUtility Error reading field "+errorField+" on "+linecount+"th line of MassAdditionMobs.csv.");
-				} else if (MyConfig.getDebugLevel() > 0 ) {
+				} else if (MyConfigs.getDebugLevel() > 0 ) {
 					LOGGER.warn("SpawnBalanceUtility Warning blank line at "+linecount+"th line of MassAdditionMobs.csv.");
 				}
 			}

@@ -6,7 +6,7 @@ import java.lang.reflect.Field;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mactso.spawnbalanceutility.config.MyConfig;
+import com.mactso.spawnbalanceutility.config.MyConfigs;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -134,7 +134,7 @@ public class Utility {
 	}
 	
 	public static void debugMsg(int level, String dMsg) {
-		if (MyConfig.getDebugLevel() > level - 1) {
+		if (MyConfigs.getDebugLevel() > level - 1) {
 			LOGGER.warn("L" + level + ":" + dMsg);
 		}
 	}

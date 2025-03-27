@@ -13,7 +13,7 @@ import java.util.StringTokenizer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mactso.spawnbalanceutility.config.MyConfig;
+import com.mactso.spawnbalanceutility.config.MyConfigs;
 
 public class BiomeCreatureManager {
 
@@ -84,7 +84,7 @@ public class BiomeCreatureManager {
 				} catch (Exception e) {
 					if (!(line.isEmpty())) {
 						LOGGER.warn("SpawnBalanceUtility problem reading field "+errorField+" on "+linecount+"th line of BiomeMobWeight.csv.");
-					} else if (MyConfig.getDebugLevel() > 0 ) {
+					} else if (MyConfigs.getDebugLevel() > 0 ) {
 						LOGGER.warn("SpawnBalanceUtility blank line at "+linecount+"th line of BiomeMobWeight.csv.");
 					}
 				}
