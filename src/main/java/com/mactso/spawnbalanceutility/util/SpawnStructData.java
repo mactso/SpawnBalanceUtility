@@ -30,6 +30,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry.Reference;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.Pool;
@@ -89,9 +90,17 @@ public class SpawnStructData {
 	public static void doStructureActions(MinecraftServer server) {
 
 		DynamicRegistryManager dynreg = server.getRegistryManager();
-		Registry<Structure> csfreg = dynreg.get(RegistryKeys.STRUCTURE);
+		Optional<Registry<Structure>> optStructReg = dynreg.getOptional(RegistryKeys.STRUCTURE);
+		
 		initReports();
 
+		if (optStructReg.isEmpty()) {
+			LOGGER.error("Hard Error : Structure Registry Missing");
+			return;
+		}
+		
+		Registry<Structure> csfreg = optStructReg.get();
+		
 		if (MyConfigs.isBalanceStructureSpawnValues()) {
 			balanceStructureSpawnValues(csfreg);
 		}
@@ -125,10 +134,11 @@ public class SpawnStructData {
 						StructureCreatureItem sci = creaturesInStructure.get(i);
 
 						if (sci.getClassification().toLowerCase().equals(vCl)) {
-							Optional<EntityType<?>> opt = Registries.ENTITY_TYPE
-									.getOrEmpty(Identifier.of(sci.getModAndMob()));
-							if (opt.isPresent()) {
-								SpawnEntry newS = new SpawnEntry(opt.get(), Weight.of(sci.getSpawnWeight()),
+							 Optional<Reference<EntityType<?>>> optRef = Registries.ENTITY_TYPE
+									.getEntry(Identifier.of(sci.getModAndMob()));
+							if (optRef.isPresent()) {
+								
+								SpawnEntry newS = new SpawnEntry(optRef.get().value(), Weight.of(sci.getSpawnWeight()),
 										sci.getMinCount(), sci.getMaxCount());
 								newSpawnEntriesList.add(newS);
 							}

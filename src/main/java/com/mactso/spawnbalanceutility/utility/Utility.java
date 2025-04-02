@@ -114,7 +114,7 @@ public class Utility {
 	public static void sendChat(PlayerEntity p, String chatMessage, TextColor color) {
 		MutableText component = Text.literal(chatMessage);
 		component.getStyle().withColor(color);
-		p.sendMessage(component);
+		p.sendMessage(component,false);
 	}
 
 	// support for any color, optionally bold text.
@@ -122,7 +122,7 @@ public class Utility {
 		MutableText component = Text.literal(chatMessage);
 		component.setStyle(component.getStyle().withBold(true));
 		component.setStyle(component.getStyle().withColor(color));
-		p.sendMessage(component);
+		p.sendMessage(component,false); // if this doesn't work, then check it
 	}
 
 	public static void warn (String dMsg) {
