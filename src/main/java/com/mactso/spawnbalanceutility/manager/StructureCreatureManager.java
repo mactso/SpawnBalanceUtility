@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import com.mactso.spawnbalanceutility.utility.Utility;
+import com.mactso.spawnbalanceutility.Main;
+//import com.mactso.spawnbalanceutility.util.Summary;
+import com.mactso.spawnbalanceutility.util.Utility;
 
 public class StructureCreatureManager {
 
@@ -23,6 +25,7 @@ public class StructureCreatureManager {
 		int minCount = 0;
 		int maxCount = 0;
 		int linecount = 0;
+		int addcount = 0;
 		String errorField = "first";
 		String line;
 		
@@ -33,6 +36,9 @@ public class StructureCreatureManager {
 				new FileInputStream("config/spawnbalanceutility/StructMobWeight.csv"))) {
 			BufferedReader br = new BufferedReader(input);
 			while ((line = br.readLine()) != null) {
+				if (line.charAt(0)=='*') {
+					continue;
+				}
 				StringTokenizer st = new StringTokenizer(line, ",");
 				linecount++;
 				try {
@@ -55,14 +61,15 @@ public class StructureCreatureManager {
 					if (minCount < 1) {
 						minCount = 1;
 					}
-					if (maxCount > 12) {
-						maxCount = 12;
+					if (maxCount > 32) {
+						maxCount = 32;
 					}
 					if (minCount > maxCount) {
 						minCount = maxCount;
 					}					
 					String key = modAndStructure;
 					if (spawnWeight > 0){
+						// TODO set this debug value to 1.
 						Utility.debugMsg(1, lineNumber +", "+ lastgoodline+", "+ modAndStructure+", "+ classification+", "+ modAndMob+", "+ spawnWeight+", "+minCount+", "+ maxCount);
 						StructureCreatureItem bci = new StructureCreatureItem(lineNumber, modAndStructure, classification, modAndMob, spawnWeight, minCount, maxCount);
 						List<StructureCreatureItem> structureMobList = structureCreaturesMap.get(key);
@@ -73,18 +80,19 @@ public class StructureCreatureManager {
 						// TODO maybe check for duplicates here later
 						// for now okay as long as spawn weight > 0.
 						structureMobList.add(bci);
+						addcount++;
 					}
 					
 				} catch (Exception e) {
-					System.out.println("SpawnBalanceUtility Error reading field "+errorField+" on "+linecount+"th line of StructureMobWeight.csv.");
+					Utility.debugMsg(0, Main.MOD_ID + " Error reading field "+errorField+" on "+linecount+"th line of StructureMobWeight.csv.");
 				}
 			}
 			input.close();
 		} catch (Exception e) {
-			System.out.println("StructMobWeight.csv not found in subdirectory SpawnBalanceUtility");
+			Utility.debugMsg(0, "Warning StructMobWeight.csv not found in subdirectory SpawnBalanceUtility");
 
 		}
-		
+//		Summary.setStructureReadInfo(linecount, linecount - addcount);
 	}
 	
 	

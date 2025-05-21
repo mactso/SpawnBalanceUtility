@@ -1,4 +1,4 @@
-package com.mactso.spawnbalanceutility.utility;
+package com.mactso.spawnbalanceutility.util;
 
 
 import java.lang.reflect.Field;

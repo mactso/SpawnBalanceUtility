@@ -1,6 +1,7 @@
 package com.mactso.spawnbalanceutility.manager;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -27,16 +28,29 @@ public class BiomeCreatureManager {
 		int minCount = 0;
 		int maxCount = 0;
 		int linecount = 0;
+		int addcount = 0;
 		String errorField = "first";
 		String line;
 		
 		if (biomeCreaturesMap.size() > 0) {
 			return;
 		}
-		try (InputStreamReader input = new InputStreamReader(
-				new FileInputStream("config/spawnbalanceutility/BiomeMobWeight.csv"))) {
+
+		
+ // this code only has an effect on linux because case doesn't matter on windows)
+		File f = new File("config/spawnbalanceutility/BiomeMobWeight.csv");
+				if (!(f.exists())) {
+			 f = new File("config/spawnbalanceutility/BiomeMobWeight.CSV");
+		}
+		
+		try (InputStreamReader input = new InputStreamReader( new FileInputStream(f))) 
+		{			
 			BufferedReader br = new BufferedReader(input);
 			while ((line = br.readLine()) != null) {
+				if (line.charAt(0)=='*') {
+					continue;
+				}
+
 				StringTokenizer st = new StringTokenizer(line, ",");
 				linecount++;
 				try {
@@ -61,8 +75,8 @@ public class BiomeCreatureManager {
 					if (minCount < 1) {
 						minCount = 1;
 					}
-					if (maxCount > 12) {
-						maxCount = 12;
+					if (maxCount > 32) {
+						maxCount = 32;
 					}
 					if (minCount > maxCount) {
 						minCount = maxCount;
@@ -79,6 +93,7 @@ public class BiomeCreatureManager {
 						// TODO maybe check for duplicates here later
 						// for now okay as long as spawn weight > 0.
 						p.add(bci);
+						addcount++;
 					}
 					
 				} catch (Exception e) {
@@ -91,10 +106,10 @@ public class BiomeCreatureManager {
 			}
 			input.close();
 		} catch (Exception e) {
-			LOGGER.warn("config/spawnbalanceutility/BiomeMobWeight.csv not found.");
+			LOGGER.warn("BiomeMobWeight.csv not found in config/spawnbalanceutility/ (Remember you rename BiomeMobWeight.rpt to create it). ");
 			e.printStackTrace();
 		}
-		
+		//Summary.setBiomeReadInfo(linecount, linecount - addcount);
 	}
 	
 	

@@ -81,7 +81,7 @@ public class SpawnStructData {
 		File fd = new File("config/spawnbalanceutility");
 		if (!fd.exists())
 			fd.mkdir();
-		File fs = new File("config/spawnbalanceutility/StructMobWeight.txt");
+		File fs = new File("config/spawnbalanceutility/StructMobWeight.rpt");
 		if (fs.exists())
 			fs.delete();
 	}
@@ -213,7 +213,7 @@ public class SpawnStructData {
 
 		PrintStream p = null;
 		try {
-			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/StructMobWeight.txt", false));
+			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/StructMobWeight.rpt", false));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
