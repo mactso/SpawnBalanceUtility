@@ -18,7 +18,6 @@ import com.mactso.spawnbalanceutility.util.Utility;
 
 import net.minecraft.world.entity.MobCategory;
 
-
 public class MobMassAdditionManager {
 	
 	public static Hashtable<String, MassAdditionMobItem> massAdditionMobsHashtable = new Hashtable<>();
@@ -152,8 +151,6 @@ public class MobMassAdditionManager {
 		int spawnWeight;
 		int minCount;
 		int maxCount;
-
-
 
 		public MassAdditionMobItem(int lineNumber, String category, String classification, 
 				String modAndMob, int spawnWeight, int min, int max ) {

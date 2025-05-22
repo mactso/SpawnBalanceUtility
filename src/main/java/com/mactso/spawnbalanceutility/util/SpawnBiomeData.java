@@ -124,7 +124,7 @@ public class SpawnBiomeData {
 
 						@SuppressWarnings("deprecation")
 						Optional<EntityType<?>> opt = BuiltInRegistries.ENTITY_TYPE
-								.getOptional(new ResourceLocation(biomeCreatureItem.getModAndMob()));
+								.getOptional(ResourceLocation.parse((biomeCreatureItem.getModAndMob())));
 						int i = 3;
 						if (opt.isPresent()) {
 							if (opt.get().getCategory() == MobCategory.MISC) {
@@ -324,7 +324,7 @@ public class SpawnBiomeData {
 
 		PrintStream p = null;
 		try {
-			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/MassAdditionMobs.rpt", true));
+			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/MassAdditionMobs.rpt", false));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -403,6 +403,8 @@ public class SpawnBiomeData {
 		p.println("* This is the BiomeMobWeight report file that is output every time the server starts.");
 		p.println("* ");
 		p.println("* Spawn Balance Utility (SBU) will use this file ONLY if it is renamed to BiomeMobWeight.csv.");
+		p.println("* If you remove all lines for a Biome, the default values will be used");
+		p.println("* So for an 'empty' biome, leave one line with a CREATURE or the AMBIENT line with bats.");
 		p.println("* Lines starting with '*' are comments and ignored");
 		p.println("* When this file is read, SBU writes summary information to the log file.");
 		p.println("* ");

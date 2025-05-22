@@ -1,11 +1,12 @@
 modLoader="javafml"
-loaderVersion="[46,)"
+loaderVersion="[52,)"
 license="MIT License"
 [[mods]]
 modId="spawnbalanceutility"
 version="${file.jarVersion}"
 displayName="SpawnBalanceUtility"
 displayURL="https://www.curseforge.com/minecraft/mc-mods/spawn-balance-utility"
+displayTest="IGNORE_SERVER_VERSION"
 updateJSONURL="https://github.com/mactso/SpawnBalanceUtility/raw/main/update.json"
 logoFile="Logo.png"
 authors="MacTso, Lupicus"
@@ -13,13 +14,13 @@ description='Spawn Balance Utility.'
 [[dependencies.spawnbalanceutility]]
     modId="forge"
     mandatory=true
-    versionRange="[46,)"
+    versionRange="[52,)"
     ordering="NONE"
     side="SERVER"
 
 [[dependencies.spawnbalanceutility]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.20,1.21)"
+    versionRange="[1.21.1,1.22)"
     ordering="NONE"
     side="SERVER"

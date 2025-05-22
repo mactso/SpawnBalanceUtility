@@ -201,7 +201,7 @@ public class SpawnStructureData {
 					if (sci.getClassification().toLowerCase().equals(vCl)) {
 						@SuppressWarnings("deprecation")
 						Optional<EntityType<?>> opt = BuiltInRegistries.ENTITY_TYPE
-								.getOptional(new ResourceLocation(sci.getModAndMob()));
+								.getOptional(ResourceLocation.parse(sci.getModAndMob()));
 						if (opt.isPresent()) {
 							if (opt.get().getCategory() == MobCategory.MISC) {
 								Utility.debugMsg(0, Main.MODID + " : " + sci.getModAndMob()

@@ -2,7 +2,7 @@ package com.mactso.spawnbalanceutility.util;
 
 import org.jetbrains.annotations.Nullable;
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.Holder;
 import net.minecraft.world.level.levelgen.structure.Structure;
@@ -24,9 +24,9 @@ public class MyStructureModifier implements StructureModifier
     }
 
     @Override
-    public Codec<? extends StructureModifier> codec()
+    public MapCodec<? extends StructureModifier> codec()
     {
-        return Codec.unit(MyStructureModifier.INSTANCE);
+        return MapCodec.unit(MyStructureModifier.INSTANCE);
     }
 
     public static void register(@Nullable IForgeRegistry<Object> forgeRegistry)

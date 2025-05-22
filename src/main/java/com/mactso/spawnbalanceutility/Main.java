@@ -18,13 +18,11 @@ import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.IExtensionPoint.DisplayTest;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.network.NetworkConstants;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegisterEvent;
 
@@ -36,8 +34,6 @@ public class Main {
 	public Main() {
 
 		Utility.debugMsg(0, MODID + ": Registering Mod.");
-		ModLoadingContext.get().registerExtensionPoint(DisplayTest.class,
-				() -> new DisplayTest(() -> NetworkConstants.IGNORESERVERONLY, (a, b) -> true));
 		FMLJavaModLoadingContext.get().getModEventBus().register(this);
 		ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, MyConfig.COMMON_SPEC);
 		MinecraftForge.EVENT_BUS.register(SpawnBiomeData.class);

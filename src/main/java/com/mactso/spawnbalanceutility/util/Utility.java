@@ -1,5 +1,9 @@
 package com.mactso.spawnbalanceutility.util;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -10,9 +14,7 @@ import com.mactso.spawnbalanceutility.config.MyConfig;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -20,6 +22,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.util.RandomSource;
+import net.minecraft.util.StringUtil;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -29,10 +32,13 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.SpawnPlacementType;
+import net.minecraft.world.entity.SpawnPlacementTypes;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemLore;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -127,12 +133,21 @@ public class Utility {
 
 	@SuppressWarnings("deprecation")
 	public static void registerMissingSpawnPlacements() {
+		Method m = null;
+		try {
+			m = SpawnPlacements.class.getDeclaredMethod("register", EntityType.class, SpawnPlacementType.class,
+					Heightmap.Types.class, SpawnPlacements.SpawnPredicate.class);
+			m.setAccessible(true);
+		} catch (Exception e) {
+			LOGGER.error("Error, can't reflect into spawn placement registry.  can't register spawn locations for entities with no spawn location");
+			return;
+		}
 
 		// Loop over each entity resource location and register the spawn placement
 		for (String rlString : MyConfig.getFixSpawnPlacementMobsSet()) {
 			// Parse the entity resource location
 			try {
-				ResourceLocation entityResourceLocation = new ResourceLocation(rlString.trim());
+				ResourceLocation entityResourceLocation = ResourceLocation.parse((rlString.trim()));
 				@Nullable
 				EntityType<?> entityType = ForgeRegistries.ENTITY_TYPES.getValue(entityResourceLocation);
 				if ((entityType != EntityType.PIG) && (entityType.getCategory() != MobCategory.MISC)) {
@@ -140,18 +155,25 @@ public class Utility {
 					EntityType<? extends Mob> entity = (EntityType<? extends Mob>) entityType;
 					// Register the spawn placement on the ground for the entity type
 					try {
-						SpawnPlacements.register(entity, SpawnPlacements.Type.ON_GROUND,
-								Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Utility::genericMobSpawnRules);
+						m.invoke(null, 
+								convert(entity, SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Utility::genericMobSpawnRules));
 					} catch (IllegalStateException e) {
-						LOGGER.error(rlString + " already had a SpawnPlacement Registered.  It has been replaced.  Did you mean to do that?");
+						LOGGER.error(rlString
+								+ " already had a SpawnPlacement Registered.  It has been replaced.  Did you mean to do that?");
 					}
 				} else {
 					LOGGER.warn(rlString + " is a configured spawn placement entity for a mod that is not loaded.");
 				}
-			} catch( Exception e ) {
-				LOGGER.warn(rlString + " for spawn placement config has a bad an illegal character (should be lower case?).");
+			} catch (Exception e) {
+				LOGGER.warn(rlString
+						+ " for spawn placement config has a bad an illegal character (should be lower case?).");
+			}
 			}
 		}
+
+	private static <T extends Mob> Object[] convert(EntityType<T> et, SpawnPlacementType pt, Heightmap.Types ht, SpawnPlacements.SpawnPredicate<T> sp)
+	{
+		return new Object[] {et, pt, ht, sp};
 	}
 	
 	public static boolean genericMobSpawnRules(EntityType<? extends Mob> entityType, LevelAccessor level,
@@ -232,7 +254,7 @@ public class Utility {
 
 	}
 
-	public static void updateEffect(LivingEntity e, int amplifier, MobEffect mobEffect, int duration) {
+	public static void updateEffect(LivingEntity e, int amplifier, Holder<MobEffect> mobEffect, int duration) {
 		MobEffectInstance ei = e.getEffect(mobEffect);
 		if (amplifier == 10) {
 			amplifier = 20; // player "plaid" speed.
@@ -286,17 +308,22 @@ public class Utility {
 			boolean isBaby) {
 
 		if (level.isDay() && level.getBrightness(LightLayer.SKY, savePos) > 0) {
-			if (et == EntityType.ZOMBIE) return false;
-			if (et == EntityType.ZOMBIE_VILLAGER) return false;
-			if (et == EntityType.SKELETON) return false;
-			if (et == EntityType.STRAY) return false;
-			if (et == EntityType.PHANTOM) return false;
+			if (et == EntityType.ZOMBIE)
+				return false;
+			if (et == EntityType.ZOMBIE_VILLAGER)
+				return false;
+			if (et == EntityType.SKELETON)
+				return false;
+			if (et == EntityType.STRAY)
+				return false;
+			if (et == EntityType.PHANTOM)
+				return false;
 		}
 		
 		Entity e;		
 		for (int i = 0; i < X; i++) {
-			System.out.println("populate " +(i+1) +" of "+ X + " " + et.toShortString() +"at" + savePos);
-			debugMsg(2, "populate " + (i+1) +" of "+ X + " " + et.toShortString());
+			System.out.println("populate " + (i + 1) + " of " + X + " " + et.toShortString() + "at" + savePos);
+			debugMsg(2, "populate " + (i + 1) + " of " + X + " " + et.toShortString());
 			e = et.spawn(level, savePos, MobSpawnType.NATURAL);
 			if (e instanceof Mob em) {
 				em.setBaby(isBaby);
@@ -306,17 +333,18 @@ public class Utility {
 	}
 
 	public static void setName(ItemStack stack, String inString) {
-		CompoundTag tag = stack.getOrCreateTagElement("display");
-		ListTag list = new ListTag();
-		list.add(StringTag.valueOf(inString));
-		tag.put("Name", list);
+		if (StringUtil.isBlank(inString)) {
+			stack.remove(DataComponents.CUSTOM_NAME);
+		} else {
+			stack.set(DataComponents.CUSTOM_NAME, Component.literal(inString));
+		}
 	}
 
 	public static void setLore(ItemStack stack, String inString) {
-		CompoundTag tag = stack.getOrCreateTagElement("display");
-		ListTag list = new ListTag();
-		list.add(StringTag.valueOf(inString));
-		tag.put("Lore", list);
+		List<Component> list = new ArrayList<>();
+		list.add(Component.literal(inString));
+		stack.set(DataComponents.LORE, new ItemLore(list));
+
 	}
 
 	public static boolean isNotNearWebs(BlockPos pos, ServerLevel serverLevel) {

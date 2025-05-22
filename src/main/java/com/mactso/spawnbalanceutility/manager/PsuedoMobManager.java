@@ -137,7 +137,7 @@ public class PsuedoMobManager {
 					"PsueodoMobs.csv not found in config/spawnbalanceutility/ (Remember you rename PsueodoMobs.rpt to create it). ");
 			e.printStackTrace();
 		}
-		Summary.setBiomeReadInfo(linecount, linecount - addcount);
+		// Summary.setBiomeReadInfo(linecount, linecount - addcount);
 	}
 
 	public static boolean checkSpawnPsuedoMob(ServerPlayer sp) {
@@ -295,9 +295,7 @@ public class PsuedoMobManager {
 		mSpawnPos.setY(spY);
 
 		// isSolid() might be changing to "isSolidRender"
-		int testcount = 0;
 		while (!sp.serverLevel().getBlockState(mSpawnPos.below()).isSolid()) {
-			testcount ++;
 			mSpawnPos.setY(mSpawnPos.getY() - 1);
 			if (mSpawnPos.getY() < minBuildHeight + 5) {
 				return null;
