@@ -20,7 +20,6 @@ public class AllMobEntitiesReport {
 			fb.delete();
 	}
 	
-	@SuppressWarnings("deprecation")
 	public static void doReport() {
 		
 		PrintStream p = null;
