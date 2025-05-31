@@ -381,6 +381,7 @@ public class SpawnBiomeData {
 		p.println("* 2, minecraft:plains, minecraft:blaze, 80, 1, 1");
 		p.println("* 4, minecraft:desert, minecraft:iron_golem, 80, 1, 1");
 		p.println("* 5, minecraft:snowyplains, minecraft:snow_golem, 80, 1, 1");
+		p.println("");
 
 		if (p != System.out) {
 			p.close();

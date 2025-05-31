@@ -52,6 +52,8 @@ public class PsuedoMobManager {
 		int minCount = 0;
 		int maxCount = 0;
 		int linecount = 0;
+		int commentcount = 0;
+		int blanklinecount = 0;
 		int addcount = 0;
 		String errorField = "first";
 		String line;
@@ -69,7 +71,19 @@ public class PsuedoMobManager {
 		try (InputStreamReader input = new InputStreamReader(new FileInputStream(f))) {
 			BufferedReader br = new BufferedReader(input);
 			while ((line = br.readLine()) != null) {
-				if (line.charAt(0) == '*') {
+				
+				if (line.isEmpty()) {
+					blanklinecount++;
+					continue;
+				} 
+		
+				if (line.trim().isEmpty()) {
+					blanklinecount++;
+					continue;
+				} 
+				
+				if (line.charAt(0)=='*') {
+					commentcount++;
 					continue;
 				}
 
@@ -138,6 +152,9 @@ public class PsuedoMobManager {
 			e.printStackTrace();
 		}
 		Summary.setBiomeReadInfo(linecount, linecount - addcount);
+		Utility.debugMsg(0, commentcount + " comment lines in BiomeMobWeight.csv.");
+		Utility.debugMsg(0, blanklinecount + " blank lines in BiomeMobWeight.csv.");
+
 	}
 
 	public static boolean checkSpawnPsuedoMob(ServerPlayer sp) {

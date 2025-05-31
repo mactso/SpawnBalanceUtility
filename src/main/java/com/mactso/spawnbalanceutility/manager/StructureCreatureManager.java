@@ -26,6 +26,9 @@ public class StructureCreatureManager {
 		int maxCount = 0;
 		int linecount = 0;
 		int addcount = 0;
+		int commentcount = 0;
+		int blanklinecount = 0;
+		
 		String errorField = "first";
 		String line;
 		
@@ -36,9 +39,22 @@ public class StructureCreatureManager {
 				new FileInputStream("config/spawnbalanceutility/StructMobWeight.csv"))) {
 			BufferedReader br = new BufferedReader(input);
 			while ((line = br.readLine()) != null) {
+				
+				if (line.isEmpty()) {
+					blanklinecount++;
+					continue;
+				} 
+		
+				if (line.trim().isEmpty()) {
+					blanklinecount++;
+					continue;
+				} 
+				
 				if (line.charAt(0)=='*') {
+					commentcount++;
 					continue;
 				}
+
 				StringTokenizer st = new StringTokenizer(line, ",");
 				linecount++;
 				try {
@@ -92,7 +108,11 @@ public class StructureCreatureManager {
 			Utility.debugMsg(0, "Warning StructMobWeight.csv not found in subdirectory SpawnBalanceUtility");
 
 		}
+		
 		Summary.setStructureReadInfo(linecount, linecount - addcount);
+		Utility.debugMsg(0, commentcount + " comment lines in StructMobWeight.csv.");
+		Utility.debugMsg(0, blanklinecount + " blank lines in StructMobWeight.csv.");
+		
 	}
 	
 	

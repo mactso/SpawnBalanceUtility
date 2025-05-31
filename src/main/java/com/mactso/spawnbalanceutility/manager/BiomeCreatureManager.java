@@ -16,6 +16,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.mactso.spawnbalanceutility.config.MyConfig;
 import com.mactso.spawnbalanceutility.util.Summary;
+import com.mactso.spawnbalanceutility.util.Utility;
 
 public class BiomeCreatureManager {
 
@@ -29,6 +30,8 @@ public class BiomeCreatureManager {
 		int minCount = 0;
 		int maxCount = 0;
 		int linecount = 0;
+		int commentcount = 0;
+		int blanklinecount = 0;
 		int addcount = 0;
 		String errorField = "first";
 		String line;
@@ -48,10 +51,22 @@ public class BiomeCreatureManager {
 		{			
 			BufferedReader br = new BufferedReader(input);
 			while ((line = br.readLine()) != null) {
+				
+				if (line.isEmpty()) {
+					blanklinecount++;
+					continue;
+				} 
+		
+				if (line.trim().isEmpty()) {
+					blanklinecount++;
+					continue;
+				} 
+				
 				if (line.charAt(0)=='*') {
+					commentcount++;
 					continue;
 				}
-
+				
 				StringTokenizer st = new StringTokenizer(line, ",");
 				linecount++;
 				try {
@@ -111,6 +126,8 @@ public class BiomeCreatureManager {
 			e.printStackTrace();
 		}
 		Summary.setBiomeReadInfo(linecount, linecount - addcount);
+		Utility.debugMsg(0, commentcount + " comment lines in BiomeMobWeight.csv.");
+		Utility.debugMsg(0, blanklinecount + " blank lines in BiomeMobWeight.csv.");
 	}
 	
 	
