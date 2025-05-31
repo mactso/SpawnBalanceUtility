@@ -29,6 +29,7 @@ public class BiomeCreatureManager {
 		int maxCount = 0;
 		int linecount = 0;
 		int addcount = 0;
+		int commentcount = 0;
 		String errorField = "first";
 		String line;
 		
@@ -47,7 +48,17 @@ public class BiomeCreatureManager {
 		{			
 			BufferedReader br = new BufferedReader(input);
 			while ((line = br.readLine()) != null) {
+				
+				if (line.isEmpty()) {
+					continue;
+				} 
+		
+				if (line.trim().isEmpty()) {
+					continue;
+				} 
+				
 				if (line.charAt(0)=='*') {
+					commentcount++;
 					continue;
 				}
 
