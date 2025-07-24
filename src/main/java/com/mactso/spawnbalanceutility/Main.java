@@ -12,13 +12,11 @@ import com.mactso.spawnbalanceutility.util.Utility;
 
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.eventbus.api.listener.Priority;
+import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -31,13 +29,13 @@ public class Main {
 
 	public static final String MODID = "spawnbalanceutility";
 
-	public Main() {
-
-		Utility.debugMsg(0, MODID + ": Registering Mod.");
-		FMLJavaModLoadingContext.get().getModEventBus().register(this);
-		ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, MyConfig.COMMON_SPEC);
-		MinecraftForge.EVENT_BUS.register(SpawnBiomeData.class);
+    public Main(FMLJavaModLoadingContext context)
+    {
+		context.registerConfig(ModConfig.Type.COMMON, MyConfig.COMMON_SPEC);
+//        FMLCommonSetupEvent.getBus(context.getModBusGroup()).addListener(this::handleCommonSetup);
+    	Utility.debugMsg(0,MODID + ": Registering Mod.");
 	}
+    
 
 	@SubscribeEvent
 	public void preInit(final FMLCommonSetupEvent event) {
@@ -60,7 +58,7 @@ public class Main {
 
 	@Mod.EventBusSubscriber()
 	public static class ForgeEvents {
-		@SubscribeEvent(priority = EventPriority.LOWEST)
+		@SubscribeEvent(priority = Priority.LOWEST)
 		public static void onServerAboutToStart(ServerAboutToStartEvent event) {
 			Summary.clear();
 			if (MyConfig.isBalanceBiomeSpawnValues()) {

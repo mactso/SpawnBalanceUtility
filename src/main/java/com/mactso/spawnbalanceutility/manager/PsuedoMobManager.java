@@ -148,7 +148,7 @@ public class PsuedoMobManager {
 		}
 		
 		BlockPos pos = sp.blockPosition();
-		ServerLevel sLevel = sp.serverLevel();
+		ServerLevel sLevel = sp.level();
 		RandomSource rand = sLevel.getRandom();
 
 		int boxsize = 64;
@@ -162,7 +162,7 @@ public class PsuedoMobManager {
 
 		// generate a random spawning spot and look downwards for
 		// an area to spawn with solid ground and air above it.
-		int debug = 6;
+		// int debug = 6;
 		MutableBlockPos mSpawnPos = getRandomSolidSpawnPos(sp, box);
 		if (mSpawnPos == null) {
 			return false;
@@ -170,7 +170,7 @@ public class PsuedoMobManager {
 
 		//
 		PsuedoMobItem pmi = getRandomPsuedoMob(sLevel, mSpawnPos, rand);
-		int debug4 = 4;
+		// int debug4 = 4;
 		if (pmi == null) { // legal if no pm's configured for biome.
 			return false;
 		} else {
@@ -191,7 +191,7 @@ public class PsuedoMobManager {
 		EntityType<?> et = eot.get();
 		if (isDarkEnoughToSpawnPsuedoMob(sLevel, et, mSpawnPos)) {
 			Utility.debugMsg(2, pmi.modAndMob + " Light is valid.  Generating it.");
-			return Utility.populateXEntityType(et, sp.serverLevel(), mSpawnPos, pmi.maxCount, false);
+			return Utility.populateXEntityType(et, sp.level(), mSpawnPos, pmi.maxCount, false);
 		} else {
 			Utility.debugMsg(2, pmi.modAndMob + " failed brightness spawn test (this has a random element).");
 		}
@@ -268,7 +268,7 @@ public class PsuedoMobManager {
 
 	private static MutableBlockPos getRandomSolidSpawnPos(ServerPlayer sp, AABB box) {
 
-		ServerLevel sLevel = sp.serverLevel();
+		ServerLevel sLevel = sp.level();
 		RandomSource rand = sLevel.getRandom();
 		BlockPos pos = sp.blockPosition();
 		int distAway = 24; // TODO 24 in production
@@ -295,7 +295,7 @@ public class PsuedoMobManager {
 		mSpawnPos.setY(spY);
 
 		// isSolid() might be changing to "isSolidRender"
-		while (!sp.serverLevel().getBlockState(mSpawnPos.below()).isSolid()) {
+		while (!sp.level().getBlockState(mSpawnPos.below()).isSolid()) {
 			mSpawnPos.setY(mSpawnPos.getY() - 1);
 			if (mSpawnPos.getY() < minBuildHeight + 5) {
 				return null;
@@ -307,9 +307,9 @@ public class PsuedoMobManager {
 		}
 
 		// isSolid() might be changing to "isSolidRender"
-		if (sp.serverLevel().getBlockState(mSpawnPos.below()).isSolid()) {
-			if (sp.serverLevel().getBlockState(mSpawnPos).isAir()) {
-				if (sp.serverLevel().getBlockState(mSpawnPos.above(1)).isAir()) {
+		if (sp.level().getBlockState(mSpawnPos.below()).isSolid()) {
+			if (sp.level().getBlockState(mSpawnPos).isAir()) {
+				if (sp.level().getBlockState(mSpawnPos.above(1)).isAir()) {
 					Utility.debugMsg(2, "Generate Random Spawn Pos " + mSpawnPos);
 					return mSpawnPos;
 				}

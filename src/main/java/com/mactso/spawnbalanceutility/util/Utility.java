@@ -131,7 +131,6 @@ public class Utility {
 
 	}
 
-	@SuppressWarnings("deprecation")
 	public static void registerMissingSpawnPlacements() {
 		Method m = null;
 		try {

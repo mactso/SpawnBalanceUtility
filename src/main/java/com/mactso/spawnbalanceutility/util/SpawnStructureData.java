@@ -198,7 +198,6 @@ public class SpawnStructureData {
 					StructureCreatureItem sci = structureMobList.get(i);
 
 					if (sci.getClassification().toLowerCase().equals(vCl)) {
-						@SuppressWarnings("deprecation")
 						Optional<EntityType<?>> opt = BuiltInRegistries.ENTITY_TYPE
 								.getOptional(ResourceLocation.parse(sci.getModAndMob()));
 						if (opt.isPresent()) {
