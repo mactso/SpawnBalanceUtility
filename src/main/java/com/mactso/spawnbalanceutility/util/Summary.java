@@ -12,7 +12,8 @@ import java.util.function.Function;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import net.minecraft.util.random.WeightedRandomList;
+import net.minecraft.util.random.Weighted;
+import net.minecraft.util.random.WeightedList;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.biome.MobSpawnSettings.SpawnerData;
@@ -66,32 +67,32 @@ public class Summary
 		biomeUsed = used;
 	}
 
-	public static void biomeUpdate(Map<MobCategory, WeightedRandomList<SpawnerData>> oldMap, Map<MobCategory, WeightedRandomList<SpawnerData>> newMap)
+	public static void biomeUpdate(Map<MobCategory, WeightedList<SpawnerData>> oldMap, Map<MobCategory, WeightedList<SpawnerData>> newMap)
 	{
 		Set<MobCategory> set = new HashSet<>(oldMap.keySet());
 		set.addAll(newMap.keySet());
 		for (MobCategory k : set)
 		{
-			WeightedRandomList<SpawnerData> oldWList = oldMap.get(k);
-			WeightedRandomList<SpawnerData> newWList = newMap.get(k);
-			List<SpawnerData> oldList = (oldWList != null) ? oldWList.unwrap() : new ArrayList<>();
-			List<SpawnerData> newList = (newWList != null) ? newWList.unwrap() : new ArrayList<>();
+			WeightedList<SpawnerData> oldWList = oldMap.get(k);
+			WeightedList<SpawnerData> newWList = newMap.get(k);
+			List<Weighted<SpawnerData>> oldList = (oldWList != null) ? oldWList.unwrap() : new ArrayList<>();
+			List<Weighted<SpawnerData>> newList = (newWList != null) ? newWList.unwrap() : new ArrayList<>();
 			Map<EntityType<?>,BiomeSpawns> dataMap = new HashMap<>();
 			Function<EntityType<?>,BiomeSpawns> def = t -> new BiomeSpawns();
-			for (SpawnerData e : oldList)
+			for (Weighted<SpawnerData> e : oldList)
 			{
-				BiomeSpawns data = dataMap.computeIfAbsent(e.type, def);
+				BiomeSpawns data = dataMap.computeIfAbsent(e.value().type(), def);
 				data.oldList.add(e);
 			}
-			for (SpawnerData e : newList)
+			for (Weighted<SpawnerData> e : newList)
 			{
-				BiomeSpawns data = dataMap.computeIfAbsent(e.type, def);
+				BiomeSpawns data = dataMap.computeIfAbsent(e.value().type(), def);
 				data.newList.add(e);
 			}
 			for (BiomeSpawns data : dataMap.values())
 			{
-				List<SpawnerData> oldTList = data.oldList;
-				List<SpawnerData> newTList = data.newList;
+				List<Weighted<SpawnerData>> oldTList = data.oldList;
+				List<Weighted<SpawnerData>> newTList = data.newList;
 				int delta = newTList.size() - oldTList.size();
 				if (delta > 0)
 					biomeAdd += delta;
@@ -99,7 +100,7 @@ public class Summary
 					biomeDelete -= delta;
 				if (newTList.size() > 0 && oldTList.size() > 0)
 				{
-					List<SpawnerData> list1, list2;
+					List<Weighted<SpawnerData>> list1, list2;
 					if (delta < 0)
 					{
 						list1 = newTList;
@@ -110,14 +111,14 @@ public class Summary
 						list1 = oldTList;
 						list2 = newTList;
 					}
-					for (SpawnerData e : list1)
+					for (Weighted<SpawnerData> e : list1)
 					{
 						boolean found = false;
-						Iterator<SpawnerData> it = list2.iterator();
+						Iterator<Weighted<SpawnerData>> it = list2.iterator();
 						while (it.hasNext())
 						{
-							SpawnerData e2 = it.next();
-							if (e2.getWeight().asInt() == e.getWeight().asInt() && e2.minCount == e.minCount && e2.maxCount == e.maxCount)
+							Weighted<SpawnerData> e2 = it.next();
+							if (e2.weight() == e.weight() && e2.value().minCount() == e.value().minCount() && e2.value().maxCount() == e.value().maxCount())
 							{
 								it.remove();
 								found = true;
@@ -201,8 +202,8 @@ public class Summary
 
 	static class BiomeSpawns
 	{
-		public List<SpawnerData> oldList = new ArrayList<>();
-		public List<SpawnerData> newList = new ArrayList<>();
+		public List<Weighted<SpawnerData>> oldList = new ArrayList<>();
+		public List<Weighted<SpawnerData>> newList = new ArrayList<>();
 		public BiomeSpawns()
 		{
 		}

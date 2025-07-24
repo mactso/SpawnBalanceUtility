@@ -123,10 +123,18 @@ public class MyConfig {
 	
 	@SubscribeEvent
 	public static void onModConfigEvent(final ModConfigEvent configEvent) {
-		Utility.debugMsg(0, Main.MODID + " Reload Configuration");
-		if (configEvent.getConfig().getSpec() == MyConfig.COMMON_SPEC) {
-			bakeConfig();
-		}
+
+        if (configEvent instanceof ModConfigEvent.Unloading)
+            return;
+
+
+        if (configEvent.getConfig().getSpec() == MyConfig.COMMON_SPEC)
+        {
+            if (MyConfig.COMMON_SPEC.isLoaded()) {
+        		Utility.debugMsg(0, Main.MODID + " Reload Configuration");
+                bakeConfig();
+            }
+        }
 	}
 
 	public static void pushDebugValue() {

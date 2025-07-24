@@ -27,11 +27,11 @@ import net.minecraft.world.Difficulty;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.SpawnPlacementType;
 import net.minecraft.world.entity.SpawnPlacementTypes;
 import net.minecraft.world.entity.SpawnPlacements;
@@ -177,16 +177,20 @@ public class Utility {
 	}
 	
 	public static boolean genericMobSpawnRules(EntityType<? extends Mob> entityType, LevelAccessor level,
-			MobSpawnType spawnReason, BlockPos pos, RandomSource rand) {
+			EntitySpawnReason spawnReason, BlockPos pos, RandomSource rand) {
 
 		Utility.debugMsg(1, Main.MODID + " : " + entityType.getDescriptionId());
-		if (spawnReason == MobSpawnType.SPAWNER)
+		if (spawnReason == EntitySpawnReason.SPAWNER)
 				return true;
 
-		if (spawnReason == MobSpawnType.SPAWN_EGG)
+		if (spawnReason == EntitySpawnReason.SPAWN_ITEM_USE)
 			return true;
 
-		if (level.getDifficulty() == Difficulty.PEACEFUL)
+		// TODO Fix this in 1.21.5
+		
+		boolean isFriendly = entityType.getCategory().isFriendly();
+		
+		if (!isFriendly && level.getDifficulty() == Difficulty.PEACEFUL)
 			return false;
 		
 		BlockState bs = level.getBlockState(pos.below());
@@ -195,18 +199,23 @@ public class Utility {
 			return false;
 		}
 		
-		if (Monster.isDarkEnoughToSpawn((ServerLevelAccessor) level, pos, rand)) {
+		
+		if (isFriendly) {
 			return true;
 		}
 
-		return true;
+		if (!isFriendly && Monster.isDarkEnoughToSpawn((ServerLevelAccessor) level, pos, rand)) {
+			return true;
+		}
+		
+		return false;
 	}
 
 	public static String GetBiomeName(Biome b) {
 		return b.toString();
 	}
 
-	public static void dbgChatln(Player p, String msg, int level) {
+	public static void dbgChatln(ServerPlayer p, String msg, int level) {
 		if (MyConfig.getDebugLevel() > level - 1) {
 			sendChat(p, msg, ChatFormatting.YELLOW);
 		}
@@ -237,16 +246,17 @@ public class Utility {
 
 	}
 
-	public static void sendBoldChat(Player p, String chatMessage, ChatFormatting textColor) {
+	public static void sendBoldChat(ServerPlayer p, String chatMessage, ChatFormatting textColor) {
 
 		MutableComponent component = Component.literal(chatMessage);
 		component.setStyle(component.getStyle().withBold(true));
 		component.setStyle(component.getStyle().withColor(textColor));
+	
 		p.sendSystemMessage(component);
 
 	}
 
-	public static void sendChat(Player p, String chatMessage, ChatFormatting textColor) {
+	public static void sendChat(ServerPlayer p, String chatMessage, ChatFormatting textColor) {
 
 		MutableComponent component = Component.literal(chatMessage);
 		component.setStyle(component.getStyle().withColor(textColor));
@@ -296,7 +306,7 @@ public class Utility {
 			return false;
 		for (int i = 0; i <= numZP; i++) {
 
-			e = (Mob) et.spawn(level, savePos.north(2).west(2), MobSpawnType.NATURAL);
+			e = (Mob) et.spawn(level, savePos.north(2).west(2), EntitySpawnReason.NATURAL);
 			if (persistant)
 				e.setPersistenceRequired();
 			e.setBaby(isBaby);
@@ -307,7 +317,7 @@ public class Utility {
 	public static boolean populateXEntityType(EntityType<?> et, ServerLevel level, BlockPos savePos, int X,
 			boolean isBaby) {
 
-		if (level.isDay() && level.getBrightness(LightLayer.SKY, savePos) > 0) {
+		if (level.isBrightOutside() && level.getBrightness(LightLayer.SKY, savePos) > 0) {
 			if (et == EntityType.ZOMBIE)
 				return false;
 			if (et == EntityType.ZOMBIE_VILLAGER)
@@ -324,7 +334,7 @@ public class Utility {
 		for (int i = 0; i < X; i++) {
 			System.out.println("populate " + (i + 1) + " of " + X + " " + et.toShortString() + "at" + savePos);
 			debugMsg(2, "populate " + (i + 1) + " of " + X + " " + et.toShortString());
-			e = et.spawn(level, savePos, MobSpawnType.NATURAL);
+			e = et.spawn(level, savePos, EntitySpawnReason.NATURAL);
 			if (e instanceof Mob em) {
 				em.setBaby(isBaby);
 			}

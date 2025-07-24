@@ -28,7 +28,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.random.Weight;
+import net.minecraft.util.random.Weighted;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.biome.MobSpawnSettings.SpawnerData;
@@ -77,8 +77,8 @@ public class SpawnStructureData {
 
 		structureEventNumber++;
 
-		List<SpawnerData> newSpawnersList = new ArrayList<>();
-		List<SpawnerData> theirSpawnersList = new ArrayList<>();
+		List<Weighted<SpawnerData>> newSpawnersList = new ArrayList<>();
+		List<Weighted<SpawnerData>> theirSpawnersList = new ArrayList<>();
 		int fixCount = 0;
 
 		for (MobCategory ec : MobCategory.values()) {
@@ -90,23 +90,22 @@ public class SpawnStructureData {
 			newSpawnersList.clear();
 			theirSpawnersList.clear();
 
-			for (SpawnerData s : spob.getSpawns()) {
-				int oldSpawnWeight = s.getWeight().asInt();
+			for (Weighted<SpawnerData> s : spob.getSpawns()) {
+				int oldSpawnWeight = s.weight();
 				int newSpawnWeight = Math.max(MyConfig.getMinSpawnWeight(), oldSpawnWeight);
 				if (newSpawnWeight > 0) newSpawnWeight = Math.min(MyConfig.getMaxSpawnWeight(), newSpawnWeight);
 				if (newSpawnWeight != oldSpawnWeight)
 					fixCount++;
-				SpawnerData newSpawner = new SpawnerData(s.type, Weight.of(newSpawnWeight), s.minCount,
-						s.maxCount);
-				newSpawnersList.add(newSpawner);
+
+				newSpawnersList.add(new Weighted<SpawnerData>(s.value(),s.weight()));
 
 			}
 
 			builder.getStructureSettings().removeSpawnOverrides(ec);
 			
 			StructureSpawnOverrideBuilder so = builder.getStructureSettings().getOrAddSpawnOverrides(ec);
-			for (SpawnerData s : newSpawnersList) {
-				so.addSpawn(s);
+			for (Weighted<SpawnerData> s : newSpawnersList) {
+				so.addSpawn(s.value(),s.weight());
 			}
 
 		}
@@ -138,7 +137,7 @@ public class SpawnStructureData {
 		int structlinenumber = 0;
 		MinecraftServer server = event.getServer();
 		RegistryAccess dynreg = server.registryAccess();
-		Registry<Structure> structRegistry = dynreg.registryOrThrow(Registries.STRUCTURE);
+		Registry<Structure> structRegistry = dynreg.lookupOrThrow(Registries.STRUCTURE);
 
 		for (Structure struct : structRegistry) {
 			String sn = structRegistry.getKey(struct).toString();
@@ -148,17 +147,17 @@ public class SpawnStructureData {
 			for (MobCategory mc : MobCategory.values()) {
 				if (msi.get(mc) == null)
 					continue;
-				for (SpawnerData s : msi.get(mc).spawns().unwrap()) {
+				for (Weighted<SpawnerData> s : msi.get(mc).spawns().unwrap()) {
 					if (MyConfig.isSuppressMinecraftMobReporting()) {
-						if (EntityType.getKey(s.type).getNamespace().equals("minecraft")) {
+						if (EntityType.getKey(s.value().type()).getNamespace().equals("minecraft")) {
 							continue;
 						}
 					}
-					String modname = EntityType.getKey(s.type).getNamespace();
+					String modname = EntityType.getKey(s.value().type()).getNamespace();
 					if (MyConfig.isIncludedMod(modname)) {
 						p.println(
-								++structlinenumber + ", " + sn + ", " + mc + ", " + EntityType.getKey(s.type).toString()
-										+ ", " + s.getWeight() + ", " + s.minCount + ", " + s.maxCount);
+								++structlinenumber + ", " + sn + ", " + mc + ", " + EntityType.getKey(s.value().type()).toString()
+										+ ", " + s.weight() + ", " + s.value().minCount() + ", " + s.value().maxCount());
 					}
 
 				}
@@ -184,8 +183,9 @@ public class SpawnStructureData {
 
 		List<StructureCreatureItem> structureMobList = StructureCreatureManager.structureCreaturesMap.get(key);
 
-		List<SpawnerData> newSpawnersList = new ArrayList<>();
-		List<SpawnerData> theirSpawnersList = new ArrayList<>();
+		List<Weighted<SpawnerData>> newSpawnersList = new ArrayList<>();
+
+
 		int used = 0;
 
 		if (structureMobList != null) {
@@ -193,7 +193,6 @@ public class SpawnStructureData {
 
 				vCl = v.getSerializedName();
 				newSpawnersList.clear();
-				theirSpawnersList.clear();
 
 				for (int i = 0; i < structureMobList.size(); i++) {
 					StructureCreatureItem sci = structureMobList.get(i);
@@ -216,8 +215,10 @@ public class SpawnStructureData {
 													+ opt.get().getCategory());
 								}
 							}
-							SpawnerData newSpawner = new SpawnerData(opt.get(), Weight.of(sci.getSpawnWeight()),
-									sci.getMinCount(), sci.getMaxCount());
+							
+							SpawnerData newS = new SpawnerData(opt.get(), sci.getMinCount(), sci.getMaxCount());
+							
+							Weighted<SpawnerData> newSpawner = new Weighted<SpawnerData>(newS, sci.getSpawnWeight());
 							newSpawnersList.add(newSpawner);
 
 						} else {
@@ -235,8 +236,9 @@ public class SpawnStructureData {
 				
 				if (!newSpawnersList.isEmpty()) {
 					StructureSpawnOverrideBuilder so = builder.getStructureSettings().getOrAddSpawnOverrides(v);
-					for (SpawnerData s : newSpawnersList) {
-						so.addSpawn(s);
+					for (Weighted<SpawnerData> s : newSpawnersList) {
+						so.addSpawn(s.value(),s.weight());
+						
 					}
 					used += newSpawnersList.size();
 				}

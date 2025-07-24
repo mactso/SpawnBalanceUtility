@@ -16,7 +16,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mactso.spawnbalanceutility.config.MyConfig;
-import com.mactso.spawnbalanceutility.util.Summary;
 import com.mactso.spawnbalanceutility.util.Utility;
 
 import net.minecraft.core.BlockPos;
@@ -27,6 +26,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.LightLayer;
@@ -155,8 +155,8 @@ public class PsuedoMobManager {
 		AABB box = AABB.of(BoundingBox.fromCorners(pos.above(boxsize).north(boxsize).east(boxsize),
 				pos.below(boxsize).south(boxsize).west(boxsize)));
 		if (firstTime) {
-			minBuildHeight = sLevel.getMinBuildHeight();
-			maxBuildHeight = sLevel.getMaxBuildHeight();
+			minBuildHeight = sLevel.getMinY();
+			maxBuildHeight = sLevel.getMaxY();
 			firstTime = false;
 		}
 
@@ -208,7 +208,7 @@ public class PsuedoMobManager {
 		DimensionType dimensiontype = sLevel.dimensionType();
 		int dimSpawnLight = dimensiontype.monsterSpawnBlockLightLimit();
 
-		if ((et.create(sLevel) instanceof Monster)) {
+		if ((et.create(sLevel,EntitySpawnReason.NATURAL) instanceof Monster)) {
 			if (blocklight < 1) {
 				return true;
 			} else if (blocklight <= dimSpawnLight) {
