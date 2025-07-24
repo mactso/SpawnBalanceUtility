@@ -51,13 +51,6 @@ public class SpawnBiomeData {
 
 	static {
 		initReports();
-//		try {dp
-//			String name = ASMAPI.mapField("f_47442_");
-//			fieldBiomeCategory = Biome.class.getDeclaredField(name);
-//			fieldBiomeCategory.setAccessible(true);
-//		} catch (Exception e) {
-//			LOGGER.error("XXX Unexpected Reflection Failure trying set Biome.biomeCategory accessible");
-//		}		
 	}
 
 	public static void initReports() {
@@ -85,8 +78,7 @@ public class SpawnBiomeData {
 		// get net/minecraft/world/level/biome/MobSpawnSettings/f_48329_
 		// net/minecraft/world/level/biome/MobSpawnSettings/spawners
 		try {
-			String name = ASMAPI.mapField("f_48329_");
-			field = MobSpawnSettings.class.getDeclaredField(name);
+			field = MobSpawnSettings.class.getDeclaredField("spawners");
 			field.setAccessible(true);
 		} catch (Exception e) {
 			LOGGER.error("XXX Unexpected Reflection Failure balanceBiomeSpawnValues");
@@ -111,7 +103,7 @@ public class SpawnBiomeData {
 				continue;
 			}
 
-			MobSpawnSettings msi = b.getMobSettings();
+			MobSpawnSettings mobSpawnSettings = b.getMobSettings();
 
 			Map<MobCategory, WeightedRandomList<SpawnerData>> newMap = new HashMap<>();
 			int used = 0;
@@ -155,8 +147,8 @@ public class SpawnBiomeData {
 			}
 			try {
 				@SuppressWarnings("unchecked")
-				Map<MobCategory, WeightedRandomList<SpawnerData>> oldMap = (Map<MobCategory, WeightedRandomList<SpawnerData>>) field.get(msi);
-				field.set(msi, newMap);
+				Map<MobCategory, WeightedRandomList<SpawnerData>> oldMap = (Map<MobCategory, WeightedRandomList<SpawnerData>>) field.get(mobSpawnSettings);
+				field.set(mobSpawnSettings, newMap);
 				usedTotal += used;
 				Summary.biomeUpdate(oldMap, newMap);
 			} catch (Exception e) {
@@ -176,8 +168,7 @@ public class SpawnBiomeData {
 
 		Field field = null;
 		try {
-			String name = ASMAPI.mapField("f_48329_");
-			field = MobSpawnSettings.class.getDeclaredField(name);
+			field = MobSpawnSettings.class.getDeclaredField("spawners");
 			field.setAccessible(true);
 		} catch (Exception e) {
 			LOGGER.error("XXX Unexpected Reflection Failure lateBalanceBiomeSpawnValues");
