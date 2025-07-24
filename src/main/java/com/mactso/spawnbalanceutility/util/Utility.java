@@ -15,6 +15,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -182,24 +183,33 @@ public class Utility {
 		Utility.debugMsg(1, Main.MODID + " : " + entityType.getDescriptionId());
 		if (spawnReason == MobSpawnType.SPAWNER)
 				return true;
-
+		
 		if (spawnReason == MobSpawnType.SPAWN_EGG)
 			return true;
 
-		if (level.getDifficulty() == Difficulty.PEACEFUL)
-			return false;
+		// TODO Fix this in 1.21.5
 		
+		boolean isFriendly = entityType.getCategory().isFriendly();
+		
+		if (!isFriendly && level.getDifficulty() == Difficulty.PEACEFUL)
+			return false;
+
 		BlockState bs = level.getBlockState(pos.below());
 
 		if (!(bs.isValidSpawn(level, pos.below(), entityType))) {
 			return false;
 		}
 		
-		if (Monster.isDarkEnoughToSpawn((ServerLevelAccessor) level, pos, rand)) {
+		
+		if (isFriendly) {
 			return true;
 		}
 
-		return true;
+		if (!isFriendly && Monster.isDarkEnoughToSpawn((ServerLevelAccessor) level, pos, rand)) {
+			return true;
+		}
+		
+		return false;
 	}
 
 	public static String GetBiomeName(Biome b) {
