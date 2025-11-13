@@ -22,6 +22,7 @@ public class AllMobEntitiesReport {
 	
 	public static void doReport() {
 		
+		initReports();
 		PrintStream p = null;
 		try {
 			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/AllMobEntities.rpt", true));

@@ -215,17 +215,17 @@ public class SpawnBiomeData {
 				for (Weighted<SpawnerData> weightedEntry : orgWListSpawners.unwrap()) {
 					
 					int oldSpawnWeight = weightedEntry.weight();
-					SpawnerData s = weightedEntry.value();
+					SpawnerData spawnerData = weightedEntry.value();
 					int newSpawnWeight = oldSpawnWeight;
 					if (newSpawnWeight > 0) {
 						newSpawnWeight = Math.max(MyConfig.getMinSpawnWeight(), newSpawnWeight);
 						newSpawnWeight = Math.min(MyConfig.getMaxSpawnWeight(), newSpawnWeight);	
 					}
 
-					Utility.debugMsg(2, Main.MODID + ":" + s.type().getDescriptionId() + " minspawn change from "
+					Utility.debugMsg(2, Main.MODID + ":" + spawnerData.type().getDescriptionId() + " minspawn change from "
 								+ weightedEntry.weight() + " to " + newSpawnWeight);
 
-					String key = EntityType.getKey(s.type()).toString();
+					String key = EntityType.getKey(spawnerData.type()).toString();
 					int dSW = MyConfig.getDefaultSpawnWeight(key);
 					if (dSW != MyConfig.NO_DEFAULT_SPAWN_WEIGHT_FOUND) {
 						if (newSpawnWeight == 0) {
@@ -234,19 +234,17 @@ public class SpawnBiomeData {
 						newSpawnWeight = dSW;
 					}
 
+					
+					
 					if (newSpawnWeight != oldSpawnWeight)
 						fixCount++;
 
-					
-					SpawnerData newS = new SpawnerData(s.type(), s.minCount(), s.maxCount());
-
-					
-					newFixedList.add(new Weighted<>(newS, newSpawnWeight));
+					newFixedList.add(new Weighted<>(spawnerData, newSpawnWeight));
 					
 					if (Utility.getMyBC(biomeHolder) == Utility.NETHER) {
-						if (s.type() == EntityType.ZOMBIFIED_PIGLIN)
+						if (spawnerData.type() == EntityType.ZOMBIFIED_PIGLIN)
 							zombifiedPiglinSpawner = true;
-						if (s.type() == EntityType.GHAST) {
+						if (spawnerData.type() == EntityType.GHAST) {
 							ghastSpawner = true;
 						}
 					}

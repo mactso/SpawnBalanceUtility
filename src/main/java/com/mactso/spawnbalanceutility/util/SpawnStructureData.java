@@ -90,14 +90,14 @@ public class SpawnStructureData {
 			newSpawnersList.clear();
 			theirSpawnersList.clear();
 
-			for (Weighted<SpawnerData> s : spob.getSpawns()) {
-				int oldSpawnWeight = s.weight();
+			for (Weighted<SpawnerData> weightedEntry : spob.getSpawns()) {
+				int oldSpawnWeight = weightedEntry.weight();
 				int newSpawnWeight = Math.max(MyConfig.getMinSpawnWeight(), oldSpawnWeight);
 				if (newSpawnWeight > 0) newSpawnWeight = Math.min(MyConfig.getMaxSpawnWeight(), newSpawnWeight);
 				if (newSpawnWeight != oldSpawnWeight)
 					fixCount++;
 
-				newSpawnersList.add(new Weighted<SpawnerData>(s.value(),s.weight()));
+				newSpawnersList.add(new Weighted<SpawnerData>(weightedEntry.value(),newSpawnWeight));
 
 			}
 
@@ -191,13 +191,13 @@ public class SpawnStructureData {
 		if (structureMobList != null) {
 			for (MobCategory v : MobCategory.values()) {
 
-				vCl = v.getSerializedName();
+				vCl = v.toString();
 				newSpawnersList.clear();
 
 				for (int i = 0; i < structureMobList.size(); i++) {
 					StructureCreatureItem sci = structureMobList.get(i);
 
-					if (sci.getClassification().toLowerCase().equals(vCl)) {
+					if (sci.getClassification().equalsIgnoreCase(vCl)) {
 						Optional<EntityType<?>> opt = BuiltInRegistries.ENTITY_TYPE
 								.getOptional(ResourceLocation.parse(sci.getModAndMob()));
 						if (opt.isPresent()) {

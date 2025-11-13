@@ -40,7 +40,7 @@ public class Main {
 	@SubscribeEvent
 	public void preInit(final FMLCommonSetupEvent event) {
 		Utility.debugMsg(1, MODID + ": Registering Handlers.  Version 1");
-		AllMobEntitiesReport.doReport();
+
 	}
 
 	@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -74,6 +74,8 @@ public class Main {
 				}
 
 			}
+			
+			AllMobEntitiesReport.doReport();
 			Summary.report();
 
 //	        	SpawnData.initReports();
