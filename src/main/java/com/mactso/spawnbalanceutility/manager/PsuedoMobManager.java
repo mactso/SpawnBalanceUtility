@@ -162,7 +162,7 @@ public class PsuedoMobManager {
 
 		// generate a random spawning spot and look downwards for
 		// an area to spawn with solid ground and air above it.
-		int debug = 6;
+
 		MutableBlockPos mSpawnPos = getRandomSolidSpawnPos(sp, box);
 		if (mSpawnPos == null) {
 			return false;
@@ -170,7 +170,7 @@ public class PsuedoMobManager {
 
 		//
 		PsuedoMobItem pmi = getRandomPsuedoMob(sLevel, mSpawnPos, rand);
-		int debug4 = 4;
+
 		if (pmi == null) { // legal if no pm's configured for biome.
 			return false;
 		} else {
@@ -341,7 +341,6 @@ public class PsuedoMobManager {
 	public static class PsuedoMobItem {
 		int lineNumber;
 		String modAndBiome;
-		String classification;
 		String modAndMob;
 		int spawnWeight;
 		int minCount;
@@ -350,7 +349,6 @@ public class PsuedoMobManager {
 		public PsuedoMobItem(int lineNumber, String modAndBiome, String modAndMob, int spawnWeight, int min, int max) {
 			this.lineNumber = lineNumber;
 			this.modAndBiome = modAndBiome;
-			this.classification = classification;
 			this.modAndMob = modAndMob;
 			this.spawnWeight = spawnWeight;
 			this.minCount = min;
@@ -359,10 +357,6 @@ public class PsuedoMobManager {
 
 		public String getModAndBiome() {
 			return modAndBiome;
-		}
-
-		public String getClassification() {
-			return classification;
 		}
 
 		public String getModAndMob() {

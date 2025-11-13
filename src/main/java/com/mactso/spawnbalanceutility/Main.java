@@ -76,6 +76,7 @@ public class Main {
 				}
 
 			}
+			AllMobEntitiesReport.doReport();
 			Summary.report();
 
 //	        	SpawnData.initReports();

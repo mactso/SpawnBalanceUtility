@@ -22,6 +22,8 @@ public class AllMobEntitiesReport {
 	
 	public static void doReport() {
 		
+		initReports();
+		
 		PrintStream p = null;
 		try {
 			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/AllMobEntities.rpt", true));
@@ -52,7 +54,7 @@ public class AllMobEntitiesReport {
 		
 	}
 
-	private static boolean isValidClassification(EntityType<?> a) {
+	private static boolean isValidMobCategory(EntityType<?> a) {
 		if (a.getCategory() == MobCategory.MISC) 
 			return false;
 		return true;

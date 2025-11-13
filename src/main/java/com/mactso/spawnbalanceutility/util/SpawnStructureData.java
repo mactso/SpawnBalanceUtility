@@ -189,15 +189,15 @@ public class SpawnStructureData {
 		int used = 0;
 
 		if (structureMobList != null) {
-			for (MobCategory v : MobCategory.values()) {
+			for (MobCategory mc : MobCategory.values()) {
 
-				vCl = v.getSerializedName();
+				vCl = mc.toString();
 				newSpawnersList.clear();
 
 				for (int i = 0; i < structureMobList.size(); i++) {
 					StructureCreatureItem sci = structureMobList.get(i);
 
-					if (sci.getClassification().toLowerCase().equals(vCl)) {
+					if (sci.getClassification().equalsIgnoreCase(vCl)) {
 						@SuppressWarnings("deprecation")
 						Optional<EntityType<?>> opt = BuiltInRegistries.ENTITY_TYPE
 								.getOptional(ResourceLocation.parse(sci.getModAndMob()));
@@ -205,13 +205,13 @@ public class SpawnStructureData {
 							if (opt.get().getCategory() == MobCategory.MISC) {
 								Utility.debugMsg(0, Main.MODID + " : " + sci.getModAndMob()
 										+ " is MISC, minecraft is hard coded to change it to minecraft:pig in spawning data.");
-							} else if (opt.get().getCategory() != v) {
+							} else if (opt.get().getCategory() != mc) {
 								if (sci.getModAndMob().equals("minecraft:ocelot")) {
 
 								} else {
 									Utility.debugMsg(0,
 											Main.MODID + " : " + sci.getModAndMob() + " Error, mob type "
-													+ v + " different than defined for the type of mob "
+													+ mc + " different than defined for the type of mob "
 													+ opt.get().getCategory());
 								}
 							}
@@ -229,13 +229,13 @@ public class SpawnStructureData {
 				}
 
 				@Nullable
-				StructureSpawnOverrideBuilder spob = builder.getStructureSettings().getSpawnOverrides(v);
+				StructureSpawnOverrideBuilder spob = builder.getStructureSettings().getSpawnOverrides(mc);
 				if (spob != null) {
-					builder.getStructureSettings().removeSpawnOverrides(v);
+					builder.getStructureSettings().removeSpawnOverrides(mc);
 				}
 				
 				if (!newSpawnersList.isEmpty()) {
-					StructureSpawnOverrideBuilder so = builder.getStructureSettings().getOrAddSpawnOverrides(v);
+					StructureSpawnOverrideBuilder so = builder.getStructureSettings().getOrAddSpawnOverrides(mc);
 					for (Weighted<SpawnerData> s : newSpawnersList) {
 						so.addSpawn(s.value(),s.weight());
 						
