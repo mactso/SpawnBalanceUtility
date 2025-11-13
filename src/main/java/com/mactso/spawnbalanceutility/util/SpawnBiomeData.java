@@ -138,11 +138,11 @@ public class SpawnBiomeData {
 
 			Map<SpawnGroup, Pool<SpawnEntry>> newMap = new HashMap<>();
 
-			for (SpawnGroup v : SpawnGroup.values()) {
+			for (SpawnGroup mc : SpawnGroup.values()) {
 				newBalancedList.clear();
-				vCl = v.getName();
+				vCl = mc.toString();
 				for (BiomeCreatureItem biomeCreatureItem : modBiomeMobSpawners) {
-					if (biomeCreatureItem.getClassification().toLowerCase().equals(vCl)) {
+					if (biomeCreatureItem.getClassification().equalsIgnoreCase(vCl)) {
 						
 						Optional<EntityType<?>> opt = Registries.ENTITY_TYPE.getOrEmpty(Identifier.of(biomeCreatureItem.getModAndMob()));
 	
@@ -157,7 +157,7 @@ public class SpawnBiomeData {
 						}
 					}
 				}
-				newMap.put(v, Pool.of(newBalancedList));
+				newMap.put(mc, Pool.of(newBalancedList));
 			}
 			try {
 				fieldSpawners.set(msi, newMap);

@@ -119,12 +119,12 @@ public class SpawnStructData {
 			Map<SpawnGroup, StructureSpawns> newMap = new HashMap<>();
 			if (creaturesInStructure != null) {
 				for (SpawnGroup mc : SpawnGroup.values()) {
-					String vCl = mc.getName();
+					String vCl = mc.toString();
 					newSpawnEntriesList.clear();
 					for (int i = 0; i < creaturesInStructure.size(); i++) {
 						StructureCreatureItem sci = creaturesInStructure.get(i);
 
-						if (sci.getClassification().toLowerCase().equals(vCl)) {
+						if (sci.getClassification().equalsIgnoreCase(vCl)) {
 							Optional<EntityType<?>> opt = Registries.ENTITY_TYPE
 									.getOrEmpty(Identifier.of(sci.getModAndMob()));
 							if (opt.isPresent()) {
