@@ -1,14 +1,16 @@
 package com.mactso.spawnbalanceutility;
 
 import com.mactso.spawnbalanceutility.config.MyConfigs;
+import com.mactso.spawnbalanceutility.util.AllMobEntitiesReport;
 import com.mactso.spawnbalanceutility.util.SpawnBiomeData;
 import com.mactso.spawnbalanceutility.util.SpawnStructData;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.ServerStarted;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.Identifier;
+
 
 public class Main implements ModInitializer, ServerStarted {
 
@@ -20,7 +22,7 @@ public class Main implements ModInitializer, ServerStarted {
 			MyConfigs.registerConfigs();
 			// zzz to go last.
 
-			ServerLifecycleEvents.SERVER_STARTED.register(Identifier.of("zzzzzzzz","zzzzzzzz"),this);
+			ServerLifecycleEvents.SERVER_STARTED.register(ResourceLocation.fromNamespaceAndPath("zzzzzzzz","zzzzzzzz"),this);
 
 		}
 
@@ -37,6 +39,7 @@ public class Main implements ModInitializer, ServerStarted {
 
     		SpawnBiomeData.doBiomeActions(server);
     		SpawnStructData.doStructureActions(server);
+    		AllMobEntitiesReport.doReport();
 
         }
 

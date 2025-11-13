@@ -42,7 +42,7 @@ public class StructureCreatureManager {
 					errorField = "modAndStructure";
 					String modAndStructure = st.nextToken().trim();
 					errorField = "classification";
-					String classification = st.nextToken().trim();
+					String mobCategory = st.nextToken().trim();
 					errorField = "modAndMob";
 					String modAndMob = st.nextToken().trim();
 					errorField = "spawnWeight";
@@ -63,8 +63,8 @@ public class StructureCreatureManager {
 					}					
 					String key = modAndStructure;
 					if (spawnWeight > 0){
-						Utility.debugMsg(1, lineNumber +", "+ lastgoodline+", "+ modAndStructure+", "+ classification+", "+ modAndMob+", "+ spawnWeight+", "+minCount+", "+ maxCount);
-						StructureCreatureItem bci = new StructureCreatureItem(lineNumber, modAndStructure, classification, modAndMob, spawnWeight, minCount, maxCount);
+						Utility.debugMsg(1, lineNumber +", "+ lastgoodline+", "+ modAndStructure+", "+ mobCategory+", "+ modAndMob+", "+ spawnWeight+", "+minCount+", "+ maxCount);
+						StructureCreatureItem bci = new StructureCreatureItem(lineNumber, modAndStructure, mobCategory, modAndMob, spawnWeight, minCount, maxCount);
 						List<StructureCreatureItem> structureMobList = structureCreaturesMap.get(key);
 						if (structureMobList == null) {
 							structureMobList = new ArrayList<>();
@@ -91,17 +91,17 @@ public class StructureCreatureManager {
 	public static class StructureCreatureItem  {
 		int lineNumber;
 		String modAndStructure;
-		String classification;
+		String mobCategory;
 		String modAndMob;
 		int spawnWeight;
 		int minCount;
 		int maxCount;
 
-		public StructureCreatureItem(int lineNumber, String modAndStructure, String classification, 
+		public StructureCreatureItem(int lineNumber, String modAndStructure, String mobCategory, 
 				String modAndMob, int spawnWeight, int min, int max) {
 			this.lineNumber = lineNumber;
 			this.modAndStructure = modAndStructure;
-			this.classification = classification;
+			this.mobCategory = mobCategory;
 			this.modAndMob = modAndMob;
 			this.spawnWeight = spawnWeight;
 			this.minCount = min;
@@ -113,7 +113,7 @@ public class StructureCreatureManager {
 		}
 
 		public String getClassification() {
-			return classification;
+			return mobCategory;
 		}
 
 		public String getModAndMob() {

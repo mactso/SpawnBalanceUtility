@@ -23,31 +23,28 @@ import com.mactso.spawnbalanceutility.manager.StructureCreatureManager.Structure
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.MappingResolver;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.SpawnGroup;
-import net.minecraft.registry.DynamicRegistryManager;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry.Reference;
+import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.collection.Pool;
-import net.minecraft.util.collection.Weight;
-import net.minecraft.world.StructureSpawns;
-import net.minecraft.world.StructureSpawns.BoundingBox;
-import net.minecraft.world.biome.SpawnSettings;
-import net.minecraft.world.biome.SpawnSettings.SpawnEntry;
-import net.minecraft.world.gen.structure.Structure;
-import net.minecraft.world.gen.structure.Structure.Config;
+import net.minecraft.util.random.Weight;
+import net.minecraft.util.random.WeightedRandomList;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.level.biome.MobSpawnSettings.SpawnerData;
+import net.minecraft.world.level.levelgen.structure.Structure;
+import net.minecraft.world.level.levelgen.structure.Structure.StructureSettings;
+import net.minecraft.world.level.levelgen.structure.StructureSpawnOverride;
+import net.minecraft.world.level.levelgen.structure.StructureSpawnOverride.BoundingBoxType;
 
 public class SpawnStructData {
 
 	private static Field fieldStructConfig = null;
 
 	private static final Logger LOGGER = LogManager.getLogger();
-	public static final Pool<SpawnSettings.SpawnEntry> SBU_FIX_EMPTY_MOB_LIST = Pool.of();
 
 	static int structureLineNumber = 0;
 	static Set<String> structuresProcessed = new HashSet<>();
@@ -89,8 +86,8 @@ public class SpawnStructData {
 
 	public static void doStructureActions(MinecraftServer server) {
 
-		DynamicRegistryManager dynreg = server.getRegistryManager();
-		Optional<Registry<Structure>> optStructReg = dynreg.getOptional(RegistryKeys.STRUCTURE);
+		RegistryAccess dynreg = server.registryAccess();
+		Optional<Registry<Structure>> optStructReg = dynreg.lookup(Registries.STRUCTURE);
 		
 		initReports();
 
@@ -114,47 +111,54 @@ public class SpawnStructData {
 
 	private static void balanceStructureSpawnValues(Registry<Structure> csfreg) {
 
-		List<SpawnEntry> newSpawnEntriesList = new ArrayList<>();
+		List<SpawnerData> newSpawnEntriesList = new ArrayList<>();
 
-		for (Entry<RegistryKey<Structure>, Structure> csf : csfreg.getEntrySet()) {
+		
+		for (Entry<ResourceKey<Structure>, Structure> csf : csfreg.entrySet()) {
 
-			RegistryKey<Structure> csfKey = csf.getKey();
+			ResourceKey<Structure> csfKey = csf.getKey();
+			String csfIdentifier = csfKey.location().toString();
+			
 
-			String csfIdentifier = csfKey.getValue().toString();
-
-			List<StructureCreatureItem> creaturesInStructure = StructureCreatureManager.structureCreaturesMap
+			List<StructureCreatureItem> structureMobList = StructureCreatureManager.structureCreaturesMap
 					.get(csfIdentifier);
 
-			Map<SpawnGroup, StructureSpawns> newMap = new HashMap<>();
-			if (creaturesInStructure != null) {
-				for (SpawnGroup mc : SpawnGroup.values()) {
-					String vCl = mc.getName();
+			Map<MobCategory, StructureSpawnOverride> newMap = new HashMap<>();
+			if (structureMobList != null) {
+				for (MobCategory mc : MobCategory.values()) {
+					String vCl = mc.toString();  // fixed from vCl = v.getSerializedName();
 					newSpawnEntriesList.clear();
-					for (int i = 0; i < creaturesInStructure.size(); i++) {
-						StructureCreatureItem sci = creaturesInStructure.get(i);
+					for (int i = 0; i < structureMobList.size(); i++) {
+						StructureCreatureItem sci = structureMobList.get(i);
 
-						if (sci.getClassification().toLowerCase().equals(vCl)) {
-							 Optional<Reference<EntityType<?>>> optRef = Registries.ENTITY_TYPE
-									.getEntry(Identifier.of(sci.getModAndMob()));
+						if (sci.getClassification().equalsIgnoreCase(vCl)) {
+							
+							Optional<EntityType<?>> optRef = BuiltInRegistries.ENTITY_TYPE
+									.getOptional(ResourceLocation.parse((sci.getModAndMob())));
+
 							if (optRef.isPresent()) {
-								
-								SpawnEntry newS = new SpawnEntry(optRef.get().value(), Weight.of(sci.getSpawnWeight()),
-										sci.getMinCount(), sci.getMaxCount());
+
+								// original
+								SpawnerData newS = new SpawnerData(optRef.get(), 
+										Weight.of(sci.getSpawnWeight()),
+										sci.getMinCount(),
+										sci.getMaxCount());
 								newSpawnEntriesList.add(newS);
 							}
 
 						}
 
 					}
-					newMap.put(mc, new StructureSpawns(BoundingBox.STRUCTURE, Pool.of(newSpawnEntriesList)));
+					
+					newMap.put(mc, new StructureSpawnOverride(BoundingBoxType.STRUCTURE, WeightedRandomList.create(newSpawnEntriesList)));
 
 				}
 				if (!newMap.isEmpty()) {
 					Structure workStruct = csf.getValue();
 					try {
-						Config cfg = (Config) fieldStructConfig.get(workStruct);
+						StructureSettings cfg = (StructureSettings) fieldStructConfig.get(workStruct);
 						fieldStructConfig.set(workStruct,
-								new Config(cfg.biomes(), newMap, cfg.step(), cfg.terrainAdaptation()));
+								new StructureSettings (cfg.biomes(), newMap, cfg.step(), cfg.terrainAdaptation()));
 					} catch (Exception e) {
 						if (MyConfigs.getDebugLevel() > 0) {
 							e.printStackTrace();
@@ -170,28 +174,28 @@ public class SpawnStructData {
 
 	private static void fixStructureSpawnValues(Registry<Structure> csfreg) {
 
-		List<SpawnEntry> newSpawnersList = new ArrayList<>();
+		List<SpawnerData> newSpawnersList = new ArrayList<>();
 
-		for (Entry<RegistryKey<Structure>, Structure> csf : csfreg.getEntrySet()) {
+		for (Entry<ResourceKey<Structure>, Structure> csf : csfreg.entrySet()) {
 
-			RegistryKey<Structure> csfKey = csf.getKey();
-			String csfIdentifier = csfKey.getValue().toString();
+			ResourceKey<Structure> csfKey = csf.getKey();
+			String csfIdentifier = csfKey.location().toString();
 			String csfName = csfKey.toString();
 
-			Map<SpawnGroup, StructureSpawns> newMap = new HashMap<>();
+			Map<MobCategory, StructureSpawnOverride> newMap = new HashMap<>();
 			Structure workStruct = csf.getValue();
-			Map<SpawnGroup, StructureSpawns> mobs = workStruct.getStructureSpawns();
+			Map<MobCategory, StructureSpawnOverride> mobs = workStruct.spawnOverrides();
 			if (mobs == null)
 				continue;
-			for (SpawnGroup mc : SpawnGroup.values()) {
-				StructureSpawns old = mobs.get(mc);
+			for (MobCategory mc : MobCategory.values()) {
+				StructureSpawnOverride old = mobs.get(mc);
 				if (old == null) {
 					continue;
 				}
-				Pool<SpawnEntry> oldwrl = old.spawns();
+				WeightedRandomList<SpawnerData> oldwrl = old.spawns();
 				newSpawnersList.clear();
-				for (SpawnEntry s : oldwrl.getEntries()) {
-					int newSpawnWeight = s.getWeight().getValue();
+				for (SpawnerData s : oldwrl.unwrap()) {
+					int newSpawnWeight = s.getWeight().asInt();
 					if (newSpawnWeight < MyConfigs.getMinSpawnWeight()) {
 						if ((newSpawnWeight > 1) && (newSpawnWeight * 10 < MyConfigs.getMaxSpawnWeight())) {
 							newSpawnWeight = newSpawnWeight * 10;
@@ -202,16 +206,16 @@ public class SpawnStructData {
 					if (newSpawnWeight > MyConfigs.getMaxSpawnWeight()) {
 						newSpawnWeight = MyConfigs.getMaxSpawnWeight();
 					}
-					SpawnEntry newS = new SpawnEntry(s.type, Weight.of(newSpawnWeight), s.minGroupSize, s.maxGroupSize);
+					SpawnerData newS = new SpawnerData(s.type, Weight.of(newSpawnWeight), s.minCount, s.maxCount);
 					newSpawnersList.add(newS);
 				}
-				newMap.put(mc, new StructureSpawns(BoundingBox.STRUCTURE, Pool.of(newSpawnersList)));
+				newMap.put(mc, new StructureSpawnOverride(BoundingBoxType.STRUCTURE, WeightedRandomList.create(newSpawnersList)));
 			}
 
 			try {
-				Config cfg = (Config) fieldStructConfig.get(workStruct);
+				StructureSettings cfg = (StructureSettings) fieldStructConfig.get(workStruct);
 				fieldStructConfig.set(workStruct,
-						new Config(cfg.biomes(), newMap, cfg.step(), cfg.terrainAdaptation()));
+						new StructureSettings(cfg.biomes(), newMap, cfg.step(), cfg.terrainAdaptation()));
 			} catch (Exception e) {
 				LOGGER.error("Failed to fix " + csfName + " spawnentries map.  Set debugValue to 1 to see stacktrace.");
 			}
@@ -219,7 +223,7 @@ public class SpawnStructData {
 
 	}
 
-	private static void generateStructureSpawnValuesReport(Registry<Structure> csfreg) {
+	private static void generateStructureSpawnValuesReport(Registry<Structure> structRegistry) {
 
 		PrintStream p = null;
 		try {
@@ -239,54 +243,33 @@ public class SpawnStructData {
 		p.println("* like shipwrecks, nether fortresses, water monuments, etc.");
 		p.println("* ");
 
-		for (Entry<RegistryKey<Structure>, Structure> csf : csfreg.getEntrySet()) {
-			RegistryKey<Structure> csfKey = csf.getKey();
-			String csfIdentifier = csfKey.getValue().toString();
-			Structure workStruct = csf.getValue();
-			Config cfg = null;
-			try {
-				cfg = (Config) fieldStructConfig.get(workStruct);
-			} catch (Exception e) {
-				if (MyConfigs.getDebugLevel() > 0) {
-					e.printStackTrace();
-				} else {
-					LOGGER.error("Failed to load " + csfIdentifier
-							+ " Config/SpawnGroup map.  Set debugValue to 1 to see stacktrace.");
-				}
-			}
-			if (cfg == null) {
-				LOGGER.error("error:" + csfIdentifier + " Config/SpawnGroup map is null.");
-				continue;
-			}
-			p.println(++structureLineNumber + ", " + csfIdentifier + ", HEADING, header:ignore, 0, 0, 0");
+		int structlinenumber = 0;
+		for (Structure struct : structRegistry) {
+			String sn = structRegistry.getKey(struct).toString();
 
-			// mob category ( "MONSTER", "AMBIENT", etc.)
-			for (SpawnGroup spawnGroup : SpawnGroup.values()) {
-				StructureSpawns mobs = cfg.spawnOverrides().get(spawnGroup);
-				if (mobs == null)
+			p.println(++structlinenumber + ", " + sn + ", HEADING, header:ignore, 0, 0, 0");
+			Map<MobCategory, StructureSpawnOverride> msi = struct.spawnOverrides();
+			for (MobCategory mc : MobCategory.values()) {
+				if (msi.get(mc) == null)
 					continue;
-				for (SpawnEntry s : mobs.spawns().getEntries()) {
-					@SuppressWarnings("deprecation")
-					String modName = s.type.getRegistryEntry().getKey().get().getValue().getNamespace();
+				for (SpawnerData s : msi.get(mc).spawns().unwrap()) {
 					if (MyConfigs.isSuppressMinecraftMobReporting()) {
-						if (modName.equals("minecraft")) {
+						if (EntityType.getKey(s.type).getNamespace().equals("minecraft")) {
 							continue;
 						}
 					}
-
-					@SuppressWarnings("deprecation")
-					String mobIdentifier = s.type.getRegistryEntry().getKey().get().getValue().toString();
-// note this relies on the forge "modslist" feature which I don't know how to do in fabric if possible at all.
-//					if (MyConfig.isIncludedMod(modName)) {
-					p.println(++structureLineNumber + ", " + csfIdentifier + ", " + spawnGroup + ", " + mobIdentifier
-							+ ", " + s.getWeight().getValue() + ", " + s.minGroupSize + ", " + s.maxGroupSize);
-
-//					}
+					String modname = EntityType.getKey(s.type).getNamespace();
+					if (MyConfigs.isIncludedMod(modname)) {
+						p.println(
+								++structlinenumber + ", " + sn + ", " + mc + ", " + EntityType.getKey(s.type).toString()
+										+ ", " + s.getWeight() + ", " + s.minCount + ", " + s.maxCount);
+					}
 
 				}
-
 			}
+
 		}
+
 		if (p != System.out) {
 			p.close();
 		}

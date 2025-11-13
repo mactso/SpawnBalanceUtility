@@ -5,9 +5,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.SpawnGroup;
-import net.minecraft.registry.Registries;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
 
 public class AllMobEntitiesReport {
 	
@@ -23,6 +23,8 @@ public class AllMobEntitiesReport {
 	@SuppressWarnings("deprecation")
 	public static void doReport() {
 		
+		initReports();
+		
 		PrintStream p = null;
 		try {
 			p = new PrintStream(new FileOutputStream("config/spawnbalanceutility/AllMobEntities.rpt", true));
@@ -36,12 +38,12 @@ public class AllMobEntitiesReport {
 		
 		p.println ("* This file is a dictionary of all mob identifiers (modname:mobname) to help you.");
 		p.println ("* The MISC mobs can only be spawned as Psuedo Mobs.  They do not spawn normally.");
-		p.println ("* Some MISC things like Item Frames won't spawn propery.");
+		p.println ("* Some MISC things like Item Frames won't spawn properly.");
 		p.println ("* ");
 
-		for (EntityType<?> a : Registries.ENTITY_TYPE) {
+		for (EntityType<?> a : BuiltInRegistries.ENTITY_TYPE) {
 			if (isValidClassification(a)) {
-				p.println(a.getRegistryEntry().toString() + ", " + a.getSpawnGroup().asString());
+				p.println(EntityType.getKey(a).toString() + ", " + a.getCategory().toString());
 			}
 		}
 		
@@ -52,7 +54,7 @@ public class AllMobEntitiesReport {
 	}
 
 	private static boolean isValidClassification(EntityType<?> a) {
-		if (a.getSpawnGroup() == SpawnGroup.MISC) {
+		if (a.getCategory() == MobCategory.MISC) {
 			return false;
 		}
 

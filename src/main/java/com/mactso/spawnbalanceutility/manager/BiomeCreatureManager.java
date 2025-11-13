@@ -48,7 +48,7 @@ public class BiomeCreatureManager {
 					errorField = "modAndBiome";
 					String modAndBiome = st.nextToken().trim();
 					errorField = "classification";
-					String classification = st.nextToken().trim();
+					String mobCategory = st.nextToken().trim();
 					errorField = "modAndMob";
 					String modAndMob = st.nextToken().trim();
 					errorField = "spawnWeight";
@@ -70,7 +70,7 @@ public class BiomeCreatureManager {
 				
 					String key = modAndBiome;
 					if (spawnWeight > 0){
-						BiomeCreatureItem bci = new BiomeCreatureItem(lineNumber, category, modAndBiome, classification, modAndMob, spawnWeight, minCount, maxCount);
+						BiomeCreatureItem bci = new BiomeCreatureItem(lineNumber, category, modAndBiome, mobCategory, modAndMob, spawnWeight, minCount, maxCount);
 						List<BiomeCreatureItem> p = biomeCreaturesMap.get(key);
 						if (p == null) {
 							p = new ArrayList<>();
@@ -102,18 +102,18 @@ public class BiomeCreatureManager {
 		int lineNumber;
 		String category;
 		String modAndBiome;
-		String classification;
+		String mobCategory;
 		String modAndMob;
 		int spawnWeight;
 		int minCount;
 		int maxCount;
 
-		public BiomeCreatureItem(int lineNumber, String category, String modAndBiome, String classification, 
+		public BiomeCreatureItem(int lineNumber, String category, String modAndBiome, String mobCategory, 
 				String modAndMob, int spawnWeight, int min, int max) {
 			this.lineNumber = lineNumber;
 			this.category = category;
 			this.modAndBiome = modAndBiome;
-			this.classification = classification;
+			this.mobCategory = mobCategory;
 			this.modAndMob = modAndMob;
 			this.spawnWeight = spawnWeight;
 			this.minCount = min;
@@ -129,7 +129,7 @@ public class BiomeCreatureManager {
 		}
 
 		public String getClassification() {
-			return classification;
+			return mobCategory;
 		}
 
 		public String getModAndMob() {
