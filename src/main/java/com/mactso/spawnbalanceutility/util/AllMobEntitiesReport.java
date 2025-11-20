@@ -42,7 +42,7 @@ public class AllMobEntitiesReport {
 		p.println ("* ");
 
 		for (EntityType<?> a : BuiltInRegistries.ENTITY_TYPE) {
-			if (isValidClassification(a)) {
+			if (isValidMobCategory(a)) {
 				p.println(EntityType.getKey(a).toString() + ", " + a.getCategory().toString());
 			}
 		}
@@ -53,7 +53,7 @@ public class AllMobEntitiesReport {
 		
 	}
 
-	private static boolean isValidClassification(EntityType<?> a) {
+	private static boolean isValidMobCategory(EntityType<?> a) {
 		if (a.getCategory() == MobCategory.MISC) {
 			return false;
 		}

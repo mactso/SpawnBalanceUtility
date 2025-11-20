@@ -1,6 +1,7 @@
 package com.mactso.spawnbalanceutility.manager;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -13,7 +14,8 @@ import java.util.StringTokenizer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mactso.spawnbalanceutility.config.MyConfigs;
+import com.mactso.spawnbalanceutility.config.MyConfig;
+import com.mactso.spawnbalanceutility.util.Summary;
 
 public class BiomeCreatureManager {
 
@@ -27,16 +29,31 @@ public class BiomeCreatureManager {
 		int minCount = 0;
 		int maxCount = 0;
 		int linecount = 0;
+		int blankline = 0;
+		int commentcount = 0;
+		int addcount = 0;
 		String errorField = "first";
 		String line;
 		
 		if (biomeCreaturesMap.size() > 0) {
 			return;
 		}
-		try (InputStreamReader input = new InputStreamReader(
-				new FileInputStream("config/spawnbalanceutility/BiomeMobWeight.csv"))) {
+		
+		
+		// this code only has an effect on linux because case doesn't matter on windows)
+		File f = new File("config/spawnbalanceutility/BiomeMobWeight.csv");
+		if (!(f.exists())) {
+			 f = new File("config/spawnbalanceutility/BiomeMobWeight.CSV");
+		}
+		
+		try (InputStreamReader input = new InputStreamReader( new FileInputStream(f))) 
+		{			
 			BufferedReader br = new BufferedReader(input);
 			while ((line = br.readLine()) != null) {
+				if (line.charAt(0)=='*') {
+					continue;
+				}
+
 				StringTokenizer st = new StringTokenizer(line, ",");
 				linecount++;
 				try {
@@ -47,7 +64,7 @@ public class BiomeCreatureManager {
 					String category = st.nextToken().trim();
 					errorField = "modAndBiome";
 					String modAndBiome = st.nextToken().trim();
-					errorField = "classification";
+					errorField = "mobCategory";
 					String mobCategory = st.nextToken().trim();
 					errorField = "modAndMob";
 					String modAndMob = st.nextToken().trim();
@@ -61,15 +78,15 @@ public class BiomeCreatureManager {
 					if (minCount < 1) {
 						minCount = 1;
 					}
-					if (maxCount > 12) {
-						maxCount = 12;
+					if (maxCount > 32) {
+						maxCount = 32;
 					}
 					if (minCount > maxCount) {
 						minCount = maxCount;
 					}		
 				
 					String key = modAndBiome;
-					if (spawnWeight > 0){
+					if (spawnWeight >= 0){
 						BiomeCreatureItem bci = new BiomeCreatureItem(lineNumber, category, modAndBiome, mobCategory, modAndMob, spawnWeight, minCount, maxCount);
 						List<BiomeCreatureItem> p = biomeCreaturesMap.get(key);
 						if (p == null) {
@@ -79,22 +96,25 @@ public class BiomeCreatureManager {
 						// TODO maybe check for duplicates here later
 						// for now okay as long as spawn weight > 0.
 						p.add(bci);
+						addcount++;
 					}
-					
+
 				} catch (Exception e) {
 					if (!(line.isEmpty())) {
 						LOGGER.warn("SpawnBalanceUtility problem reading field "+errorField+" on "+linecount+"th line of BiomeMobWeight.csv.");
-					} else if (MyConfigs.getDebugLevel() > 0 ) {
+					} else if (MyConfig.getDebugLevel() > 0 ) {
 						LOGGER.warn("SpawnBalanceUtility blank line at "+linecount+"th line of BiomeMobWeight.csv.");
 					}
 				}
 			}
 			input.close();
 		} catch (Exception e) {
-			LOGGER.warn("config/spawnbalanceutility/BiomeMobWeight.csv not found.");
+			LOGGER.warn("BiomeMobWeight.csv not found in config/spawnbalanceutility/ (Remember you rename BiomeMobWeight.rpt to create it). ");
 			e.printStackTrace();
 		}
 		
+		linecount -= (blankline + commentcount);
+		Summary.setBiomeReadInfo(linecount, linecount - addcount);
 	}
 	
 	
@@ -128,7 +148,7 @@ public class BiomeCreatureManager {
 			return modAndBiome;
 		}
 
-		public String getClassification() {
+		public String getMobCategory() {
 			return mobCategory;
 		}
 

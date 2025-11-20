@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import com.mactso.spawnbalanceutility.utility.Utility;
+import com.mactso.spawnbalanceutility.Main;
+import com.mactso.spawnbalanceutility.util.Summary;
+import com.mactso.spawnbalanceutility.util.Utility;
 
 public class StructureCreatureManager {
 
@@ -23,6 +25,9 @@ public class StructureCreatureManager {
 		int minCount = 0;
 		int maxCount = 0;
 		int linecount = 0;
+		int addcount = 0;
+		int blankline = 0;
+		int commentcount = 0;
 		String errorField = "first";
 		String line;
 		
@@ -33,6 +38,17 @@ public class StructureCreatureManager {
 				new FileInputStream("config/spawnbalanceutility/StructMobWeight.csv"))) {
 			BufferedReader br = new BufferedReader(input);
 			while ((line = br.readLine()) != null) {
+				
+				if (line.trim().isEmpty()) {
+					blankline++;
+					continue;
+				}
+				
+				
+				if (line.charAt(0)=='*') {
+					commentcount++;
+					continue;
+				}
 				StringTokenizer st = new StringTokenizer(line, ",");
 				linecount++;
 				try {
@@ -41,7 +57,7 @@ public class StructureCreatureManager {
 					lastgoodline = lineNumber;
 					errorField = "modAndStructure";
 					String modAndStructure = st.nextToken().trim();
-					errorField = "classification";
+					errorField = "mobCategory";
 					String mobCategory = st.nextToken().trim();
 					errorField = "modAndMob";
 					String modAndMob = st.nextToken().trim();
@@ -63,6 +79,7 @@ public class StructureCreatureManager {
 					}					
 					String key = modAndStructure;
 					if (spawnWeight > 0){
+						// TODO set this debug value to 1.
 						Utility.debugMsg(1, lineNumber +", "+ lastgoodline+", "+ modAndStructure+", "+ mobCategory+", "+ modAndMob+", "+ spawnWeight+", "+minCount+", "+ maxCount);
 						StructureCreatureItem bci = new StructureCreatureItem(lineNumber, modAndStructure, mobCategory, modAndMob, spawnWeight, minCount, maxCount);
 						List<StructureCreatureItem> structureMobList = structureCreaturesMap.get(key);
@@ -73,18 +90,21 @@ public class StructureCreatureManager {
 						// TODO maybe check for duplicates here later
 						// for now okay as long as spawn weight > 0.
 						structureMobList.add(bci);
+						addcount++;
 					}
 					
 				} catch (Exception e) {
-					System.out.println("SpawnBalanceUtility Error reading field "+errorField+" on "+linecount+"th line of StructureMobWeight.csv.");
+					Utility.debugMsg(0, Main.MODID + " Error reading field "+errorField+" on "+linecount+"th line of StructureMobWeight.csv.");
 				}
 			}
 			input.close();
 		} catch (Exception e) {
-			System.out.println("StructMobWeight.csv not found in subdirectory SpawnBalanceUtility");
+			Utility.debugMsg(0, "Warning StructMobWeight.csv not found in subdirectory SpawnBalanceUtility");
 
 		}
 		
+		linecount -= (blankline + commentcount);
+		Summary.setStructureReadInfo(linecount, linecount - addcount );
 	}
 	
 	
@@ -112,7 +132,7 @@ public class StructureCreatureManager {
 			return modAndStructure;
 		}
 
-		public String getClassification() {
+		public String getMobCategory() {
 			return mobCategory;
 		}
 

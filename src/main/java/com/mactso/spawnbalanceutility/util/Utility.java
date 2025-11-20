@@ -1,4 +1,4 @@
-package com.mactso.spawnbalanceutility.utility;
+package com.mactso.spawnbalanceutility.util;
 
 
 import java.lang.reflect.Field;
@@ -6,7 +6,7 @@ import java.lang.reflect.Field;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mactso.spawnbalanceutility.config.MyConfigs;
+import com.mactso.spawnbalanceutility.config.MyConfig;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -127,7 +127,7 @@ public class Utility {
 	}
 	
 	public static void debugMsg(int level, String dMsg) {
-		if (MyConfigs.getDebugLevel() > level - 1) {
+		if (MyConfig.getDebugLevel() > level - 1) {
 			LOGGER.warn("L" + level + ":" + dMsg);
 		}
 	}

@@ -11,7 +11,7 @@ import com.mactso.spawnbalanceutility.manager.MobMassAdditionManager;
 import com.mactso.spawnbalanceutility.manager.StructureCreatureManager;
 import com.mojang.datafixers.util.Pair;
 
-public class MyConfigs {
+public class MyConfig {
 	
 
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -25,7 +25,7 @@ public class MyConfigs {
 		configs = new ModConfigProvider();
 		createConfigs();
 
-		CONFIG = SimpleConfig.of(Main.MOD_ID + "config").provider(configs).request();
+		CONFIG = SimpleConfig.of(Main.MODID + "config").provider(configs).request();
 
 		assignConfigs();
 	}
@@ -35,7 +35,7 @@ public class MyConfigs {
 	}
 
 	public static void setDebugLevel(int debugLevel) {
-		MyConfigs.debugLevel = debugLevel;
+		MyConfig.debugLevel = debugLevel;
 	}
 
 	public static boolean isGenerateReport() {

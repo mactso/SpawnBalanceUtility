@@ -1,6 +1,6 @@
 package com.mactso.spawnbalanceutility;
 
-import com.mactso.spawnbalanceutility.config.MyConfigs;
+import com.mactso.spawnbalanceutility.config.MyConfig;
 import com.mactso.spawnbalanceutility.util.AllMobEntitiesReport;
 import com.mactso.spawnbalanceutility.util.SpawnBiomeData;
 import com.mactso.spawnbalanceutility.util.SpawnStructData;
@@ -14,12 +14,12 @@ import net.minecraft.server.MinecraftServer;
 
 public class Main implements ModInitializer, ServerStarted {
 
-	    public static final String MOD_ID = "spawnbalanceutility"; 
+	    public static final String MODID = "spawnbalanceutility"; 
     
 		@Override
 		public void onInitialize() {
 
-			MyConfigs.registerConfigs();
+			MyConfig.registerConfigs();
 			// zzz to go last.
 
 			ServerLifecycleEvents.SERVER_STARTED.register(ResourceLocation.fromNamespaceAndPath("zzzzzzzz","zzzzzzzz"),this);
