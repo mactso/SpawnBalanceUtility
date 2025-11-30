@@ -1,15 +1,16 @@
 package com.mactso.spawnbalanceutility.manager;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.StringTokenizer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,29 +25,33 @@ public class MobMassAdditionManager {
 
 	private static final Logger LOGGER = LogManager.getLogger();
 
-	public static Hashtable<String, MassAdditionMobItem> massAdditionMobsHashtable = new Hashtable<>();
-	static int lastgoodline = 0;
+	public static Hashtable<String, MassAdditionMobItem> massAdditionMobs = new Hashtable<>();
+	private static int lastgoodlinenumber = 0;
+	private static String lastgoodline = "Start of the file.  There were no prior good lines.";
 
 	public static String CATEGORY_ALL = "A";
 	public static String CATEGORY_OVERWORLD = "O";
 	public static String CATEGORY_NETHER = "N";
 	public static String CATEGORY_THEEND = "E";
 
+	// TODO category appears to be biomeName in the calling class.  
+	// either fix the calling class or fix this class.
 	public static List<MassAdditionMobItem> getFilteredList(MobCategory mc, String category) {
+		
 		List<MassAdditionMobItem> ma = new ArrayList<>();
-		for (MassAdditionMobItem m : massAdditionMobsHashtable.values()) {
+		for (MassAdditionMobItem m : massAdditionMobs.values()) {
 			if (mc.getName().equalsIgnoreCase(m.getMobCategory())) {
 				if (m.getCategory().equals(CATEGORY_ALL)) {
 					ma.add(m);
-				} else if (category == Utility.NETHER) {
+				} else if (category.equals(Utility.NETHER)) {
 					if (m.getCategory().equals(CATEGORY_NETHER)) {
 						ma.add(m);
 					}
-				} else if (category == Utility.THEEND) {
+				} else if (category.equals(Utility.THEEND)) {
 					if (m.getCategory().equals(CATEGORY_THEEND)) {
 						ma.add(m);
 					}
-				} else if (category != Utility.NONE) {
+				} else if (!category.equals(Utility.NONE)) {
 					if (m.getCategory().equals(CATEGORY_OVERWORLD)) {
 						ma.add(m);
 					}
@@ -57,25 +62,45 @@ public class MobMassAdditionManager {
 		return ma;
 	}
 
-	public static void massAdditionMobsInit() {
-		int spawnWeight = 0;
-		String category;
-		int minCount = 0;
-		int maxCount = 0;
+	public static void massAdditionMobsInit(Path csvPath) {
+
 		int linecount = 0;
 		int blankline = 0;
 		int commentcount = 0;
 		String errorField = "first";
 		String line;
 
-		if (massAdditionMobsHashtable.size() > 0) {
+		if (massAdditionMobs.size() > 0) {
 			return;
 		}
-		try (InputStreamReader input = new InputStreamReader(
-				new FileInputStream("config/spawnbalanceutility/MassAdditionMobs.csv"))) {
-			BufferedReader br = new BufferedReader(input);
+		
+	    // Check if the file exists
+	    File f = csvPath.toFile();
+	    if (!f.exists()) {
+	        // Optional: case-insensitive fallback (Linux)
+	        Path fallbackPath = csvPath.getParent().resolve(
+	                csvPath.getFileName().toString().toUpperCase()
+	        );
+	        f = fallbackPath.toFile();
+	        if (!f.exists()) {
+	            LOGGER.info("CSV file not found: " + csvPath);
+	            return;
+	        } else {
+	            csvPath = fallbackPath; // use the fallback
+	        }
+	    }
+
+	    // Now use csvPath to read the file
+	    try (BufferedReader br = Files.newBufferedReader(csvPath, StandardCharsets.UTF_8)) {
+	    	
+			int spawnWeight = 0;
+			int minCount = 0;
+			int maxCount = 0;
 			int lineNumber = 0;
+            int physicalLine = 0;
+            
 			while ((line = br.readLine()) != null) {
+                physicalLine++;
 
 				if (line.trim().isEmpty()) {
 					blankline++;
@@ -86,62 +111,77 @@ public class MobMassAdditionManager {
 					continue;
 				}
 
-				StringTokenizer st = new StringTokenizer(line, ",");
-				linecount++;
+
+                linecount++;
+                errorField = "CSV fields";
+                
+
+                String[] parts = line.split(",", -1);
+                if (parts.length < 7) {
+                    LOGGER.warn("Invalid CSV line (not enough fields) at physical line " + physicalLine);
+                    continue;
+                }
 				try {
-					errorField = "linenumber";
-					lineNumber = Integer.parseInt(st.nextToken().trim());
-					lastgoodline = lineNumber;
-					errorField = "category";
-					category = st.nextToken().trim();
-					errorField = "mobCategory";
-					String mobCategory = st.nextToken().trim();
-					errorField = "modAndMob";
-					String modAndMob = st.nextToken().trim();
-					errorField = "spawnWeight";
-					spawnWeight = Integer.parseInt(st.nextToken().trim());
-					errorField = "minCount";
-					minCount = Integer.parseInt(st.nextToken().trim());
-					errorField = "maxCount";
-					maxCount = Integer.parseInt(st.nextToken().trim());
+                    errorField = "linenumber";
+                    int lineNum = Integer.parseInt(parts[0].trim());
+                    lastgoodlinenumber = lineNum;
 
-					if (minCount < 1) {
-						minCount = 1;
-					}
-					if (maxCount > 12) {
-						maxCount = 12;
-					}
-					if (minCount > maxCount) {
-						minCount = maxCount;
-					}
-					String key = modAndMob;
-					if (!(validMobCategory(mobCategory))) {
-						System.out.println("SpawnBalanceUtility invalid mobCategory " + mobCategory + " on "
-								+ linecount + "th line of MassAdditionMobs.csv.");
-					} else if (spawnWeight > 0) {
-						MassAdditionMobItem bci = new MassAdditionMobItem(lineNumber, category, mobCategory,
+                    errorField = "biomeCategory";
+                    String biomeCategory = parts[1].trim();
+
+                    errorField = "mobCategory";
+                    String mobCategory = parts[2].trim();
+
+                    errorField = "modAndMob";
+                    String modAndMob = parts[3].trim();
+
+                    errorField = "spawnWeight";
+                    spawnWeight = Integer.parseInt(parts[4].trim());
+
+                    errorField = "minCount";
+                    minCount = Integer.parseInt(parts[5].trim());
+
+                    errorField = "maxCount";
+                    maxCount = Integer.parseInt(parts[6].trim());
+
+                    // Clamp logic
+					minCount = Math.max(MyConfig.MOB_MIN_COUNT, minCount);
+					maxCount = Math.min(MyConfig.MOB_MAX_COUNT, maxCount);
+
+                    if (minCount > maxCount) {
+                        minCount = maxCount;
+                    }
+
+                    if (!validMobCategory(mobCategory)) {
+                        LOGGER.warn("Invalid mobCategory '{}' at CSV record {}", mobCategory, linecount);
+                        continue;
+                    }
+					if (spawnWeight > 0) {
+						Utility.debugMsg(1,
+								lineNumber + ", " + lastgoodline + ", " + modAndMob + ", " + mobCategory + ", "
+										+ modAndMob + ", " + spawnWeight + ", " + minCount + ", " + maxCount);
+						MassAdditionMobItem item = new MassAdditionMobItem(lineNumber, biomeCategory, mobCategory,
 								modAndMob, spawnWeight, minCount, maxCount);
-						massAdditionMobsHashtable.put(key, bci); // uses last one in file if dupes
+						massAdditionMobs.put(modAndMob, item); // uses last one in file if dupes
 					}
+					lastgoodline = line;
+                }catch (NumberFormatException e) {
+	                LOGGER.warn("Number format problem reading " + errorField + " on line " + linecount + " with line number " + lineNumber + " of BiomeMobWeight.csv: " + line);
+	                LOGGER.warn("The last good line was: " + lastgoodline);
 
-				} catch (Exception e) {
-					if (!(line.isEmpty())) {
-						LOGGER.warn("SpawnBalanceUtility Error reading field "+errorField+" on "+linecount+"th line of MassAdditionMobs.csv.");
-					} else if (MyConfig.getDebugLevel() > 0) {
-						LOGGER.warn("SpawnBalanceUtility Warning blank line at "+linecount+"th line of MassAdditionMobs.csv.");
-					}
-				}
-			}
-			input.close();
-		} catch (Exception e) {
-			LOGGER.info("SpawnBalanceUtility: Mass Addition Not Configured.  File config/spawnbalanceutility/MassAdditionMobs.csv not found.");
-			// e.printStackTrace();
-		}
-		
-		linecount -= (blankline + commentcount);
-		Summary.setMassAddReadInfo(linecount, linecount - massAdditionMobsHashtable.size());
+	            } catch (Exception e) {
+	                LOGGER.warn("Unexpected problem reading line " + linecount + " with line number " + lineNumber + " of BiomeMobWeight.csv: " + line, e);
+	                LOGGER.warn("The last good line was: " + lastgoodline);
+                }
+            }
 
-	}
+        } catch (IOException e) {
+            LOGGER.error("Error reading MassAdditionMobs.csv", e);
+        }
+
+        linecount -= (blankline + commentcount);
+        Summary.setMassAddReadInfo(linecount, linecount - massAdditionMobs.size());
+    }
 
 	public static boolean validMobCategory(String mobCategory) {
 		for (MobCategory mc : MobCategory.values()) {
@@ -151,6 +191,8 @@ public class MobMassAdditionManager {
 		}
 		return false;
 	}
+	
+	
 	
 	public static void generateMassAdditionMobsStubReport() {
 

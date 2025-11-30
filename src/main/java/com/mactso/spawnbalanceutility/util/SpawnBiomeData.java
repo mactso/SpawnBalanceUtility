@@ -25,6 +25,7 @@ import com.mactso.spawnbalanceutility.manager.MobMassAdditionManager.MassAdditio
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.MappingResolver;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Holder.Reference;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
@@ -52,21 +53,6 @@ public class SpawnBiomeData {
 
 	static {
 		initReports();
-//		mappings.jar entry for /Biome -  
-//         Fabric : 	f	Lcbr$b;	l	field_9329	category
-// note- must have semicolon at end of type "Lcbr$b;"
-
-		// don't need biome category in 1.19
-//		try {
-//			MappingResolver mapping = FabricLoader.getInstance().getMappingResolver();
-//			String fieldName = mapping.mapFieldName("intermediary", "net.minecraft.class_1959", "field_9329",
-//					"Lnet/minecraft/class_1959$class_1961;");
-//			fieldBiomeCategory = Biome.class.getDeclaredField(fieldName); // fieldname makes work in dev and runtime.
-//			fieldBiomeCategory.setAccessible(true);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			LOGGER.error("XXX Unexpected Reflection Failure set Biome.biomeCategory accessible");
-//		}
 	}
 
 //	
@@ -121,8 +107,10 @@ public class SpawnBiomeData {
 
 		int usedTotal = 0;
 		String vCl = "";
+		Map<String, List<BiomeCreatureItem>> myBiomeCreaturesMap = BiomeCreatureManager.getBiomeCreaturesMap();
 
 		for (Biome b : biomeRegistry) {
+
 			ResourceLocation bk = biomeRegistry.getKey(b);
 
 			Optional<Biome> oRE = biomeRegistry.getOptional(bk);
@@ -130,10 +118,12 @@ public class SpawnBiomeData {
 				continue;
 			}
 
-			String bn = biomeRegistry.getKey(b).toString();
-			List<BiomeCreatureItem> modBiomeMobSpawners = BiomeCreatureManager.biomeCreaturesMap.get(bn);
+			String biomeName = biomeRegistry.getKey(b).toString();
+			LOGGER.warn("SBU balancing Spawn Values for Biome: " + biomeName);
+
+			List<BiomeCreatureItem> modBiomeMobSpawners = myBiomeCreaturesMap.get(biomeName);
 			if (modBiomeMobSpawners == null) {
-				LOGGER.warn("No spawn values found for biome: " + bn + " when balance flag is true.");
+				LOGGER.warn("  The biome " + biomeName + " has no mob spawn values to balance.");
 				modBiomeMobSpawners = new ArrayList<>();
 				continue;
 			}
@@ -225,7 +215,7 @@ public class SpawnBiomeData {
 		for (Biome biome : biomeRegistry) {			
 
 			String biomeName = biomeRegistry.getKey(biome).toString();	
-			LOGGER.warn("SBU Biomes: " + biomeName);
+			LOGGER.warn("SBU Fixing Spawn Values for Biome: " + biomeName);
 			
 			
 			MobSpawnSettings msi = biome.getMobSettings();
@@ -235,6 +225,9 @@ public class SpawnBiomeData {
 			if (!oRE.isPresent()) {
 				continue;
 			}
+			
+			//   NOTE: Also Reference<Biome> biomeReference = oRE.get();
+			Holder<Biome> biomeHolder = oRE.get();
 			
 			Map<MobCategory, WeightedList<SpawnerData>> newMap = new HashMap<>();
 			
@@ -278,9 +271,8 @@ public class SpawnBiomeData {
 
 					newFixedList.add(new Weighted<>(spawnerData, newSpawnWeight));
 
-					// Biome o = oRE.get();
-					
-					if (Utility.getMyBC(oRE.get()) == Utility.NETHER) {
+
+					if (Utility.getBiomeCategory(oRE.get()) == Utility.NETHER) {
 						if (spawnerData.type() == EntityType.ZOMBIFIED_PIGLIN)
 							zombifiedPiglinSpawner = true;
 						if (spawnerData.type() == EntityType.GHAST) {
@@ -289,7 +281,7 @@ public class SpawnBiomeData {
 					}
 				}
 
-				List<MassAdditionMobItem> massAddMobs = MobMassAdditionManager.getFilteredList(mc, biomeName);
+				List<MassAdditionMobItem> massAddMobs = MobMassAdditionManager.getFilteredList(mc, Utility.getBiomeCategory(biomeHolder));
 				EntityType<?> et;
 				for (MassAdditionMobItem ma : massAddMobs) {
 
@@ -312,7 +304,7 @@ public class SpawnBiomeData {
 
 				}
 
-				if (Utility.getMyBC(oRE.get()) == Utility.NETHER) {
+				if (Utility.getBiomeCategory(oRE.get()) == Utility.NETHER) {
 					if (mc == MobCategory.MONSTER) {
 						if ((zombifiedPiglinSpawner == false) && (MyConfig.isFixEmptyNether())) {
 							SpawnerData newS = new SpawnerData(EntityType.ZOMBIFIED_PIGLIN,  1, 4);
@@ -389,7 +381,7 @@ public class SpawnBiomeData {
 
 			String bn = biomeRegistry.getKey(biome).toString();
 			// Optional<Holder.Reference<Biome>> oBH = biomeRegistry.getHolder(biomeRegistry.getId(b));
-			String cn = Utility.getMyBC(oRE.get());
+			String cn = Utility.getBiomeCategory(oRE.get());
 			MobSpawnSettings msi = biome.getMobSettings();
 			for (MobCategory mc : MobCategory.values()) {
 				for (Weighted<SpawnerData> wsd : msi.getMobs(mc).unwrap()) {

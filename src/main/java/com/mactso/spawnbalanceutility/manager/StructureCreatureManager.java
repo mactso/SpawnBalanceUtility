@@ -1,87 +1,123 @@
 package com.mactso.spawnbalanceutility.manager;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.StringTokenizer;
 
-import com.mactso.spawnbalanceutility.Main;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.mactso.spawnbalanceutility.config.MyConfig;
 import com.mactso.spawnbalanceutility.util.Summary;
 import com.mactso.spawnbalanceutility.util.Utility;
 
 public class StructureCreatureManager {
 
-	public static Map<String,List<StructureCreatureItem>> structureCreaturesMap = new HashMap<>();
-	public static Hashtable<String, StructureCreatureItem> structureCreatureHashtable = new Hashtable<>();
-	static int lastgoodline = 0;
-	
-	public static void structureCreatureInit() {
-		int spawnWeight = 0;
-		int minCount = 0;
-		int maxCount = 0;
+	private static final Logger LOGGER = LogManager.getLogger();
+
+	public static Map<String, List<StructureCreatureItem>> structureCreaturesMap = new HashMap<>();
+	private static int lastgoodlinenumber = 0;
+	private static String lastgoodline = "Start of the file.  There were no prior good lines.";
+
+	public static void structureCreatureInit(Path csvPath) {
+
 		int linecount = 0;
+		int lineNumber = 0;
 		int addcount = 0;
 		int blankline = 0;
 		int commentcount = 0;
 		String errorField = "first";
 		String line;
-		
+
 		if (structureCreaturesMap.size() > 0) {
 			return;
 		}
-		try (InputStreamReader input = new InputStreamReader(
-				new FileInputStream("config/spawnbalanceutility/StructMobWeight.csv"))) {
-			BufferedReader br = new BufferedReader(input);
+
+		// Check if the file exists
+		File f = csvPath.toFile();
+		if (!f.exists()) {
+			// Optional: case-insensitive fallback (Linux)
+			Path fallbackPath = csvPath.getParent().resolve(csvPath.getFileName().toString().toUpperCase());
+			f = fallbackPath.toFile();
+			if (!f.exists()) {
+				LOGGER.info("CSV file not found: " + csvPath);
+				return;
+			} else {
+				csvPath = fallbackPath; // use the fallback
+			}
+		}
+
+		// Now use csvPath to read the file
+
+		try (BufferedReader br = Files.newBufferedReader(csvPath, StandardCharsets.UTF_8)) {
+			
+			int spawnWeight = 0;
+			int minCount = 0;
+			int maxCount = 0;
+			
 			while ((line = br.readLine()) != null) {
-				
-				if (line.trim().isEmpty()) {
+
+				line = line.trim();
+				if (line.isEmpty()) {
 					blankline++;
 					continue;
 				}
-				
-				
-				if (line.charAt(0)=='*') {
+				if (line.charAt(0) == '*') {
 					commentcount++;
 					continue;
 				}
-				StringTokenizer st = new StringTokenizer(line, ",");
+
+				String[] parts = line.split(",", -1);
+				if (parts.length < 7) {
+					LOGGER.warn("Malformed line in StructMobWeight.csv at line " + linecount + ": " + line);
+					continue;
+				}
+
 				linecount++;
 				try {
 					errorField = "linenumber";
-					int lineNumber = Integer.parseInt( st.nextToken().trim());
-					lastgoodline = lineNumber;
-					errorField = "modAndStructure";
-					String modAndStructure = st.nextToken().trim();
-					errorField = "mobCategory";
-					String mobCategory = st.nextToken().trim();
-					errorField = "modAndMob";
-					String modAndMob = st.nextToken().trim();
-					errorField = "spawnWeight";
-					spawnWeight = Integer.parseInt(st.nextToken().trim());
-					errorField = "minCount";
-					minCount = Integer.parseInt(st.nextToken().trim());
-					errorField = "maxCount";
-					maxCount  = Integer.parseInt(st.nextToken().trim());
+					lineNumber = Integer.parseInt(parts[0].trim());
+					lastgoodlinenumber = lineNumber;
 
-					if (minCount < 1) {
-						minCount = 1;
-					}
-					if (maxCount > 12) {
-						maxCount = 12;
-					}
+					errorField = "modAndStructure";
+					String modAndStructure = parts[1].trim();
+
+					errorField = "mobCategory";
+					String mobCategory = parts[2].trim();
+
+					errorField = "modAndMob";
+					String modAndMob = parts[3].trim();
+
+					errorField = "spawnWeight";
+					spawnWeight = Integer.parseInt(parts[4].trim());
+
+					errorField = "minCount";
+					minCount = Integer.parseInt(parts[5].trim());
+
+					errorField = "maxCount";
+					maxCount = Integer.parseInt(parts[6].trim());
+
+					// clamp counts
+					minCount = Math.max(MyConfig.MOB_MIN_COUNT, minCount);
+					maxCount = Math.min(MyConfig.MOB_MAX_COUNT, maxCount);
 					if (minCount > maxCount) {
 						minCount = maxCount;
-					}					
+					}
+
 					String key = modAndStructure;
-					if (spawnWeight > 0){
-						// TODO set this debug value to 1.
-						Utility.debugMsg(1, lineNumber +", "+ lastgoodline+", "+ modAndStructure+", "+ mobCategory+", "+ modAndMob+", "+ spawnWeight+", "+minCount+", "+ maxCount);
-						StructureCreatureItem bci = new StructureCreatureItem(lineNumber, modAndStructure, mobCategory, modAndMob, spawnWeight, minCount, maxCount);
+					if (spawnWeight > 0) {
+						// DEBUG LEVEL 1: medium-level summary of processed CSV lines (off by default)
+						Utility.debugMsg(1,
+								lineNumber + ", " + lastgoodline + ", " + modAndStructure + ", " + mobCategory + ", "
+										+ modAndMob + ", " + spawnWeight + ", " + minCount + ", " + maxCount);
+						StructureCreatureItem bci = new StructureCreatureItem(lineNumber, modAndStructure, mobCategory,
+								modAndMob, spawnWeight, minCount, maxCount);
 						List<StructureCreatureItem> structureMobList = structureCreaturesMap.get(key);
 						if (structureMobList == null) {
 							structureMobList = new ArrayList<>();
@@ -92,23 +128,29 @@ public class StructureCreatureManager {
 						structureMobList.add(bci);
 						addcount++;
 					}
-					
+					lastgoodline = line;
+				} catch (NumberFormatException e) {
+					LOGGER.warn("Number format problem reading " + errorField + " on line " + linecount
+							+ " with line number " + lineNumber + " of StructMobWeight.csv: " + line);
+					LOGGER.warn("The last good line was: " + lastgoodline);
+
 				} catch (Exception e) {
-					Utility.debugMsg(0, Main.MODID + " Error reading field "+errorField+" on "+linecount+"th line of StructureMobWeight.csv.");
+					LOGGER.warn("Unexpected problem reading line " + linecount + " with line number " + lineNumber
+							+ " of StructMobWeight.csv: " + line, e);
+					LOGGER.warn("The last good line was: " + lastgoodline);
 				}
 			}
-			input.close();
 		} catch (Exception e) {
-			Utility.debugMsg(0, "Warning StructMobWeight.csv not found in subdirectory SpawnBalanceUtility");
-
+			LOGGER.warn(
+					"StructMobWeight.csv not found in config/spawnbalanceutility/ (Remember you rename StructMobWeight.rpt to create it). ");
+			e.printStackTrace();
 		}
-		
+
 		linecount -= (blankline + commentcount);
-		Summary.setStructureReadInfo(linecount, linecount - addcount );
+		Summary.setStructureReadInfo(linecount, linecount - addcount);
 	}
-	
-	
-	public static class StructureCreatureItem  {
+
+	public static class StructureCreatureItem {
 		int lineNumber;
 		String modAndStructure;
 		String mobCategory;
@@ -117,8 +159,8 @@ public class StructureCreatureManager {
 		int minCount;
 		int maxCount;
 
-		public StructureCreatureItem(int lineNumber, String modAndStructure, String mobCategory, 
-				String modAndMob, int spawnWeight, int min, int max) {
+		public StructureCreatureItem(int lineNumber, String modAndStructure, String mobCategory, String modAndMob,
+				int spawnWeight, int min, int max) {
 			this.lineNumber = lineNumber;
 			this.modAndStructure = modAndStructure;
 			this.mobCategory = mobCategory;
@@ -127,7 +169,7 @@ public class StructureCreatureManager {
 			this.minCount = min;
 			this.maxCount = max;
 		}
-		
+
 		public String getModAndStructure() {
 			return modAndStructure;
 		}
@@ -151,7 +193,6 @@ public class StructureCreatureManager {
 		public int getMaxCount() {
 			return maxCount;
 		}
-
 
 	}
 }
