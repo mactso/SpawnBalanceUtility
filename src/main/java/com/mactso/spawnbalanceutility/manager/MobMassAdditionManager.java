@@ -179,7 +179,6 @@ public class MobMassAdditionManager {
             LOGGER.error("Error reading MassAdditionMobs.csv", e);
         }
 
-        linecount -= (blankline + commentcount);
         Summary.setMassAddReadInfo(linecount, linecount - massAdditionMobs.size());
     }
 

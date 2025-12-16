@@ -42,37 +42,18 @@ import net.minecraft.world.level.levelgen.structure.StructureSpawnOverride.Bound
 
 public class SpawnStructData {
 
-	private static Field fieldStructConfig = null;
-
 	private static final Logger LOGGER = LogManager.getLogger();
 
 	static int structureLineNumber = 0;
+	static int structureEventNumber = 0;
 	static Set<String> structuresProcessed = new HashSet<>();
 	static int reportlinenumber = 0;
 
-	static int structureEventNumber = 0;
+
 
 	static {
 		initReports();
 
-		// minecraft/world/level/levelgen/feature/ConfiguredStructureFeature/f_209744_
-		// net/minecraft/world/level/levelgen/feature/Structure/config/
-		// from there, I'll get the spawnOverrides
-
-		// mappings.jar entry for /Biome -
-		// Fabric : f Lcbr$b; l field_9329 category
-		// note- must have semicolon at end of type "Lcbr$b;"
-
-		try {
-			MappingResolver mapping = FabricLoader.getInstance().getMappingResolver();
-			// fabric is still intermediate even with official mapping.
-			String fieldName = mapping.mapFieldName("intermediary", "net.minecraft.class_3195", "field_38429",
-					"Lnet/minecraft/class_3195$class_7302;");
-			fieldStructConfig = Structure.class.getDeclaredField(fieldName);
-			fieldStructConfig.setAccessible(true);
-		} catch (Exception e) {
-			LOGGER.error("XXX Unexpected Reflection Failure trying set Structure.Config record accessible");
-		}
 	}
 
 //
@@ -138,7 +119,9 @@ public class SpawnStructData {
 			List<StructureCreatureItem> structureMobList) {
 
 		Map<MobCategory, StructureSpawnOverride> newMap = new HashMap<>();
-
+		
+		int used = 0;
+		
 		for (MobCategory mc : MobCategory.values()) {
 			List<Weighted<SpawnerData>> newSpawnersList = new ArrayList<>();
 			for (int i = 0; i < structureMobList.size(); i++) {
@@ -164,8 +147,8 @@ public class SpawnStructData {
 				StructureSpawnOverride override = new StructureSpawnOverride(BoundingBoxType.STRUCTURE,
 						WeightedList.of(newSpawnersList));
 				newMap.put(mc, override);
+				used += newSpawnersList.size();
 			}
-
 		}
 
 		if (newMap.isEmpty())
@@ -173,8 +156,9 @@ public class SpawnStructData {
 
 		Structure workStruct = structureEntry.getValue();
 		try {
-			StructureSettings cfg = (StructureSettings) fieldStructConfig.get(workStruct);
-			fieldStructConfig.set(workStruct,
+			Field fieldStructSettings = StructureFieldAccess.get(); 
+			StructureSettings cfg = (StructureSettings) fieldStructSettings.get(workStruct);
+			fieldStructSettings.set(workStruct,
 					new StructureSettings(cfg.biomes(), newMap, cfg.step(), cfg.terrainAdaptation()));
 		} catch (Exception e) {
 			if (MyConfig.getDebugLevel() > 0) {
@@ -184,6 +168,7 @@ public class SpawnStructData {
 						+ " spawnentries map.  Set debugValue to 1 to see stacktrace.");
 			}
 		}
+		Summary.setStructureUsed(used);
 		return;
 	}
 
@@ -237,8 +222,9 @@ public class SpawnStructData {
 		}
 
 		try {
-			StructureSettings cfg = (StructureSettings) fieldStructConfig.get(workStruct);
-			fieldStructConfig.set(workStruct,
+			Field fieldStructSettings = StructureFieldAccess.get(); 
+			StructureSettings cfg = (StructureSettings) fieldStructSettings.get(workStruct);
+			fieldStructSettings.set(workStruct,
 					new StructureSettings(cfg.biomes(), newMap, cfg.step(), cfg.terrainAdaptation()));
 		} catch (Exception e) {
 			LOGGER.error("Failed to fix " + csfName + " spawnentries map.  Set debugValue to 1 to see stacktrace.");

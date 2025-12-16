@@ -48,13 +48,10 @@ public class Summary
 		biomeAdd = 0;
 		biomeChange = 0;
 		biomeDelete = 0;
-	}
-
-	public static void clearStructure()
-	{
 		structureUsed = -1;
 		sFixCount = 0;
 	}
+
 
 	public static void setBiomeReadInfo(int total, int skip)
 	{
