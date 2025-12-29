@@ -1,4 +1,4 @@
-package com.mactso.spawnbalanceutility.config;
+package com.mactso.spawnbalanceutility.modloader.config;
 
 import java.util.HashSet;
 
@@ -6,11 +6,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mactso.spawnbalanceutility.Main;
-import com.mactso.spawnbalanceutility.manager.BiomeCreatureManager;
-import com.mactso.spawnbalanceutility.manager.MobMassAdditionManager;
-import com.mactso.spawnbalanceutility.manager.PsuedoMobManager;
-import com.mactso.spawnbalanceutility.manager.StructureCreatureManager;
+import com.mactso.spawnbalanceutility.modloader.main.Main;
 import com.mactso.spawnbalanceutility.util.Utility;
 
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -160,10 +156,7 @@ public class MyConfig {
 		defaultSpawnWeightList = getSpawnWeightStringSet(extract(COMMON.defaultSpawnWeightList.get()));
 		
 
-		PsuedoMobManager.psuedoMobInit();
-		BiomeCreatureManager.biomeCreatureInit();
-		StructureCreatureManager.structureCreatureInit();
-		MobMassAdditionManager.massAdditionMobsInit();
+
 	}
 	
 
@@ -273,10 +266,10 @@ public class MyConfig {
 
 			builder.push("Spawn Weight Values");
 			minSpawnWeight = builder.comment("minimum Spawn Weight")
-					.translation(Main.MODID + ".config." + "minSpawnWeight").defineInRange("minSpawnWeight", () -> 10, 1, 1000);
+					.translation(Main.MODID + ".config." + "minSpawnWeight").defineInRange("minSpawnWeight", () -> 6, 1, 1000);
 
 			maxSpawnWeight = builder.comment("maximum Spawn Weight")
-					.translation(Main.MODID + ".config." + "maxSpawnWeight").defineInRange("maxSpawnWeight", () -> 80, 1, 1000);
+					.translation(Main.MODID + ".config." + "maxSpawnWeight").defineInRange("maxSpawnWeight", () -> 79, 1, 1000);
 
 			defaultSpawnWeightList = builder.comment("list of Mod:MobName,DefaultSpawnweight;")
 					.translation(Main.MODID + ".config" + "defaultSpawnWeightList")

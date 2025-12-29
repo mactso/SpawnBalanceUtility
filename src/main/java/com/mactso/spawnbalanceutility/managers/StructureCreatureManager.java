@@ -1,4 +1,4 @@
-package com.mactso.spawnbalanceutility.manager;
+package com.mactso.spawnbalanceutility.managers;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import com.mactso.spawnbalanceutility.Main;
+import com.mactso.spawnbalanceutility.modloader.main.Main;
 import com.mactso.spawnbalanceutility.util.Summary;
 import com.mactso.spawnbalanceutility.util.Utility;
 

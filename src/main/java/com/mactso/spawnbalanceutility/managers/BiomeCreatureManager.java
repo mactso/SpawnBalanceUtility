@@ -1,4 +1,4 @@
-package com.mactso.spawnbalanceutility.manager;
+package com.mactso.spawnbalanceutility.managers;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -14,7 +14,7 @@ import java.util.StringTokenizer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mactso.spawnbalanceutility.config.MyConfig;
+import com.mactso.spawnbalanceutility.modloader.config.MyConfig;
 import com.mactso.spawnbalanceutility.util.Summary;
 
 public class BiomeCreatureManager {

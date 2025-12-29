@@ -1,8 +1,9 @@
-package com.mactso.spawnbalanceutility;
+package com.mactso.spawnbalanceutility.modloader.main;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.mactso.spawnbalanceutility.config.MyConfig;
+import com.mactso.spawnbalanceutility.managers.ManagersInitialize;
+import com.mactso.spawnbalanceutility.modloader.config.MyConfig;
 import com.mactso.spawnbalanceutility.util.AllMobEntitiesReport;
 import com.mactso.spawnbalanceutility.util.MyStructureModifier;
 import com.mactso.spawnbalanceutility.util.SpawnBiomeData;
@@ -60,6 +61,9 @@ public class Main {
 	public static class ForgeEvents {
 		@SubscribeEvent(priority = Priority.LOWEST)
 		public static void onServerAboutToStart(ServerAboutToStartEvent event) {
+			
+			ManagersInitialize.init();
+		
 			Summary.clear();
 			if (MyConfig.isBalanceBiomeSpawnValues()) {
 				SpawnBiomeData.balanceBiomeSpawnValues(event.getServer());
@@ -75,7 +79,7 @@ public class Main {
 
 			}
 			
-			AllMobEntitiesReport.doReport();
+			AllMobEntitiesReport.doReport(event.getServer());
 			Summary.report();
 
 //	        	SpawnData.initReports();

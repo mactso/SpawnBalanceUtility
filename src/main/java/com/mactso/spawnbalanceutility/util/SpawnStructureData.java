@@ -15,10 +15,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
-import com.mactso.spawnbalanceutility.Main;
-import com.mactso.spawnbalanceutility.config.MyConfig;
-import com.mactso.spawnbalanceutility.manager.StructureCreatureManager;
-import com.mactso.spawnbalanceutility.manager.StructureCreatureManager.StructureCreatureItem;
+import com.mactso.spawnbalanceutility.managers.StructureCreatureManager;
+import com.mactso.spawnbalanceutility.managers.StructureCreatureManager.StructureCreatureItem;
+import com.mactso.spawnbalanceutility.modloader.config.MyConfig;
+import com.mactso.spawnbalanceutility.modloader.main.Main;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -61,7 +61,7 @@ public class SpawnStructureData {
 
 	public static void onStructure(Holder<Structure> struct, Builder builder) {
 
-		String threadname = Thread.currentThread().getName();
+//		String threadname = Thread.currentThread().getName();  // debugging variable.
 
 		if (MyConfig.isBalanceStructureSpawnValues()) {
 			balanceStructureSpawnValues(struct, builder);
@@ -187,6 +187,8 @@ public class SpawnStructureData {
 
 
 		int used = 0;
+		
+		
 
 		if (structureMobList != null) {
 			for (MobCategory v : MobCategory.values()) {
@@ -198,6 +200,7 @@ public class SpawnStructureData {
 					StructureCreatureItem sci = structureMobList.get(i);
 
 					if (sci.getClassification().equalsIgnoreCase(vCl)) {
+						// note: This has no datapack entities.  refactor to fabric version
 						Optional<EntityType<?>> opt = BuiltInRegistries.ENTITY_TYPE
 								.getOptional(ResourceLocation.parse(sci.getModAndMob()));
 						if (opt.isPresent()) {

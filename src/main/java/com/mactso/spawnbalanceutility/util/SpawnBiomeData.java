@@ -16,17 +16,16 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mactso.spawnbalanceutility.Main;
-import com.mactso.spawnbalanceutility.config.MyConfig;
-import com.mactso.spawnbalanceutility.manager.BiomeCreatureManager;
-import com.mactso.spawnbalanceutility.manager.BiomeCreatureManager.BiomeCreatureItem;
-import com.mactso.spawnbalanceutility.manager.MobMassAdditionManager;
-import com.mactso.spawnbalanceutility.manager.MobMassAdditionManager.MassAdditionMobItem;
+import com.mactso.spawnbalanceutility.managers.BiomeCreatureManager;
+import com.mactso.spawnbalanceutility.managers.BiomeCreatureManager.BiomeCreatureItem;
+import com.mactso.spawnbalanceutility.managers.MobMassAdditionManager;
+import com.mactso.spawnbalanceutility.managers.MobMassAdditionManager.MassAdditionMobItem;
+import com.mactso.spawnbalanceutility.modloader.config.MyConfig;
+import com.mactso.spawnbalanceutility.modloader.main.Main;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -90,8 +89,8 @@ public class SpawnBiomeData {
 
 		for (Biome b : biomeRegistry) {
 			String bn = biomeRegistry.getKey(b).toString();
-			Holder<Biome> biomeHolder = biomeRegistry.wrapAsHolder(b);
-			String bcName = Utility.getMyBC(biomeHolder);
+	//		Holder<Biome> biomeHolder = biomeRegistry.wrapAsHolder(b);
+//			String bcName = Utility.getMyBC(biomeHolder);
 
 			List<BiomeCreatureItem> modBiomeMobSpawners = BiomeCreatureManager.biomeCreaturesMap.get(bn);
 			if (modBiomeMobSpawners == null) {
@@ -104,6 +103,10 @@ public class SpawnBiomeData {
 
 			Map<MobCategory, WeightedList<SpawnerData>> newMap = new HashMap<>();
 			int used = 0;
+			
+		    Registry<EntityType<?>> entityRegistry =
+		            server.registryAccess().lookupOrThrow(Registries.ENTITY_TYPE);
+
 
 			for (MobCategory v : MobCategory.values()) {
 				List<Weighted<SpawnerData>> newFixedList = new ArrayList<>();
@@ -112,9 +115,9 @@ public class SpawnBiomeData {
 					if (biomeCreatureItem.getClassification().equalsIgnoreCase(vCl)) {
 
 
-						Optional<EntityType<?>> opt = BuiltInRegistries.ENTITY_TYPE
+						Optional<EntityType<?>> opt = entityRegistry
 								.getOptional(ResourceLocation.parse((biomeCreatureItem.getModAndMob())));
-						int i = 3;
+
 						if (opt.isPresent()) {
 							if (opt.get().getCategory() == MobCategory.MISC) {
 								Utility.debugMsg(0, Main.MODID + " : " + biomeCreatureItem.getModAndMob()
@@ -209,7 +212,7 @@ public class SpawnBiomeData {
 				// and here we have the classification
 				// looks like the mob name can't be part of the key however.
 				// the hashtable.elements() may give an enumeration from a biome.
-				List<Weighted<SpawnerData>> spawnItems = orgWListSpawners.unwrap();
+//				List<Weighted<SpawnerData>> spawnItems = orgWListSpawners.unwrap();
 				List<Weighted<SpawnerData>> newFixedList = new ArrayList<>();
 				
 				for (Weighted<SpawnerData> weightedEntry : orgWListSpawners.unwrap()) {
