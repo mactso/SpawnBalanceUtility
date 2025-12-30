@@ -11,15 +11,23 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 import com.mactso.spawnbalanceutility.modloader.main.Main;
-import com.mactso.spawnbalanceutility.util.Summary;
-import com.mactso.spawnbalanceutility.util.Utility;
+import com.mactso.spawnbalanceutility.utilities.Summary;
+import com.mactso.spawnbalanceutility.utilities.MyUtilities;
 
 public class StructureCreatureManager {
 
-	public static Map<String,List<StructureCreatureItem>> structureCreaturesMap = new HashMap<>();
+	private static Map<String,List<StructureCreatureItem>> structureCreaturesMap = new HashMap<>();
 	public static Hashtable<String, StructureCreatureItem> structureCreatureHashtable = new Hashtable<>();
 	static int lastgoodline = 0;
 	
+	public static Map<String, List<StructureCreatureItem>> getStructureCreaturesMap() {
+		if (structureCreaturesMap.isEmpty()) {
+			structureCreatureInit();
+		}
+		return structureCreaturesMap;
+	}
+
+
 	public static void structureCreatureInit() {
 		int spawnWeight = 0;
 		int minCount = 0;
@@ -70,7 +78,7 @@ public class StructureCreatureManager {
 					String key = modAndStructure;
 					if (spawnWeight > 0){
 						// TODO set this debug value to 1.
-						Utility.debugMsg(1, lineNumber +", "+ lastgoodline+", "+ modAndStructure+", "+ classification+", "+ modAndMob+", "+ spawnWeight+", "+minCount+", "+ maxCount);
+						MyUtilities.debugMsg(1, lineNumber +", "+ lastgoodline+", "+ modAndStructure+", "+ classification+", "+ modAndMob+", "+ spawnWeight+", "+minCount+", "+ maxCount);
 						StructureCreatureItem bci = new StructureCreatureItem(lineNumber, modAndStructure, classification, modAndMob, spawnWeight, minCount, maxCount);
 						List<StructureCreatureItem> structureMobList = structureCreaturesMap.get(key);
 						if (structureMobList == null) {
@@ -84,12 +92,12 @@ public class StructureCreatureManager {
 					}
 					
 				} catch (Exception e) {
-					Utility.debugMsg(0, Main.MODID + " Error reading field "+errorField+" on "+linecount+"th line of StructureMobWeight.csv.");
+					MyUtilities.debugMsg(0, Main.MODID + " Error reading field "+errorField+" on "+linecount+"th line of StructureMobWeight.csv.");
 				}
 			}
 			input.close();
 		} catch (Exception e) {
-			Utility.debugMsg(0, "Warning StructMobWeight.csv not found in subdirectory SpawnBalanceUtility");
+			MyUtilities.debugMsg(0, "Warning StructMobWeight.csv not found in subdirectory SpawnBalanceUtility");
 
 		}
 		Summary.setStructureReadInfo(linecount, linecount - addcount);

@@ -15,7 +15,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mactso.spawnbalanceutility.modloader.config.MyConfig;
-import com.mactso.spawnbalanceutility.util.Summary;
+import com.mactso.spawnbalanceutility.utilities.Summary;
 
 public class BiomeCreatureManager {
 

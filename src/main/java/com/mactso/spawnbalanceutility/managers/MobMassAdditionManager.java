@@ -13,8 +13,8 @@ import org.apache.logging.log4j.Logger;
 
 import com.mactso.spawnbalanceutility.modloader.config.MyConfig;
 import com.mactso.spawnbalanceutility.modloader.main.Main;
-import com.mactso.spawnbalanceutility.util.Summary;
-import com.mactso.spawnbalanceutility.util.Utility;
+import com.mactso.spawnbalanceutility.utilities.Summary;
+import com.mactso.spawnbalanceutility.utilities.MyUtilities;
 
 import net.minecraft.world.entity.MobCategory;
 
@@ -35,17 +35,17 @@ public class MobMassAdditionManager {
 			if (v.getName().equalsIgnoreCase(m.getClassification())) {
 				if (m.getCategory().equals(CATEGORY_ALL)) {
 					ma.add(m);
-				} else 	if (category == Utility.NETHER) {
+				} else 	if (category == MyUtilities.NETHER) {
 					if (m.getCategory().equals(CATEGORY_NETHER)) {
 						ma.add(m);	
 					}
 				}
-				else if (category == Utility.THEEND) {
+				else if (category == MyUtilities.THEEND) {
 					if (m.getCategory().equals(CATEGORY_THEEND)) {
 						ma.add(m);
 					}
 				}
-				else if (category != Utility.NONE) {
+				else if (category != MyUtilities.NONE) {
 					if (m.getCategory().equals(CATEGORY_OVERWORLD)) {
 						ma.add(m);
 					}
@@ -107,7 +107,7 @@ public class MobMassAdditionManager {
 						}					
 						String key = modAndMob;
 						if (!(validClassification(classification))) {
-							Utility.debugMsg(0, Main.MODID + " Invalid classification "+classification+" on "+linecount+"th line of MassAdditionMobs.csv.");
+							MyUtilities.debugMsg(0, Main.MODID + " Invalid classification "+classification+" on "+linecount+"th line of MassAdditionMobs.csv.");
 						} else if (spawnWeight > 0){
 							MassAdditionMobItem bci = new MassAdditionMobItem(lineNumber, category, classification, modAndMob, spawnWeight, minCount, maxCount);
 							massAdditionMobsHashtable.put(key, bci);  // uses last one in file if dupes

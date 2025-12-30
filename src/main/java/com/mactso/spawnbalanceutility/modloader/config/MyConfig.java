@@ -7,7 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mactso.spawnbalanceutility.modloader.main.Main;
-import com.mactso.spawnbalanceutility.util.Utility;
+import com.mactso.spawnbalanceutility.utilities.MyUtilities;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.BooleanValue;
@@ -83,11 +83,11 @@ public class MyConfig {
 	public static int getDefaultSpawnWeight (String key) {
 		if (defaultSpawnWeightList.isEmpty()) return -999;
 		String[]arrayItem = defaultSpawnWeightList.toArray(new String[0]);
-		Utility.debugMsg(1, "Considering Default Spawn Weight 'key' : " + key);
+		MyUtilities.debugMsg(1, "Considering Default Spawn Weight 'key' : " + key);
 		for (int i = 0; i<defaultSpawnWeightList.size();i++) {
 			String s = arrayItem[i];
 			String[] ret = s.split(",");
-			Utility.debugMsg(1, "ret ='" + ret[0] + "', default spawn weight: " + ret[1]);
+			MyUtilities.debugMsg(1, "ret ='" + ret[0] + "', default spawn weight: " + ret[1]);
 			if (ret[0].equals(key)) {
 				int dSW = Integer.parseInt(ret[1]);  
 				return dSW;
@@ -127,14 +127,14 @@ public class MyConfig {
         if (configEvent.getConfig().getSpec() == MyConfig.COMMON_SPEC)
         {
             if (MyConfig.COMMON_SPEC.isLoaded()) {
-        		Utility.debugMsg(0, Main.MODID + " Reload Configuration");
+        		MyUtilities.debugMsg(0, Main.MODID + " Reload Configuration");
                 bakeConfig();
             }
         }
 	}
 
 	public static void pushDebugValue() {
-		Utility.debugMsg(0, " Change DebugLevel:" + MyConfig.debugLevel);
+		MyUtilities.debugMsg(0, " Change DebugLevel:" + MyConfig.debugLevel);
 		COMMON.debugLevel.set(MyConfig.debugLevel);
 	}
 

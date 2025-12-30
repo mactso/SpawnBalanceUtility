@@ -1,4 +1,4 @@
-package com.mactso.spawnbalanceutility.util;
+package com.mactso.spawnbalanceutility.utilities;
 
 import java.util.ArrayList;
 import java.util.HashMap;

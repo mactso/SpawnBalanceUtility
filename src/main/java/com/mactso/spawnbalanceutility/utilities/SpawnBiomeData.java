@@ -1,4 +1,4 @@
-package com.mactso.spawnbalanceutility.util;
+package com.mactso.spawnbalanceutility.utilities;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -27,7 +27,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.random.Weighted;
 import net.minecraft.util.random.WeightedList;
@@ -116,17 +116,17 @@ public class SpawnBiomeData {
 
 
 						Optional<EntityType<?>> opt = entityRegistry
-								.getOptional(ResourceLocation.parse((biomeCreatureItem.getModAndMob())));
+								.getOptional(Identifier.parse((biomeCreatureItem.getModAndMob())));
 
 						if (opt.isPresent()) {
 							if (opt.get().getCategory() == MobCategory.MISC) {
-								Utility.debugMsg(0, Main.MODID + " : " + biomeCreatureItem.getModAndMob()
+								MyUtilities.debugMsg(0, Main.MODID + " : " + biomeCreatureItem.getModAndMob()
 										+ " is MISC, minecraft is hard coded to change it to minecraft:pig in spawning data.");
 							} else if (opt.get().getCategory() != v) {
 								if (biomeCreatureItem.getModAndMob().equals("minecraft:ocelot")) {
 
 								} else {
-									Utility.debugMsg(0,
+									MyUtilities.debugMsg(0,
 											Main.MODID + " : " + biomeCreatureItem.getModAndMob() + " Error, mob type "
 													+ v + " different than defined for the type of mob "
 													+ opt.get().getCategory());
@@ -136,7 +136,7 @@ public class SpawnBiomeData {
 									biomeCreatureItem.getMaxCount());
 							newFixedList.add(new Weighted<>(newSpawner, biomeCreatureItem.getSpawnWeight()));
 						} else {
-							Utility.debugMsg(0, reportlinenumber + "SpawnBalanceUtility ERROR: Mob "
+							MyUtilities.debugMsg(0, reportlinenumber + "SpawnBalanceUtility ERROR: Mob "
 									+ biomeCreatureItem.getModAndMob() + " not in Entity Type Registry");
 						}
 					}
@@ -185,14 +185,14 @@ public class SpawnBiomeData {
 			
 			LOGGER.warn("SBU Biomes: " + bn);
 			Holder<Biome> biomeHolder = biomeRegistry.wrapAsHolder(b);
-			String bcName = Utility.getMyBC(biomeHolder);
+			String bcName = MyUtilities.getMyBC(biomeHolder);
 
 			MobSpawnSettings msi = b.getMobSettings();
 			Map<MobCategory, WeightedList<SpawnerData>> map = null;
 			try {
 				map = (Map<MobCategory, WeightedList<SpawnerData>>) field.get(msi);
 			} catch (Exception e) {
-				Utility.debugMsg(0, Main.MODID + " XXX Unexpected Reflection Failure getting map");
+				MyUtilities.debugMsg(0, Main.MODID + " XXX Unexpected Reflection Failure getting map");
 				return;
 			}
 
@@ -225,7 +225,7 @@ public class SpawnBiomeData {
 						newSpawnWeight = Math.min(MyConfig.getMaxSpawnWeight(), newSpawnWeight);	
 					}
 
-					Utility.debugMsg(2, Main.MODID + ":" + spawnerData.type().getDescriptionId() + " minspawn change from "
+					MyUtilities.debugMsg(2, Main.MODID + ":" + spawnerData.type().getDescriptionId() + " minspawn change from "
 								+ weightedEntry.weight() + " to " + newSpawnWeight);
 
 					String key = EntityType.getKey(spawnerData.type()).toString();
@@ -244,7 +244,7 @@ public class SpawnBiomeData {
 
 					newFixedList.add(new Weighted<>(spawnerData, newSpawnWeight));
 					
-					if (Utility.getMyBC(biomeHolder) == Utility.NETHER) {
+					if (MyUtilities.getMyBC(biomeHolder) == MyUtilities.NETHER) {
 						if (spawnerData.type() == EntityType.ZOMBIFIED_PIGLIN)
 							zombifiedPiglinSpawner = true;
 						if (spawnerData.type() == EntityType.GHAST) {
@@ -276,7 +276,7 @@ public class SpawnBiomeData {
 
 				}
 
-				if (Utility.getMyBC(biomeHolder) == Utility.NETHER) {
+				if (MyUtilities.getMyBC(biomeHolder) == MyUtilities.NETHER) {
 					if (mc == MobCategory.MONSTER) {
 						if ((zombifiedPiglinSpawner == false) && (MyConfig.isFixEmptyNether())) {
 							SpawnerData newS = new SpawnerData(EntityType.ZOMBIFIED_PIGLIN,  1, 4);
@@ -404,7 +404,7 @@ public class SpawnBiomeData {
 
 		for (Biome b : biomeRegistry) {
 			String bn = biomeRegistry.getKey(b).toString();
-			String cn = Utility.getMyBC(biomeRegistry.wrapAsHolder(b));
+			String cn = MyUtilities.getMyBC(biomeRegistry.wrapAsHolder(b));
 			MobSpawnSettings msi = b.getMobSettings();
 			for (MobCategory v : MobCategory.values()) {
 				for (Weighted<SpawnerData> s : msi.getMobs(v).unwrap()) {

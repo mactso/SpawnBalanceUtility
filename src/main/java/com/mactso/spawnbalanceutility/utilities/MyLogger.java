@@ -1,4 +1,4 @@
-package com.mactso.spawnbalanceutility.util;
+package com.mactso.spawnbalanceutility.utilities;
 
 import java.io.FileOutputStream;
 import java.io.IOException;

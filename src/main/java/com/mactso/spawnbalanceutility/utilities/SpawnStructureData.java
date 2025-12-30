@@ -1,4 +1,4 @@
-package com.mactso.spawnbalanceutility.util;
+package com.mactso.spawnbalanceutility.utilities;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -25,8 +25,8 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.random.Weighted;
 import net.minecraft.world.entity.EntityType;
@@ -178,10 +178,10 @@ public class SpawnStructureData {
 
 		Optional<ResourceKey<Structure>> opKey = struct.unwrapKey(); // event.getStructure().getRegistryName().toString();
 		if (opKey.isPresent()) {
-			key = opKey.get().location().toString();
+			key = opKey.get().identifier().toString();
 		}
 
-		List<StructureCreatureItem> structureMobList = StructureCreatureManager.structureCreaturesMap.get(key);
+		List<StructureCreatureItem> structureMobList = StructureCreatureManager.getStructureCreaturesMap().get(key);
 
 		List<Weighted<SpawnerData>> newSpawnersList = new ArrayList<>();
 
@@ -202,16 +202,16 @@ public class SpawnStructureData {
 					if (sci.getClassification().equalsIgnoreCase(vCl)) {
 						// note: This has no datapack entities.  refactor to fabric version
 						Optional<EntityType<?>> opt = BuiltInRegistries.ENTITY_TYPE
-								.getOptional(ResourceLocation.parse(sci.getModAndMob()));
+								.getOptional(Identifier.parse(sci.getModAndMob()));
 						if (opt.isPresent()) {
 							if (opt.get().getCategory() == MobCategory.MISC) {
-								Utility.debugMsg(0, Main.MODID + " : " + sci.getModAndMob()
+								MyUtilities.debugMsg(0, Main.MODID + " : " + sci.getModAndMob()
 										+ " is MISC, minecraft is hard coded to change it to minecraft:pig in spawning data.");
 							} else if (opt.get().getCategory() != v) {
 								if (sci.getModAndMob().equals("minecraft:ocelot")) {
 
 								} else {
-									Utility.debugMsg(0,
+									MyUtilities.debugMsg(0,
 											Main.MODID + " : " + sci.getModAndMob() + " Error, mob type "
 													+ v + " different than defined for the type of mob "
 													+ opt.get().getCategory());

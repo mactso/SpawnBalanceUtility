@@ -1,4 +1,4 @@
-package com.mactso.spawnbalanceutility.util;
+package com.mactso.spawnbalanceutility.utilities;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -17,7 +17,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BiomeTags;
@@ -50,7 +50,7 @@ import net.minecraft.world.level.levelgen.Heightmap.Types;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
 
-public class Utility {
+public class MyUtilities {
 
 	public static String NONE = "none";
 	public static String BEACH = "beach";
@@ -95,37 +95,37 @@ public class Utility {
 	public static String getMyBC(Holder<Biome> testBiome) {
 
 		if (testBiome.is(BiomeTags.HAS_VILLAGE_DESERT))
-			return Utility.DESERT;
+			return MyUtilities.DESERT;
 		if (testBiome.is(BiomeTags.IS_FOREST))
-			return Utility.FOREST;
+			return MyUtilities.FOREST;
 		if (testBiome.is(BiomeTags.IS_BEACH))
-			return Utility.BEACH;
+			return MyUtilities.BEACH;
 		if (testBiome.is(BiomeTags.HAS_VILLAGE_SNOWY))
-			return Utility.ICY;
+			return MyUtilities.ICY;
 		if (testBiome.is(BiomeTags.IS_JUNGLE))
-			return Utility.JUNGLE;
+			return MyUtilities.JUNGLE;
 		if (testBiome.is(BiomeTags.IS_OCEAN))
-			return Utility.OCEAN;
+			return MyUtilities.OCEAN;
 		if (testBiome.is(BiomeTags.IS_DEEP_OCEAN))
-			return Utility.OCEAN;
+			return MyUtilities.OCEAN;
 		if (testBiome.is(BiomeTags.HAS_VILLAGE_PLAINS))
-			return Utility.PLAINS;
+			return MyUtilities.PLAINS;
 		if (testBiome.is(BiomeTags.IS_RIVER))
-			return Utility.RIVER;
+			return MyUtilities.RIVER;
 		if (testBiome.is(BiomeTags.IS_SAVANNA))
-			return Utility.SAVANNA;
+			return MyUtilities.SAVANNA;
 		if (testBiome.is(BiomeTags.ALLOWS_SURFACE_SLIME_SPAWNS))
-			return Utility.SWAMP;
+			return MyUtilities.SWAMP;
 		if (testBiome.is(BiomeTags.IS_TAIGA))
-			return Utility.TAIGA;
+			return MyUtilities.TAIGA;
 		if (testBiome.is(BiomeTags.IS_BADLANDS))
-			return Utility.BADLANDS;
+			return MyUtilities.BADLANDS;
 		if (testBiome.is(BiomeTags.IS_MOUNTAIN))
-			return Utility.EXTREME_HILLS;
+			return MyUtilities.EXTREME_HILLS;
 		if (testBiome.is(BiomeTags.IS_NETHER))
-			return Utility.NETHER;
+			return MyUtilities.NETHER;
 		if (testBiome.is(BiomeTags.IS_END))
-			return Utility.THEEND;
+			return MyUtilities.THEEND;
 		
 		return NONE;
 
@@ -146,7 +146,7 @@ public class Utility {
 		for (String rlString : MyConfig.getFixSpawnPlacementMobsSet()) {
 			// Parse the entity resource location
 			try {
-				ResourceLocation entityResourceLocation = ResourceLocation.parse((rlString.trim()));
+				Identifier entityResourceLocation = Identifier.parse((rlString.trim()));
 				@Nullable
 				EntityType<?> entityType = ForgeRegistries.ENTITY_TYPES.getValue(entityResourceLocation);
 				if ((entityType != EntityType.PIG) && (entityType.getCategory() != MobCategory.MISC)) {
@@ -155,7 +155,7 @@ public class Utility {
 					// Register the spawn placement on the ground for the entity type
 					try {
 						m.invoke(null, 
-								convert(entity, SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Utility::genericMobSpawnRules));
+								convert(entity, SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, MyUtilities::genericMobSpawnRules));
 					} catch (IllegalStateException e) {
 						LOGGER.error(rlString
 								+ " already had a SpawnPlacement Registered.  It has been replaced.  Did you mean to do that?");
@@ -178,7 +178,7 @@ public class Utility {
 	public static boolean genericMobSpawnRules(EntityType<? extends Mob> entityType, LevelAccessor level,
 			EntitySpawnReason spawnReason, BlockPos pos, RandomSource rand) {
 
-		Utility.debugMsg(1, Main.MODID + " : " + entityType.getDescriptionId());
+		MyUtilities.debugMsg(1, Main.MODID + " : " + entityType.getDescriptionId());
 		if (spawnReason == EntitySpawnReason.SPAWNER)
 				return true;
 
