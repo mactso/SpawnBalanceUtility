@@ -16,10 +16,18 @@ import com.mactso.spawnbalanceutility.util.Utility;
 
 public class StructureCreatureManager {
 
-	public static Map<String,List<StructureCreatureItem>> structureCreaturesMap = new HashMap<>();
+	private static Map<String,List<StructureCreatureItem>> structureCreaturesMap = new HashMap<>();
 	public static Hashtable<String, StructureCreatureItem> structureCreatureHashtable = new Hashtable<>();
 	static int lastgoodline = 0;
 	
+	public static Map<String, List<StructureCreatureItem>> getStructureCreaturesMap() {
+		if (structureCreaturesMap.isEmpty()) {
+			structureCreatureInit();
+		}
+		return structureCreaturesMap;
+	}
+
+
 	public static void structureCreatureInit() {
 		int spawnWeight = 0;
 		int minCount = 0;

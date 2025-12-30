@@ -181,7 +181,7 @@ public class SpawnStructureData {
 			key = opKey.get().location().toString();
 		}
 
-		List<StructureCreatureItem> structureMobList = StructureCreatureManager.structureCreaturesMap.get(key);
+		List<StructureCreatureItem> structureMobList = StructureCreatureManager.getStructureCreaturesMap().get(key);
 
 		List<Weighted<SpawnerData>> newSpawnersList = new ArrayList<>();
 
